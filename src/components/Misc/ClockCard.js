@@ -14,7 +14,7 @@ export default function ClockCard() {
     >
       <motion.div
         initial={{ height: 0 }}
-        animate={{ height: `${50}%` }}
+        animate={{ height: `${30}%` }}
         transition={{ ease: "easeOut", duration: 2 }}
         className="absolute bottom-0 w-full overflow-hidden"
       >

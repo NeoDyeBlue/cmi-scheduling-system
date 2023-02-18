@@ -16,8 +16,8 @@ export default function Sidebar() {
   return (
     <nav
       className={`
-      relative flex h-full w-full max-w-[250px] flex-col justify-between gap-4 border-r border-gray-200
-    bg-white px-4 py-6 md:pl-0 ${isMinimized ? "items-center" : ""}`}
+      relative flex h-full w-full max-w-[300px] flex-col justify-between gap-4 border-r border-gray-200
+    bg-white p-6 ${isMinimized ? "items-center" : ""}`}
     >
       {/* logo */}
       <div className="flex min-h-[64px] items-center gap-2">

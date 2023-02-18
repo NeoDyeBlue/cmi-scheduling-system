@@ -2,11 +2,11 @@ import Sidebar from "../Navigation/Sidebar";
 
 export default function MainLayout({ children }) {
   return (
-    <div className="container mx-auto flex h-screen min-h-[620px] w-full gap-4 px-4 lg:px-0">
-      <div className="hidden md:block">
+    <div className="relative mx-auto flex min-h-screen w-full 2xl:container">
+      <div className="sticky top-0 z-[999] hidden h-screen md:block">
         <Sidebar />
       </div>
-      <div className="w-full">{children}</div>
+      <div className="h-screen w-full overflow-y-auto">{children}</div>
     </div>
   );
 }

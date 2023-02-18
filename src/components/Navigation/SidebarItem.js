@@ -14,7 +14,7 @@ export default function SidebarItem({ icon, link, name }) {
           ${
             currentRoute == link
               ? "bg-primary-100 font-semibold text-primary-700"
-              : "hover:bg-primary-100"
+              : "hover:bg-gray-100"
           }`}
       >
         {/* icon */}
@@ -29,7 +29,7 @@ export default function SidebarItem({ icon, link, name }) {
           {icon}
         </div>
         {/* link name */}
-        {!isMinimized && <p>{name}</p>}
+        {!isMinimized && <p className="mr-4">{name}</p>}
       </Link>
     </li>
   );
