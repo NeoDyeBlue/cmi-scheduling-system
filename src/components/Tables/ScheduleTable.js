@@ -1,7 +1,8 @@
 import { useTable } from "react-table";
 import { useMemo } from "react";
 import Image from "next/image";
-import { MdCircle, MdIncompleteCircle } from "react-icons/md";
+import TimeProgress from "../Misc/TimeProgress";
+import TeacherTypeBadge from "../Misc/TeacherTypeBadge";
 
 export default function ScheduleTable({ data }) {
   const columns = useMemo(
@@ -23,12 +24,8 @@ export default function ScheduleTable({ data }) {
         accessor: "room",
       },
       {
-        Header: "Time-start",
-        accessor: "timeStart",
-      },
-      {
-        Header: "Time-end",
-        accessor: "timeEnd",
+        Header: "Time Progress",
+        accessor: "time",
       },
     ],
     []
@@ -44,7 +41,7 @@ export default function ScheduleTable({ data }) {
           <tr
             key={index}
             {...headerGroup.getHeaderGroupProps()}
-            className="border-b border-gray-200"
+            className="border-b border-gray-300"
           >
             {headerGroup.headers.map((column, index) => (
               <th
@@ -87,13 +84,6 @@ export default function ScheduleTable({ data }) {
                           {cell.value.firstName} {cell.value.lastName}
                         </p>
                       </div>
-                      {/* <img
-                        src={cell.row.original.image}
-                        alt={cell.row.original.alt}
-                        width="50"
-                        height="50"
-                      /> */}
-                      {/* {cell.render("Cell")} */}
                     </td>
                   );
                 }
@@ -103,26 +93,23 @@ export default function ScheduleTable({ data }) {
                     {...cell.getCellProps()}
                     className="px-4 py-3"
                   >
-                    {cell.value == "part-time" || cell.value == "full-time" ? (
-                      <p
-                        className={`flex w-fit items-center gap-1 whitespace-nowrap rounded-full border-0 px-2 py-[0.1rem] 
-                        text-xs font-medium 
-                        ${
-                          cell.value == "part-time"
-                            ? "border-warning-600 bg-warning-100 text-warning-600"
-                            : "border-success-600 bg-success-100 text-success-600"
-                        }`}
-                      >
-                        {cell.value == "part-time" ? (
-                          <MdIncompleteCircle size={12} />
-                        ) : (
-                          <MdCircle size={12} />
-                        )}
-                        {cell.value}
-                      </p>
-                    ) : (
-                      cell.render("Cell")
+                    {(cell.value == "part-time" ||
+                      cell.value == "full-time") && (
+                      <TeacherTypeBadge
+                        isPartTime={cell.value == "part-time"}
+                      />
                     )}
+                    {cell.value.start && cell.value.end && (
+                      <TimeProgress
+                        start={cell.value.start}
+                        end={cell.value.end}
+                      />
+                    )}
+                    {!(
+                      cell.value == "part-time" || cell.value == "full-time"
+                    ) &&
+                      !(cell.value.start && cell.value.end) &&
+                      cell.value}
                   </td>
                 );
               })}

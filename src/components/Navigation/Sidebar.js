@@ -2,10 +2,15 @@ import Image from "next/image";
 import SidebarItem from "./SidebarItem";
 import {
   MdOutlineHome,
+  MdHome,
   MdOutlineDoorFront,
+  MdDoorFront,
   MdOutlineLightbulb,
+  MdLightbulb,
   MdOutlineGroups,
-  MdOutlineSchedule,
+  MdGroups,
+  MdOutlineAccessTime,
+  MdAccessTimeFilled,
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
 } from "react-icons/md";
@@ -16,7 +21,7 @@ export default function Sidebar() {
   return (
     <nav
       className={`
-      relative flex h-full w-full max-w-[300px] flex-col justify-between gap-4 border-r border-gray-200
+      relative flex h-full w-full max-w-[300px] flex-col justify-between gap-4 border-r border-gray-300
     bg-white p-6 ${isMinimized ? "items-center" : ""}`}
     >
       {/* logo */}
@@ -42,27 +47,32 @@ export default function Sidebar() {
       {/* menu */}
       <ul className="flex flex-col gap-2">
         <SidebarItem
-          icon={<MdOutlineHome size={24} />}
+          outlinedIcon={<MdOutlineHome size={24} />}
+          filledIcon={<MdHome size={24} />}
           link="/"
           name="Dashboard"
         />
         <SidebarItem
-          icon={<MdOutlineSchedule size={24} />}
+          outlinedIcon={<MdOutlineAccessTime size={24} />}
+          filledIcon={<MdAccessTimeFilled size={24} />}
           link="/schedules"
           name="Schedules"
         />
         <SidebarItem
-          icon={<MdOutlineGroups size={24} />}
+          outlinedIcon={<MdOutlineGroups size={24} />}
+          filledIcon={<MdGroups size={24} />}
           link="/teachers"
           name="Teachers"
         />
         <SidebarItem
-          icon={<MdOutlineLightbulb size={24} />}
+          outlinedIcon={<MdOutlineLightbulb size={24} />}
+          filledIcon={<MdLightbulb size={24} />}
           link="/subjects"
           name="Subjects"
         />
         <SidebarItem
-          icon={<MdOutlineDoorFront size={24} />}
+          outlinedIcon={<MdOutlineDoorFront size={24} />}
+          filledIcon={<MdDoorFront size={24} />}
           link="/rooms"
           name="Rooms"
         />
@@ -70,7 +80,7 @@ export default function Sidebar() {
       <p className="text-sm">{isMinimized ? "❣️" : "In development"}</p>
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className="absolute bottom-[15%] right-[-15px] aspect-square h-[30px] w-[30px] rounded-full border border-gray-200 bg-white p-1
+        className="absolute bottom-[15%] right-[-15px] aspect-square h-[30px] w-[30px] rounded-full border border-gray-300 bg-white p-1
       text-center shadow-md"
       >
         {!isMinimized ? (

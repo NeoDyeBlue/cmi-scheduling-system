@@ -23,3 +23,7 @@ body,
     @apply relative font-body text-ship-gray-900;
   }
 }
+
+.clip-path {
+  clip-path: inset(0 0 0 50%);
+}

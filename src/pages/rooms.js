@@ -10,7 +10,14 @@ export default function Rooms() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>content</main>
+      <div className="flex w-full flex-col gap-6 p-6">
+        {/* Header */}
+        <div>
+          <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
+            Rooms
+          </h1>
+        </div>
+      </div>
     </>
   );
 }

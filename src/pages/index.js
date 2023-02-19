@@ -3,81 +3,20 @@ import dynamic from "next/dynamic";
 import ScheduleTable from "@/components/Tables/ScheduleTable";
 import { useMemo } from "react";
 import MainLayout from "@/components/Layouts/MainLayout";
-const ClockCard = dynamic(() => import("@/components/Misc/ClockCard"), {
+const ClockCard = dynamic(() => import("@/components/Cards/ClockCard"), {
   ssr: false,
 });
+import CountCard from "@/components/Cards/CountCard";
+import {
+  MdCircle,
+  MdIncompleteCircle,
+  MdGroups,
+  MdAccessTimeFilled,
+} from "react-icons/md";
+import currentSchedules from "@/lib/test_data/current-schedules";
 
 export default function Home() {
-  const sampleData = useMemo(
-    () => [
-      {
-        teacher: {
-          firstName: "John",
-          lastName: "Doe",
-          type: "part-time",
-          image:
-            "https://res.cloudinary.com/dppgyhery/image/upload/v1631456010/samples/people/kitchen-bar.jpg",
-        },
-        subject: "APPSDEV",
-        room: "CB206",
-        timeStart: "8:00 AM",
-        timeEnd: "11:00 AM",
-      },
-      {
-        teacher: {
-          firstName: "John",
-          lastName: "Doe",
-          type: "part-time",
-          image:
-            "https://res.cloudinary.com/dppgyhery/image/upload/v1631456010/samples/people/kitchen-bar.jpg",
-        },
-        subject: "APPSDEV",
-        room: "CB206",
-        timeStart: "8:00 AM",
-        timeEnd: "11:00 AM",
-      },
-      {
-        teacher: {
-          firstName: "John",
-          lastName: "Doe",
-          type: "part-time",
-          image:
-            "https://res.cloudinary.com/dppgyhery/image/upload/v1631456010/samples/people/kitchen-bar.jpg",
-        },
-        subject: "APPSDEV",
-        room: "CB206",
-        timeStart: "8:00 AM",
-        timeEnd: "11:00 AM",
-      },
-      {
-        teacher: {
-          firstName: "Jane",
-          lastName: "Doe",
-          type: "full-time",
-          image:
-            "https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg",
-        },
-        subject: "NLP",
-        room: "CB205",
-        timeStart: "8:00 AM",
-        timeEnd: "11:00 AM",
-      },
-      {
-        teacher: {
-          firstName: "Jana",
-          lastName: "Doe",
-          type: "full-time",
-          image:
-            "https://res.cloudinary.com/dppgyhery/image/upload/v1631456016/samples/people/bicycle.jpg",
-        },
-        subject: "SOFTENG",
-        room: "CB205",
-        timeStart: "11:00 AM",
-        timeEnd: "2:00 PM",
-      },
-    ],
-    []
-  );
+  const sampleData = useMemo(() => currentSchedules, []);
   return (
     <>
       <Head>
@@ -99,22 +38,30 @@ export default function Home() {
             <ClockCard />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col justify-center gap-1 rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Total Teachers</p>
-              <p className="font-display text-2xl font-semibold">100</p>
-            </div>
-            <div className="flex flex-col justify-center gap-1 rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Part-time Teachers</p>
-              <p className="font-display text-2xl font-semibold">100</p>
-            </div>
-            <div className="flex flex-col justify-center gap-1 rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Full-time Teachers</p>
-              <p className="font-display text-2xl font-semibold">100</p>
-            </div>
-            <div className="flex flex-col justify-center gap-1 rounded-lg border border-gray-200 p-4">
-              <p className="text-sm text-gray-500">Unscheduled Teachers</p>
-              <p className="font-display text-2xl font-semibold">100</p>
-            </div>
+            <CountCard
+              label="Total Teachers"
+              count={100}
+              icon={<MdGroups size={16} />}
+              // iconColor={theme.colors.primary[500]}
+            />
+            <CountCard
+              label="Part-time Teachers"
+              count={50}
+              icon={<MdIncompleteCircle size={16} />}
+              // iconColor={theme.colors.primary[500]}
+            />
+            <CountCard
+              label="Full-time Teachers"
+              count={50}
+              icon={<MdCircle size={16} />}
+              // iconColor={theme.colors.primary[500]}
+            />
+            <CountCard
+              label="Unscheduled Teachers"
+              count={0}
+              icon={<MdAccessTimeFilled size={16} />}
+              // iconColor={theme.colors.primary[500]}
+            />
           </div>
         </div>
         {/* Table */}
