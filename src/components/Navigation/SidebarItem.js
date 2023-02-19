@@ -33,7 +33,7 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
             : outlinedIcon || filledIcon}
         </div>
         {/* link name */}
-        {!isMinimized && <p className="mr-4">{name}</p>}
+        <p className={`mr-4 ${isMinimized ? "block md:hidden" : ""}`}>{name}</p>
       </Link>
     </li>
   );

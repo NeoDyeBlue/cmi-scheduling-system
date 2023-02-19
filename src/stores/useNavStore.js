@@ -2,14 +2,14 @@ import { create } from "zustand";
 
 const useNavStore = create((set) => ({
   isMinimized: false,
-  width: 0,
+  isOpen: false,
   setIsMinimized: (payload) =>
     set(() => ({
       isMinimized: payload,
     })),
-  setWidth: (payload) =>
+  setIsOpen: (payload) =>
     set(() => ({
-      width: payload,
+      isOpen: payload,
     })),
 }));
 

@@ -13,28 +13,37 @@ import {
   MdAccessTimeFilled,
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
+  MdClose,
 } from "react-icons/md";
 import useNavStore from "@/stores/useNavStore";
 
 export default function Sidebar() {
-  const { isMinimized, setIsMinimized } = useNavStore();
+  const { isMinimized, setIsMinimized, setIsOpen } = useNavStore();
   return (
     <nav
       className={`
-      relative flex h-full w-full max-w-[300px] flex-col justify-between gap-4 border-r border-gray-300
-    bg-white p-6 ${isMinimized ? "items-center" : ""}`}
+      relative flex h-full w-full max-w-[250px] flex-col justify-between gap-4 border-r border-gray-300 bg-white
+    p-6 md:max-w-[300px] ${isMinimized ? "md:items-center" : ""}`}
     >
       {/* logo */}
-      <div className="flex min-h-[64px] items-center gap-2">
-        <div className="relative h-[60px] w-[60px] flex-shrink-0 overflow-hidden">
-          <Image
-            src={"/logo/cmi.png"}
-            alt="college of mary immaculate logo"
-            fill
-          />
-        </div>
-        {!isMinimized && (
-          <div className="flex flex-col">
+      <div className="flex flex-col gap-4">
+        <button
+          onClick={() => setIsOpen(false)}
+          className="self-start md:hidden"
+        >
+          <MdClose size={32} />
+        </button>
+        <div className="flex min-h-[64px] items-center gap-2">
+          <div className="relative h-[60px] w-[60px] flex-shrink-0 overflow-hidden">
+            <Image
+              src={"/logo/cmi.png"}
+              alt="college of mary immaculate logo"
+              fill
+            />
+          </div>
+          <div
+            className={`flex flex-col ${isMinimized ? "block md:hidden" : ""}`}
+          >
             <p className="text-md font-display font-semibold text-primary-900">
               College of Mary Immaculate
             </p>
@@ -42,10 +51,10 @@ export default function Sidebar() {
               scheduler
             </p>
           </div>
-        )}
+        </div>
       </div>
       {/* menu */}
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-2" onClick={() => setIsOpen(false)}>
         <SidebarItem
           outlinedIcon={<MdOutlineHome size={24} />}
           filledIcon={<MdHome size={24} />}
@@ -80,8 +89,8 @@ export default function Sidebar() {
       <p className="text-sm">{isMinimized ? "❣️" : "In development"}</p>
       <button
         onClick={() => setIsMinimized(!isMinimized)}
-        className="absolute bottom-[15%] right-[-15px] aspect-square h-[30px] w-[30px] rounded-full border border-gray-300 bg-white p-1
-      text-center shadow-md"
+        className="absolute bottom-[15%] right-[-15px] hidden aspect-square h-[30px] w-[30px] rounded-full border border-gray-300 bg-white
+      p-1 text-center shadow-md md:block"
       >
         {!isMinimized ? (
           <MdKeyboardArrowLeft size={20} />

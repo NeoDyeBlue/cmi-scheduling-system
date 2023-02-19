@@ -12,6 +12,7 @@ import {
   MdIncompleteCircle,
   MdGroups,
   MdAccessTimeFilled,
+  MdMenu,
 } from "react-icons/md";
 import currentSchedules from "@/lib/test_data/current-schedules";
 
@@ -26,12 +27,6 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
-        {/* Header */}
-        <div>
-          <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
-            Dashboard
-          </h1>
-        </div>
         {/* Cards */}
         <div className="flex grid-cols-2 flex-col gap-4 md:grid">
           <div>
@@ -84,5 +79,5 @@ export default function Home() {
 }
 
 Home.getLayout = function getLayout(page) {
-  return <MainLayout>{page}</MainLayout>;
+  return <MainLayout name="Dashboard">{page}</MainLayout>;
 };
