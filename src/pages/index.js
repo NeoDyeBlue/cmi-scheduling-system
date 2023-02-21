@@ -12,7 +12,6 @@ import {
   MdIncompleteCircle,
   MdGroups,
   MdAccessTimeFilled,
-  MdMenu,
 } from "react-icons/md";
 import currentSchedules from "@/lib/test_data/current-schedules";
 

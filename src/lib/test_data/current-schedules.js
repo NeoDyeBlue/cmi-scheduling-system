@@ -10,8 +10,8 @@ const currentSchedules = [
     subject: "APPSDEV",
     room: "CB206",
     time: {
-      start: "8:00 AM",
-      end: "11:00 AM",
+      start: "8:00 AM", // this should be in timestamp or hh:mm:ss
+      end: "11:00 AM", // this should be in timestamp or hh:mm:ss
     },
   },
   {

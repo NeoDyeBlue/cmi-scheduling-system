@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "react-tooltip/dist/react-tooltip.css";
 import { SWRConfig } from "swr";
 import { Karla, Poppins } from "@next/font/google";
 import { Toaster } from "react-hot-toast";
