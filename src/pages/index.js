@@ -2,7 +2,7 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import ScheduleTable from "@/components/Tables/ScheduleTable";
 import { useMemo } from "react";
-import MainLayout from "@/components/Layouts/MainLayout";
+import { MainLayout } from "@/components/Layouts";
 const ClockCard = dynamic(() => import("@/components/Cards/ClockCard"), {
   ssr: false,
 });

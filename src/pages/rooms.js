@@ -1,11 +1,17 @@
 import Head from "next/head";
-import MainLayout from "@/components/Layouts/MainLayout";
-import RoomTable from "@/components/Tables/RoomTable";
+import { MainLayout } from "@/components/Layouts";
+import { RoomTable } from "@/components/Tables";
 import { rooms } from "@/lib/test_data/rooms";
 import { useMemo } from "react";
+import { SearchForm } from "@/components/Forms";
+import { CreateButton } from "@/components/Buttons";
+import { useState } from "react";
+import { Modal } from "@/components/Modals";
+import { RoomForm } from "@/components/Forms";
 
 export default function Rooms() {
   const roomsData = useMemo(() => rooms, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <Head>
@@ -15,6 +21,17 @@ export default function Rooms() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="New Room"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <RoomForm onCancel={() => setIsModalOpen(false)} />
+        </Modal>
+        <div className="flex items-center justify-between gap-4">
+          <SearchForm placeholder="Search Rooms" />
+          <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
+        </div>
         <div className="overflow-x-auto">
           <RoomTable data={roomsData} />
         </div>
