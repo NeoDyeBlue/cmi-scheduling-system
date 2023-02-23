@@ -33,60 +33,109 @@ export default function RoomTableSchedule({
         accessor: "time",
         fixed: "left",
       },
+      // {
+      //   Header: "Days",
+      //   fixed: "top",
+      //   columns: [
+      //     {
+      //       Header: "Monday",
+      //       // id: "monday",
+      //       dayIndex: 1,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "monday"),
+      //     },
+      //     {
+      //       Header: "Tuesday",
+      //       // id: "tuesday",
+      //       dayIndex: 2,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "tuesday"),
+      //     },
+      //     {
+      //       Header: "Wednesday",
+      //       // id: "wednesday",
+      //       dayIndex: 3,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "wednesday"),
+      //     },
+      //     {
+      //       Header: "Thursday",
+      //       // id: "thursday",
+      //       dayIndex: 4,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "thursday"),
+      //     },
+      //     {
+      //       Header: "Friday",
+      //       // id: "friday",
+      //       dayIndex: 5,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "friday"),
+      //     },
+      //     {
+      //       Header: "Saturday",
+      //       // id: "saturday",
+      //       dayIndex: 6,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "saturday"),
+      //     },
+      //     {
+      //       Header: "Sunday",
+      //       // id: "sunday",
+      //       dayIndex: 7,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "sunday"),
+      //     },
+      //   ],
+      // },
       {
-        Header: "Days",
-        fixed: "top",
-        columns: [
-          {
-            Header: "Monday",
-            // id: "monday",
-            dayIndex: 1,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "monday"),
-          },
-          {
-            Header: "Tuesday",
-            // id: "tuesday",
-            dayIndex: 2,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "tuesday"),
-          },
-          {
-            Header: "Wednesday",
-            // id: "wednesday",
-            dayIndex: 3,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "wednesday"),
-          },
-          {
-            Header: "Thursday",
-            // id: "thursday",
-            dayIndex: 4,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "thursday"),
-          },
-          {
-            Header: "Friday",
-            // id: "friday",
-            dayIndex: 5,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "friday"),
-          },
-          {
-            Header: "Saturday",
-            // id: "saturday",
-            dayIndex: 6,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "saturday"),
-          },
-          {
-            Header: "Sunday",
-            // id: "sunday",
-            dayIndex: 7,
-            enableRowSpan: true,
-            accessor: () => findSchedule(data, "sunday"),
-          },
-        ],
+        Header: "Monday",
+        // id: "monday",
+        dayIndex: 1,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "monday"),
+      },
+      {
+        Header: "Tuesday",
+        // id: "tuesday",
+        dayIndex: 2,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "tuesday"),
+      },
+      {
+        Header: "Wednesday",
+        // id: "wednesday",
+        dayIndex: 3,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "wednesday"),
+      },
+      {
+        Header: "Thursday",
+        // id: "thursday",
+        dayIndex: 4,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "thursday"),
+      },
+      {
+        Header: "Friday",
+        // id: "friday",
+        dayIndex: 5,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "friday"),
+      },
+      {
+        Header: "Saturday",
+        // id: "saturday",
+        dayIndex: 6,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "saturday"),
+      },
+      {
+        Header: "Sunday",
+        // id: "sunday",
+        dayIndex: 7,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, "sunday"),
       },
       {
         Header: "Time",
@@ -112,45 +161,12 @@ export default function RoomTableSchedule({
     return schedule ? schedule.slots : [];
   }
 
-  function useInstance(instance) {
-    const { allColumns } = instance;
-
-    let rowSpanHeaders = [];
-
-    allColumns.forEach((column) => {
-      const { id, enableRowSpan } = column;
-
-      if (enableRowSpan !== undefined) {
-        rowSpanHeaders = [...rowSpanHeaders, { id, topCellIndex: 0 }];
-      }
-    });
-
-    console.log(allColumns);
-
-    Object.assign(instance, { rowSpanHeaders });
-  }
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    rowSpanHeaders,
-  } = useTable({ columns, data: newData }, useGroupBy, (hooks) => {
-    hooks.useInstance.push(useInstance);
-  });
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable({ columns, data: newData });
 
   function createScheduleCell(slot, cell, cellIndex) {
     const timeStartIndex = timeData.indexOf(slot.time.start);
     const timeEndIndex = timeData.indexOf(slot.time.end);
-
-    // console.log(cell.column.dayIndex, timeEndIndex + 1 - timeStartIndex);
-
-    // lastSpan.current.column = cell.column.dayIndex;
-    // lastSpan.current.row = timeEndIndex + 1 - timeStartIndex;
-
-    // console.log(lastSpan);
 
     return (
       <td
@@ -158,7 +174,7 @@ export default function RoomTableSchedule({
         {...cell.getCellProps({
           rowSpan: timeEndIndex + 1 - timeStartIndex,
         })}
-        className="min-w-[150px] border border-success-200 bg-success-100 px-4 py-3 text-center"
+        className="min-w-[150px] border border-success-200 bg-success-100 px-4 py-3 text-center text-sm"
       >
         <div className="flex flex-col items-center justify-center gap-2 p-4">
           <Image
@@ -180,7 +196,7 @@ export default function RoomTableSchedule({
   return (
     <table
       {...getTableProps()}
-      className="w-full table-fixed border border-gray-200"
+      className="w-full border border-gray-200 lg:table-fixed"
     >
       <thead className="p-4 text-center font-display text-xs font-semibold">
         {headerGroups.map((headerGroup, index) => (
@@ -204,11 +220,16 @@ export default function RoomTableSchedule({
       <tbody {...getTableBodyProps()}>
         {rows.map((row, rowIndex) => {
           prepareRow(row);
+          if (rowIndex == 0) {
+            row.rowSpans = [];
+          } else {
+            row.rowSpans =
+              rows[rowIndex - 1]?.rowSpans?.filter(
+                (r) => r.spanToRow >= rowIndex
+              ) || [];
+          }
           for (let j = 0; j < row.allCells.length; j++) {
             let cell = row.allCells[j];
-            let rowSpanHeader = rowSpanHeaders.find(
-              (x) => x.id === cell.column.id
-            );
 
             if (cell.column?.enableRowSpan) {
               let slot =
@@ -223,32 +244,11 @@ export default function RoomTableSchedule({
                 const timeEndIndex = timeData.indexOf(slot.time.end);
 
                 rowSpanToIndex = timeEndIndex + 1;
-              }
 
-              if (rowSpanHeader !== undefined) {
-                // console.log(
-                //   rowSpanHeader.topCellIndex,
-                //   rowSpanToIndex,
-                //   rowSpanHeader.topCellIndex > rowSpanToIndex
-                // );
-                if (rowSpanHeader.topCellIndex > rowSpanToIndex) {
-                  cell.isRowSpanned = false;
-                } else {
-                  rows[rowSpanHeader.topCellIndex].allCells[j].rowSpan++;
-                  cell.isRowSpanned = true;
-                }
-                // if (
-                //   rowSpanHeader.topCellValue === null ||
-                //   rowSpanHeader.topCellValue !== cell.value
-                // ) {
-                //   cell.isRowSpanned = false;
-                //   rowSpanHeader.topCellValue = cell.value;
-                //   rowSpanHeader.topCellIndex = rowIndex;
-                //   cell.rowSpan = 1;
-                // } else {
-                //   rows[rowSpanHeader.topCellIndex].allCells[j].rowSpan++;
-                //   cell.isRowSpanned = true;
-                // }
+                row.rowSpans.push({
+                  index: j,
+                  spanToRow: rowSpanToIndex,
+                });
               }
             }
           }
@@ -278,14 +278,13 @@ export default function RoomTableSchedule({
                   if (slot) {
                     return createScheduleCell(slot, cell, cellIndex, rowIndex);
                   } else {
-                    return (
+                    let span = row.rowSpans.find((r) => r.index == cellIndex);
+                    return span && span.spanToRow > rowIndex ? null : (
                       <td
                         key={cellIndex}
                         {...cell.getCellProps()}
                         className={`min-w-[150px] border border-gray-200 px-4 py-3 text-center text-xs`}
-                      >
-                        {cellIndex}
-                      </td>
+                      ></td>
                     );
                   }
                 }

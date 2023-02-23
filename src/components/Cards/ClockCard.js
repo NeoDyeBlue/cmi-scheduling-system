@@ -41,8 +41,8 @@ export default function ClockCard() {
           </defs>
         </Wave>
       </motion.div>
-      <p className="z-50">{format(dateTime, "PPPP")}</p>
-      <p className="z-50 font-display text-4xl font-semibold">
+      <p className="z-10">{format(dateTime, "PPPP")}</p>
+      <p className="z-10 font-display text-4xl font-semibold">
         {format(dateTime, "p")}
       </p>
     </div>
