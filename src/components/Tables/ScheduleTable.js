@@ -58,6 +58,7 @@ export default function ScheduleTable({ data }) {
       <tbody {...getTableBodyProps()}>
         {rows.map((row, index) => {
           prepareRow(row);
+          console.log(row);
           return (
             <tr
               key={index}

@@ -24,6 +24,12 @@ body,
   }
 }
 
+@layer components {
+  .tooltip {
+    @apply z-40 bg-ship-gray-900 px-3 py-2 font-body text-sm text-white;
+  }
+}
+
 .clip-path {
   clip-path: inset(0 0 0 50%);
 }
