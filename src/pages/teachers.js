@@ -10,11 +10,11 @@ export default function Teachers() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>content</main>
+      <div className="flex w-full flex-col gap-6 p-6"></div>
     </>
   );
 }
 
 Teachers.getLayout = function getLayout(page) {
-  return <MainLayout>{page}</MainLayout>;
+  return <MainLayout name={"Teachers"}>{page}</MainLayout>;
 };

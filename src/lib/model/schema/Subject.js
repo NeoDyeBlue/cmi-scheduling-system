@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 
 const subject = new mongoose.Schema({
-  teacher: { type: mongoose.Types.ObjectId, ref: "Teacher", required: true },
-  subject_code: { type: String, unique: true },
-  subject_title: { type: String, required: true },
-  unit: { type: Number, required: true },
+  subjectCode: { type: String, unique: true },
+  subjectTitle: { type: String, required: true },
+  units: { type: Number, required: true },
 });
 
 export default subject;

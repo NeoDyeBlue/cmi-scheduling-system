@@ -2,19 +2,23 @@ import useDateTime from "@/hooks/useDateTime";
 import format from "date-fns/format";
 import Wave from "react-wavify";
 import { motion } from "framer-motion";
+import resolveConfig from "tailwindcss/resolveConfig";
+import tailwindConfig from "tailwind.config";
 
 export default function ClockCard() {
   const dateTime = useDateTime();
+  const { theme } = resolveConfig(tailwindConfig);
+  const percentage = 30;
 
   return (
     <div
-      className="relative flex h-full min-h-[150px] w-full flex-col items-center justify-center gap-1
+      className={`relative flex h-full min-h-[150px] w-full flex-col items-center justify-center gap-1
     overflow-hidden rounded-lg border border-primary-200 bg-gradient-to-b from-primary-200 to-primary-100 p-4
-    text-center text-primary-700"
+    text-center text-primary-900`}
     >
       <motion.div
         initial={{ height: 0 }}
-        animate={{ height: `${50}%` }}
+        animate={{ height: `${percentage}%` }}
         transition={{ ease: "easeOut", duration: 2 }}
         className="absolute bottom-0 w-full overflow-hidden"
       >
@@ -31,8 +35,8 @@ export default function ClockCard() {
         >
           <defs>
             <linearGradient id="gradient" gradientTransform="rotate(90)">
-              <stop offset="10%" stopColor="#a9b8ff" />
-              <stop offset="90%" stopColor="#798bff" />
+              <stop offset="10%" stopColor={theme.colors.primary[400]} />
+              <stop offset="90%" stopColor={theme.colors.primary[500]} />
             </linearGradient>
           </defs>
         </Wave>

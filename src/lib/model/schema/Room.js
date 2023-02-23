@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
 
 const room = new mongoose.Schema({
-  room_code: { type: String, unique: true },
-  room_type: { type: String },
-
+  roomCode: { type: String, unique: true },
+  roomName: { type: String },
+  roomType: { type: String },
+  level: {type: String, enum: [
+    'shs', 'college', 'both'
+  ]}
 });
 export default room;
 
