@@ -11,8 +11,8 @@ module.exports = {
   ],
   theme: {
     fontFamily: {
-      display: ["var(--font-poppins)", ...fontFamily.sans],
-      body: ["var(--font-karla)", ...fontFamily.sans],
+      display: ["var(--font-poppins)", "Poppins", ...fontFamily.sans],
+      body: ["var(--font-karla)", "Karla", ...fontFamily.sans],
     },
     extend: {
       colors: {

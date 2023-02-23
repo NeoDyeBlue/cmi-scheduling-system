@@ -19,15 +19,23 @@ export default function App({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
   const layout = getLayout(<Component {...pageProps} />);
   return (
-    <SWRConfig
-      value={{
-        // refreshInterval: 3000,
-        revalidateOnFocus: false,
-        fetcher: (resource, init) =>
-          fetch(resource, init).then((res) => res.json()),
-      }}
-    >
-      <main className={`${karla.variable} ${poppins.variable} font-body`}>
+    <>
+      <style jsx global>
+        {`
+          :root {
+            --font-poppins: ${poppins.style.fontFamily};
+            --font-karla: ${karla.style.fontFamily};
+          }
+        `}
+      </style>
+      <SWRConfig
+        value={{
+          // refreshInterval: 3000,
+          revalidateOnFocus: false,
+          fetcher: (resource, init) =>
+            fetch(resource, init).then((res) => res.json()),
+        }}
+      >
         <Toaster
           position="bottom-center"
           containerStyle={{
@@ -47,7 +55,7 @@ export default function App({ Component, pageProps }) {
           }}
         />
         {layout}
-      </main>
-    </SWRConfig>
+      </SWRConfig>
+    </>
   );
 }

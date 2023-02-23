@@ -12,7 +12,7 @@ export default function MainLayout({ children, name }) {
     <div className="relative mx-auto flex min-h-screen w-full 2xl:container">
       <div
         ref={navBarRef}
-        className={`fixed top-0 left-0 z-[999] h-screen transition-transform md:relative
+        className={`fixed top-0 left-0 z-50 h-screen transition-transform md:relative
       md:block ${
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       }`}

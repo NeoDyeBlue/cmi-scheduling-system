@@ -14,6 +14,8 @@ import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
   MdClose,
+  MdOutlineSchool,
+  MdSchool,
 } from "react-icons/md";
 import useNavStore from "@/stores/useNavStore";
 
@@ -84,6 +86,12 @@ export default function Sidebar() {
           filledIcon={<MdDoorFront size={24} />}
           link="/rooms"
           name="Rooms"
+        />
+        <SidebarItem
+          outlinedIcon={<MdOutlineSchool size={24} />}
+          filledIcon={<MdSchool size={24} />}
+          link="/courses"
+          name="Courses"
         />
       </ul>
       <p className="text-sm">{isMinimized ? "❣️" : "In development"}</p>
