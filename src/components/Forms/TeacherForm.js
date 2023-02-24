@@ -9,7 +9,7 @@ import {
 } from '../Inputs';
 import { Button } from '../Buttons';
 import { teacherSchema } from '@/lib/validators/teacher-validator';
-import { useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
 export default function TeacherForm({ initialData, onCancel }) {
   const teacherFormik = useFormik({
@@ -31,7 +31,20 @@ export default function TeacherForm({ initialData, onCancel }) {
   // }, [teacherFormik]);
 
   async function handleSubmit(values) {
-    console.log(values);
+    try {
+      const res = await fetch('/api/teachers', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result = await res.json();
+      if (result && result.success) {
+        toast.success('Teacher added');
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+    }
   }
   return (
     <FormikProvider value={teacherFormik}>
