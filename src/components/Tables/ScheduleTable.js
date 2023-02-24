@@ -180,19 +180,30 @@ export default function ScheduleTable({
         <div className="flex flex-col items-center justify-center gap-2 p-4">
           {type !== 'teacher' ? (
             <Image
-              src={slot.teacher.image}
+              src={slot?.teacher?.image}
               alt="teacher image"
               width={42}
               height={42}
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
-          <p className="font-display font-semibold">{slot.subject.code}</p>
-          <p className="font-medium">
-            {type == 'teacher'
-              ? `${slot.room.code}`
-              : `${slot.teacher.firstName.charAt(0)}. ${slot.teacher.lastName}`}
-          </p>
+          <p className="font-display font-semibold">{slot?.subject?.code}</p>
+          {type !== 'teacher' && type !== 'room' ? (
+            <>
+              <p className="font-medium">
+                {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
+              </p>
+              <p className="font-medium">{slot?.room?.code}</p>
+            </>
+          ) : null}
+          {type == 'teacher' && (
+            <p className="font-medium">{slot?.room?.code}</p>
+          )}
+          {type == 'room' && (
+            <p className="font-medium">
+              {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
+            </p>
+          )}
         </div>
       </td>
     );

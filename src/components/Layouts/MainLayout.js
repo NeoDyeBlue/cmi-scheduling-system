@@ -28,9 +28,11 @@ export default function MainLayout({ children, name }) {
           <button onClick={() => setIsOpen(true)} className="md:hidden">
             <MdMenu size={32} />
           </button>
-          <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
-            {name}
-          </h1>
+          {name && (
+            <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
+              {name}
+            </h1>
+          )}
         </div>
         {children}
       </div>

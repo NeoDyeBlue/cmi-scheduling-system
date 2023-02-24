@@ -1,12 +1,14 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import { SearchForm } from "@/components/Forms";
-import { CreateButton } from "@/components/Buttons";
-import { useState } from "react";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { SearchForm } from '@/components/Forms';
+import { CreateButton } from '@/components/Buttons';
+import { useState } from 'react';
+import { collegeCourses } from '@/lib/test_data/courses';
+import { CourseTable } from '@/components/Tables';
 
 export default function Courses() {
-  const tabs = ["college", "SHS"];
+  const tabs = ['college', 'SHS'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
@@ -39,10 +41,10 @@ export default function Courses() {
           </TabList>
 
           <TabPanel>
-            <h2>Any content 1</h2>
+            <CourseTable data={collegeCourses} />
           </TabPanel>
           <TabPanel>
-            <h2>Any content 2</h2>
+            <CourseTable data={[]} />
           </TabPanel>
         </Tabs>
       </div>

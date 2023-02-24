@@ -7,6 +7,8 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
   const { isMinimized } = useNavStore();
   const router = useRouter();
   const currentRoute = router.asPath;
+  const parentPath = router.pathname.replace(/\/[^\/]+$/, ''); // parentPath = '/parent'
+  console.log(parentPath);
   return (
     <li className="relative">
       <Link
@@ -21,8 +23,8 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
           'flex items-center gap-4 overflow-hidden rounded-lg font-display',
           {
             'bg-primary-100 font-semibold text-primary-900':
-              currentRoute == link,
-            'hover:bg-gray-100': currentRoute !== link,
+              currentRoute == link || parentPath == link,
+            'hover:bg-gray-100': currentRoute !== link || parentPath !== link,
           }
         )}
       >
@@ -32,12 +34,12 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
             'flex items-center justify-center rounded-lg p-4',
             {
               'bg-gradient-to-br from-primary-600 to-primary-900 text-white':
-                currentRoute == link,
+                currentRoute == link || parentPath == link,
             }
           )}
         >
           {filledIcon && outlinedIcon
-            ? currentRoute == link
+            ? currentRoute == link || parentPath == link
               ? filledIcon
               : outlinedIcon
             : outlinedIcon || filledIcon}
