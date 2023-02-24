@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "react-tooltip/dist/react-tooltip.css";
 import { SWRConfig } from "swr";
 import { Karla, Poppins } from "@next/font/google";
 import { Toaster } from "react-hot-toast";
@@ -19,15 +20,23 @@ export default function App({ Component, pageProps }) {
   const layout = getLayout(<Component {...pageProps} />);
 
   return (
-    <SWRConfig
-      value={{
-        // refreshInterval: 3000,
-        revalidateOnFocus: false,
-        fetcher: (resource, init) =>
-          fetch(resource, init).then((res) => res.json()),
-      }}
-    >
-      <main className={`${karla.variable} ${poppins.variable} font-body`}>
+    <>
+      <style jsx global>
+        {`
+          :root {
+            --font-poppins: ${poppins.style.fontFamily};
+            --font-karla: ${karla.style.fontFamily};
+          }
+        `}
+      </style>
+      <SWRConfig
+        value={{
+          // refreshInterval: 3000,
+          revalidateOnFocus: false,
+          fetcher: (resource, init) =>
+            fetch(resource, init).then((res) => res.json()),
+        }}
+      >
         <Toaster
           position="bottom-center"
           containerStyle={{
@@ -47,7 +56,7 @@ export default function App({ Component, pageProps }) {
           }}
         />
         {layout}
-      </main>
-    </SWRConfig>
+      </SWRConfig>
+    </>
   );
 }

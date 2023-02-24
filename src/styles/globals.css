@@ -9,15 +9,82 @@
 }
 
 html,
-body {
+body,
+#__next {
   max-width: 100vw;
   overflow-x: hidden;
   font-size: 15px;
+  min-height: 100%;
 }
 
 @layer base {
   html,
   body {
-    @apply font-body text-ship-gray-900;
+    @apply relative font-body text-ship-gray-900;
+  }
+}
+
+@layer components {
+  .tooltip {
+    @apply z-40 bg-ship-gray-900 px-3 py-2 font-body text-sm text-white;
+  }
+
+  .tab {
+    @apply relative flex w-full cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-lg bg-white px-4 py-3 
+    text-center font-display capitalize text-ship-gray-500 outline-none transition-colors hover:bg-ship-gray-50;
+  }
+
+  .tab-active {
+    @apply bg-primary-200 font-semibold text-primary-900 hover:bg-primary-200;
+  }
+}
+
+.clip-path {
+  clip-path: inset(0 0 0 50%);
+}
+
+.ReactModal__Content {
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 150ms ease-in-out, opacity 150ms ease-in-out;
+}
+
+.ReactModal__Content--after-open {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.ReactModal__Content--before-close {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.ReactModal__Overlay {
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+}
+
+.ReactModal__Overlay--after-open {
+  opacity: 1;
+}
+
+.ReactModal__Overlay--before-close {
+  opacity: 0;
+}
+
+@media only screen and (min-width: 768px) {
+  .ReactModal__Content {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  .ReactModal__Content--after-open {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .ReactModal__Content--before-close {
+    transform: scale(0.8);
+    opacity: 0;
   }
 }

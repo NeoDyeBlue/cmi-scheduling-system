@@ -1,7 +1,17 @@
 import Head from "next/head";
-import MainLayout from "@/components/Layouts/MainLayout";
+import { MainLayout } from "@/components/Layouts";
+import { RoomTable } from "@/components/Tables";
+import { rooms } from "@/lib/test_data/rooms";
+import { useMemo } from "react";
+import { SearchForm } from "@/components/Forms";
+import { CreateButton } from "@/components/Buttons";
+import { useState } from "react";
+import { Modal } from "@/components/Modals";
+import { RoomForm } from "@/components/Forms";
 
 export default function Rooms() {
+  const roomsData = useMemo(() => rooms, []);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <Head>
@@ -10,11 +20,26 @@ export default function Rooms() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>content</main>
+      <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="New Room"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <RoomForm onCancel={() => setIsModalOpen(false)} />
+        </Modal>
+        <div className="flex items-center justify-between gap-4">
+          <SearchForm placeholder="Search Rooms" />
+          <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
+        </div>
+        <div className="overflow-x-auto">
+          <RoomTable data={roomsData} />
+        </div>
+      </div>
     </>
   );
 }
 
 Rooms.getLayout = function getLayout(page) {
-  return <MainLayout>{page}</MainLayout>;
+  return <MainLayout name="Rooms">{page}</MainLayout>;
 };

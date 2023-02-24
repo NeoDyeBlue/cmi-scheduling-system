@@ -1,7 +1,12 @@
 import Head from "next/head";
-import MainLayout from "@/components/Layouts/MainLayout";
+import { MainLayout } from "@/components/Layouts";
+import { CreateButton } from "@/components/Buttons";
+import { Modal } from "@/components/Modals";
+import { SearchForm, TeacherForm } from "@/components/Forms";
+import { useState } from "react";
 
 export default function Teachers() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <Head>
@@ -10,11 +15,26 @@ export default function Teachers() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>content</main>
+      <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="New Teacher"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <TeacherForm onCancel={() => setIsModalOpen(false)} />
+        </Modal>
+        <div className="flex items-center justify-between gap-4">
+          <SearchForm placeholder="Search Teachers" />
+          <CreateButton
+            onClick={() => setIsModalOpen(true)}
+            text="New Teacher"
+          />
+        </div>
+      </div>
     </>
   );
 }
 
 Teachers.getLayout = function getLayout(page) {
-  return <MainLayout>{page}</MainLayout>;
+  return <MainLayout name={"Teachers"}>{page}</MainLayout>;
 };

@@ -1,5 +1,5 @@
 import Head from "next/head";
-import MainLayout from "@/components/Layouts/MainLayout";
+import { MainLayout } from "@/components/Layouts";
 
 export default function Schedules() {
   return (
@@ -10,11 +10,11 @@ export default function Schedules() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>content</main>
+      <div className="flex w-full flex-col gap-6 p-6"></div>
     </>
   );
 }
 
 Schedules.getLayout = function getLayout(page) {
-  return <MainLayout>{page}</MainLayout>;
+  return <MainLayout name="Schedules">{page}</MainLayout>;
 };
