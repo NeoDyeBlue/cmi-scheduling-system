@@ -1,16 +1,17 @@
-import { useTable, useExpanded } from "react-table";
-import { useMemo } from "react";
-import TableActionButton from "../Buttons/TableActionButton";
-import RoomTableSchedule from "./RoomTableSchedule";
+import { useTable, useExpanded } from 'react-table';
+import { useMemo } from 'react';
+import TableActionButton from '../Buttons/TableActionButton';
+import RoomTableSchedule from './RoomTableSchedule';
 import {
   MdDelete,
   MdEdit,
   MdArrowDropDown,
   MdArrowRight,
   MdDownload,
-} from "react-icons/md";
-import resolveConfig from "tailwindcss/resolveConfig";
-import tailwindConfig from "tailwind.config";
+} from 'react-icons/md';
+import resolveConfig from 'tailwindcss/resolveConfig';
+import tailwindConfig from 'tailwind.config';
+import React from 'react';
 
 export default function RoomTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -19,7 +20,7 @@ export default function RoomTable({ data }) {
       {
         // Make an expander cell
         Header: () => null, // No header
-        id: "expander", // It needs an ID
+        id: 'expander', // It needs an ID
         Cell: ({ row }) => (
           // Use Cell to render an expander for each row.
           // We can use the getToggleRowExpandedProps prop-getter
@@ -34,16 +35,16 @@ export default function RoomTable({ data }) {
         ),
       },
       {
-        Header: "Code",
-        accessor: "code", // accessor is the "key" in the data
+        Header: 'Code',
+        accessor: 'code', // accessor is the "key" in the data
       },
       {
-        Header: "Name",
-        accessor: "name",
+        Header: 'Name',
+        accessor: 'name',
       },
       {
         Header: () => null,
-        id: "actions",
+        id: 'actions',
         Cell: () => (
           <div
             onClick={(e) => e.stopPropagation()}
@@ -99,7 +100,7 @@ export default function RoomTable({ data }) {
                 {...column.getHeaderProps()}
                 className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
               >
-                {column.render("Header")}
+                {column.render('Header')}
               </th>
             ))}
           </tr>
@@ -109,16 +110,16 @@ export default function RoomTable({ data }) {
         {rows.map((row, index) => {
           prepareRow(row);
           return (
-            <>
+            <React.Fragment key={index}>
               <tr
                 key={index}
                 {...row.getRowProps()}
-                {...row.getToggleRowExpandedProps({ title: "" })}
+                {...row.getToggleRowExpandedProps({ title: '' })}
                 className={`cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50
                 ${
                   row.isExpanded
-                    ? "bg-primary-900 text-white hover:bg-primary-900"
-                    : ""
+                    ? 'bg-primary-900 text-white hover:bg-primary-900'
+                    : ''
                 }`}
               >
                 {row.cells.map((cell, index) => {
@@ -127,10 +128,10 @@ export default function RoomTable({ data }) {
                       key={index}
                       {...cell.getCellProps()}
                       className={`p-4 ${
-                        index == 1 ? "font-semibold uppercase" : ""
+                        index == 1 ? 'font-semibold uppercase' : ''
                       }`}
                     >
-                      {cell.render("Cell")}
+                      {cell.render('Cell')}
                     </td>
                   );
                 })}
@@ -152,7 +153,7 @@ export default function RoomTable({ data }) {
                   </td>
                 </tr>
               ) : null}
-            </>
+            </React.Fragment>
           );
         })}
       </tbody>
