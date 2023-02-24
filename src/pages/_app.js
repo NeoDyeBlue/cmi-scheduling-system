@@ -1,18 +1,18 @@
-import "@/styles/globals.css";
-import "react-tooltip/dist/react-tooltip.css";
-import { SWRConfig } from "swr";
-import { Karla, Poppins } from "@next/font/google";
-import { Toaster } from "react-hot-toast";
+import '@/styles/globals.css';
+import 'react-tooltip/dist/react-tooltip.css';
+import { SWRConfig } from 'swr';
+import { Karla, Poppins } from '@next/font/google';
+import { Toaster } from 'react-hot-toast';
 
 const karla = Karla({
-  subsets: ["latin"],
-  variable: "--font-karla",
+  subsets: ['latin'],
+  variable: '--font-karla',
 });
 
 const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-poppins",
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-poppins',
 });
 
 export default function App({ Component, pageProps }) {
@@ -48,10 +48,10 @@ export default function App({ Component, pageProps }) {
           toastOptions={{
             duration: 5000,
             className:
-              "max-w-[200px] font-body text-white rounded-md shadow-md p-3",
+              'max-w-[200px] font-body text-white rounded-md shadow-md p-3',
             style: {
-              background: "#3c3744",
-              color: "#fff",
+              background: '#3c3744',
+              color: '#fff',
             },
           }}
         />

@@ -1,13 +1,13 @@
-import { FormikProvider, Form, useFormik } from "formik";
-import { InputField } from "../Inputs";
-import { Button } from "../Buttons";
-import { roomSchema } from "@/lib/validators/room-validator";
+import { FormikProvider, Form, useFormik } from 'formik';
+import { InputField } from '../Inputs';
+import { Button } from '../Buttons';
+import { roomSchema } from '@/lib/validators/room-validator';
 
 export default function RoomForm({ initialData, onCancel }) {
   const roomFormik = useFormik({
     initialValues: {
-      code: initialData?.code || "",
-      name: initialData?.name || "",
+      code: initialData?.code || '',
+      name: initialData?.name || '',
     },
     onSubmit: handleSubmit,
     validationSchema: roomSchema,
@@ -23,11 +23,13 @@ export default function RoomForm({ initialData, onCancel }) {
         <InputField type="text" name="name" label="Room Name" />
         <div className="mb-1 flex gap-2">
           {onCancel && (
-            <Button type="button" onClick={onCancel} secondary>
+            <Button fullWidth type="button" onClick={onCancel} secondary>
               Cancel
             </Button>
           )}
-          <Button type="submit">Done</Button>
+          <Button fullWidth type="submit">
+            Done
+          </Button>
         </div>
       </Form>
     </FormikProvider>

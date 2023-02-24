@@ -1,4 +1,4 @@
-import { FormikProvider, Form, useFormik } from "formik";
+import { FormikProvider, Form, useFormik } from 'formik';
 import {
   InputField,
   MultiSelect,
@@ -6,19 +6,19 @@ import {
   ImagePicker,
   RadioSelect,
   RadioSelectItem,
-} from "../Inputs";
-import { Button } from "../Buttons";
-import { teacherSchema } from "@/lib/validators/teacher-validator";
-import { useEffect } from "react";
+} from '../Inputs';
+import { Button } from '../Buttons';
+import { teacherSchema } from '@/lib/validators/teacher-validator';
+import { useEffect } from 'react';
 
 export default function TeacherForm({ initialData, onCancel }) {
   const teacherFormik = useFormik({
     initialValues: {
       image: initialData?.image?.url || null,
-      firstName: initialData?.firstName || "",
-      lastName: initialData?.lastName || "",
+      firstName: initialData?.firstName || '',
+      lastName: initialData?.lastName || '',
       preferredDays: initialData?.preferredDays || [],
-      type: initialData?.type || "",
+      type: initialData?.type || '',
     },
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
@@ -54,19 +54,19 @@ export default function TeacherForm({ initialData, onCancel }) {
           <RadioSelectItem
             name="type"
             value="part-time"
-            checked={teacherFormik.values.type == "part-time"}
+            checked={teacherFormik.values.type == 'part-time'}
           >
             Part-time
           </RadioSelectItem>
           <RadioSelectItem
             name="type"
             value="full-time"
-            checked={teacherFormik.values.type == "full-time"}
+            checked={teacherFormik.values.type == 'full-time'}
           >
             Full-time
           </RadioSelectItem>
         </RadioSelect>
-        {teacherFormik.values.type == "part-time" ? (
+        {teacherFormik.values.type == 'part-time' ? (
           <MultiSelect
             label="Preferred Days"
             infoMessage="You can select more than one"
@@ -79,49 +79,49 @@ export default function TeacherForm({ initialData, onCancel }) {
           >
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("0")}
+              checked={teacherFormik.values.preferredDays.includes('0')}
               value={0}
             >
               <p>Monday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("1")}
+              checked={teacherFormik.values.preferredDays.includes('1')}
               value={1}
             >
               <p>Tuesday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("2")}
+              checked={teacherFormik.values.preferredDays.includes('2')}
               value={2}
             >
               <p>Wednesday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("3")}
+              checked={teacherFormik.values.preferredDays.includes('3')}
               value={3}
             >
               <p>Thursday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("4")}
+              checked={teacherFormik.values.preferredDays.includes('4')}
               value={4}
             >
               <p>Friday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("5")}
+              checked={teacherFormik.values.preferredDays.includes('5')}
               value={5}
             >
               <p>Saturday</p>
             </MultiSelectItem>
             <MultiSelectItem
               name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes("6")}
+              checked={teacherFormik.values.preferredDays.includes('6')}
               value={6}
             >
               <p>Sunday</p>
@@ -130,11 +130,13 @@ export default function TeacherForm({ initialData, onCancel }) {
         ) : null}
         <div className="mb-1 flex gap-2">
           {onCancel && (
-            <Button type="button" onClick={onCancel} secondary>
+            <Button fullWidth type="button" onClick={onCancel} secondary>
               Cancel
             </Button>
           )}
-          <Button type="submit">Done</Button>
+          <Button fullWidth type="submit">
+            Done
+          </Button>
         </div>
       </Form>
     </FormikProvider>

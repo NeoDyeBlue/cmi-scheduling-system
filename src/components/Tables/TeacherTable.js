@@ -1,7 +1,9 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo } from 'react';
+import Image from 'next/image';
 import TableActionButton from '../Buttons/TableActionButton';
 import ScheduleTable from './ScheduleTable';
+import { TeacherTypeBadge } from '../Misc';
 import {
   MdDelete,
   MdEdit,
@@ -14,7 +16,7 @@ import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 
-export default function RoomTable({ data }) {
+export default function TeacherTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
   const columns = useMemo(
     () => [
@@ -36,12 +38,28 @@ export default function RoomTable({ data }) {
         ),
       },
       {
-        Header: 'Code',
-        accessor: 'code', // accessor is the "key" in the data
+        Header: 'ID',
+        accessor: 'teacherId', // accessor is the "key" in the data
       },
       {
-        Header: 'Name',
-        accessor: 'name',
+        Header: 'Image',
+        accessor: 'image', // accessor is the "key" in the data
+      },
+      {
+        Header: 'First Name',
+        accessor: 'firstName',
+      },
+      {
+        Header: 'Last Name',
+        accessor: 'lastName',
+      },
+      {
+        Header: 'Type',
+        accessor: 'type',
+      },
+      {
+        Header: 'Days',
+        accessor: 'preferredDays',
       },
       {
         Header: () => null,
@@ -76,6 +94,41 @@ export default function RoomTable({ data }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  function createDays(days) {
+    const daysOfWeek = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    let dayBadges;
+    if (days && days.length) {
+      dayBadges = days.map((day, index) => (
+        <span
+          key={index}
+          className="rounded-full border border-info-600 bg-info-100 px-2 py-[0.1rem] text-xs font-medium text-info-600"
+        >
+          {daysOfWeek[Number(day)]}
+        </span>
+      ));
+    }
+
+    return (
+      <div className="flex min-w-[300px] flex-wrap gap-2">
+        {days.length ? (
+          dayBadges
+        ) : (
+          <span className="rounded-full border border-info-600 bg-info-100 px-2 py-[0.1rem] text-xs font-medium text-info-600">
+            Monday - Satuday
+          </span>
+        )}
+      </div>
+    );
+  }
 
   const {
     getTableProps,
@@ -130,10 +183,38 @@ export default function RoomTable({ data }) {
                       key={index}
                       {...cell.getCellProps()}
                       className={classNames('p-4', {
-                        'font-semibold uppercase': index == 1,
+                        'whitespace-nowrap font-semibold uppercase': index == 1,
+                        'min-w-[150px]': index == 3 || index == 4,
                       })}
                     >
-                      {cell.render('Cell')}
+                      {cell.column.Header == 'Image' && (
+                        <Image
+                          src={cell.value}
+                          alt="teacher image"
+                          width={42}
+                          height={42}
+                          className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+                        />
+                      )}
+                      {cell.column.Header == 'Days' && createDays(cell.value)}
+                      {cell.column.Header == 'Type' && (
+                        <TeacherTypeBadge
+                          isPartTime={cell.value == 'part-time'}
+                        />
+                      )}
+                      {cell.column.Header != 'Image' &&
+                      cell.column.Header != 'Days' &&
+                      cell.column.Header != 'Type'
+                        ? cell.render('Cell')
+                        : null}
+                      {/* {cell.value == 'part-time' ||
+                      cell.value == 'full-time' ? (
+                        <TeacherTypeBadge
+                          isPartTime={cell.value == 'part-time'}
+                        />
+                      ) : (
+                        cell.render('Cell')
+                      )} */}
                     </td>
                   );
                 })}
@@ -147,7 +228,7 @@ export default function RoomTable({ data }) {
                         startTime="7:00 AM"
                         endTime="6:00 PM"
                         interval={30}
-                        type="room"
+                        type="teacher"
                       />
                     </div>
                   </td>

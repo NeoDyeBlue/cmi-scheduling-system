@@ -1,8 +1,9 @@
-import Sidebar from "../Navigation/Sidebar";
-import useNavStore from "@/stores/useNavStore";
-import { MdMenu } from "react-icons/md";
-import { useRef } from "react";
-import useOnClickOutside from "@/hooks/useOutsideClick";
+import Sidebar from '../Navigation/Sidebar';
+import useNavStore from '@/stores/useNavStore';
+import { MdMenu } from 'react-icons/md';
+import { useRef } from 'react';
+import useOnClickOutside from '@/hooks/useOutsideClick';
+import classNames from 'classnames';
 
 export default function MainLayout({ children, name }) {
   const { isOpen, setIsOpen } = useNavStore();
@@ -12,10 +13,13 @@ export default function MainLayout({ children, name }) {
     <div className="relative mx-auto flex min-h-screen w-full 2xl:container">
       <div
         ref={navBarRef}
-        className={`fixed top-0 left-0 z-50 h-screen transition-transform md:relative
-      md:block ${
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-      }`}
+        className={classNames(
+          'fixed top-0 left-0 z-50 h-screen transition-transform md:relative md:block',
+          {
+            'translate-x-0': isOpen,
+            '-translate-x-full md:translate-x-0': !isOpen,
+          }
+        )}
       >
         <Sidebar />
       </div>

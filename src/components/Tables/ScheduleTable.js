@@ -1,118 +1,298 @@
-import { useTable } from "react-table";
-import { useMemo } from "react";
-import Image from "next/image";
-import TimeProgress from "../Misc/TimeProgress";
-import TeacherTypeBadge from "../Misc/TeacherTypeBadge";
+import { useTable } from 'react-table';
+import { useMemo } from 'react';
+import { parse, addMinutes, format } from 'date-fns';
+import Image from 'next/image';
 
-export default function ScheduleTable({ data }) {
+export default function ScheduleTable({
+  data,
+  startTime,
+  endTime,
+  interval,
+  type,
+}) {
+  const timeData = useMemo(() => {
+    const start = parse(startTime, 'hh:mm a', new Date());
+    const end = parse(endTime, 'hh:mm a', new Date());
+
+    let current = start;
+    const times = [];
+
+    while (current <= end) {
+      times.push(format(current, 'h:mm a'));
+      current = addMinutes(current, interval);
+    }
+
+    return times;
+  }, [startTime, endTime, interval]);
+
   const columns = useMemo(
     () => [
       {
-        Header: "Teacher",
-        accessor: "teacher", // accessor is the "key" in the data
+        Header: 'Time',
+        id: 'time-left',
+        // Cell: ({ row }) => timeData[row.index],
+        accessor: 'time',
+        fixed: 'left',
+      },
+      // {
+      //   Header: "Days",
+      //   fixed: "top",
+      //   columns: [
+      //     {
+      //       Header: "Monday",
+      //       // id: "monday",
+      //       dayIndex: 1,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "monday"),
+      //     },
+      //     {
+      //       Header: "Tuesday",
+      //       // id: "tuesday",
+      //       dayIndex: 2,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "tuesday"),
+      //     },
+      //     {
+      //       Header: "Wednesday",
+      //       // id: "wednesday",
+      //       dayIndex: 3,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "wednesday"),
+      //     },
+      //     {
+      //       Header: "Thursday",
+      //       // id: "thursday",
+      //       dayIndex: 4,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "thursday"),
+      //     },
+      //     {
+      //       Header: "Friday",
+      //       // id: "friday",
+      //       dayIndex: 5,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "friday"),
+      //     },
+      //     {
+      //       Header: "Saturday",
+      //       // id: "saturday",
+      //       dayIndex: 6,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "saturday"),
+      //     },
+      //     {
+      //       Header: "Sunday",
+      //       // id: "sunday",
+      //       dayIndex: 7,
+      //       enableRowSpan: true,
+      //       accessor: () => findSchedule(data, "sunday"),
+      //     },
+      //   ],
+      // },
+      {
+        Header: 'Monday',
+        // id: "monday",
+        dayIndex: 1,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'monday'),
       },
       {
-        Header: "Type",
-        accessor: "teacher.type",
+        Header: 'Tuesday',
+        // id: "tuesday",
+        dayIndex: 2,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'tuesday'),
       },
       {
-        Header: "Subject",
-        accessor: "subject",
+        Header: 'Wednesday',
+        // id: "wednesday",
+        dayIndex: 3,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'wednesday'),
       },
       {
-        Header: "Room",
-        accessor: "room",
+        Header: 'Thursday',
+        // id: "thursday",
+        dayIndex: 4,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'thursday'),
       },
       {
-        Header: "Time Progress",
-        accessor: "time",
+        Header: 'Friday',
+        // id: "friday",
+        dayIndex: 5,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'friday'),
+      },
+      {
+        Header: 'Saturday',
+        // id: "saturday",
+        dayIndex: 6,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'saturday'),
+      },
+      {
+        Header: 'Sunday',
+        // id: "sunday",
+        dayIndex: 7,
+        enableRowSpan: true,
+        accessor: () => findSchedule(data, 'sunday'),
+      },
+      {
+        Header: 'Time',
+        id: 'time-right',
+        // Cell: ({ row }) => timeData[row.index],
+        accessor: 'time',
+        fixed: 'right',
       },
     ],
-    []
+    [data]
   );
 
+  const newData = useMemo(
+    () =>
+      timeData.map((time) => ({
+        time,
+      })),
+    [timeData]
+  );
+
+  function findSchedule(data, day) {
+    const schedule = data.find((sched) => sched.day == day);
+    return schedule ? schedule.slots : [];
+  }
+
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable({ columns, data });
+    useTable({ columns, data: newData });
+
+  function createScheduleCell(slot, cell, cellIndex) {
+    const timeStartIndex = timeData.indexOf(slot.time.start);
+    const timeEndIndex = timeData.indexOf(slot.time.end);
+
+    return (
+      <td
+        key={cellIndex}
+        {...cell.getCellProps({
+          rowSpan: timeEndIndex + 1 - timeStartIndex,
+        })}
+        className="min-w-[150px] border border-success-200 bg-success-100 px-4 py-3 text-center text-sm"
+      >
+        <div className="flex flex-col items-center justify-center gap-2 p-4">
+          {type !== 'teacher' ? (
+            <Image
+              src={slot.teacher.image}
+              alt="teacher image"
+              width={42}
+              height={42}
+              className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+            />
+          ) : null}
+          <p className="font-display font-semibold">{slot.subject.code}</p>
+          <p className="font-medium">
+            {type == 'teacher'
+              ? `${slot.room.code}`
+              : `${slot.teacher.firstName.charAt(0)}. ${slot.teacher.lastName}`}
+          </p>
+        </div>
+      </td>
+    );
+  }
 
   return (
-    <table {...getTableProps()} className="w-full">
-      <thead className="p-4 text-left font-display text-sm font-semibold">
+    <table
+      {...getTableProps()}
+      className="w-full border border-gray-200 lg:table-fixed"
+    >
+      <thead className="p-4 text-center font-display text-xs font-semibold">
         {headerGroups.map((headerGroup, index) => (
           <tr
             key={index}
             {...headerGroup.getHeaderGroupProps()}
-            className="border-b border-gray-300"
+            className="border border-gray-300"
           >
             {headerGroup.headers.map((column, index) => (
               <th
                 key={index}
                 {...column.getHeaderProps()}
-                className="px-4 py-3"
+                className="border border-gray-200 px-4 py-3"
               >
-                {column.render("Header")}
+                {column.render('Header')}
               </th>
             ))}
           </tr>
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
-        {rows.map((row, index) => {
+        {rows.map((row, rowIndex) => {
           prepareRow(row);
-          console.log(row);
+          if (rowIndex == 0) {
+            row.rowSpans = [];
+          } else {
+            row.rowSpans =
+              rows[rowIndex - 1]?.rowSpans?.filter(
+                (r) => r.spanToRow >= rowIndex
+              ) || [];
+          }
+          for (let j = 0; j < row.allCells.length; j++) {
+            let cell = row.allCells[j];
+
+            if (cell.column?.enableRowSpan) {
+              let slot =
+                cell.value.length &&
+                cell.value.find(
+                  (slot) => slot.time.start == timeData[rowIndex]
+                );
+
+              let rowSpanToIndex = 0;
+
+              if (slot) {
+                const timeEndIndex = timeData.indexOf(slot.time.end);
+
+                rowSpanToIndex = timeEndIndex + 1;
+
+                row.rowSpans.push({
+                  index: j,
+                  spanToRow: rowSpanToIndex,
+                });
+              }
+            }
+          }
           return (
             <tr
-              key={index}
+              key={rowIndex}
               {...row.getRowProps()}
-              className="border-b border-gray-200"
+              className="border border-gray-200"
             >
-              {row.cells.map((cell, index) => {
-                if (index === 0) {
+              {row.cells.map((cell, cellIndex) => {
+                if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
                   return (
                     <td
-                      key={index}
+                      key={cellIndex}
                       {...cell.getCellProps()}
-                      className="min-w-[200px] max-w-[250px] px-4 py-3"
+                      className={`border border-gray-200 px-4 py-3 text-center text-xs`}
                     >
-                      <div className="flex items-center gap-4">
-                        <Image
-                          src={cell.value.image}
-                          alt="teacher image"
-                          width={42}
-                          height={42}
-                          className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-                        />
-                        <p className="font-bold">
-                          {cell.value.firstName} {cell.value.lastName}
-                        </p>
-                      </div>
+                      {cell.render('Cell')}
                     </td>
                   );
+                } else {
+                  const slot =
+                    cell.value.length &&
+                    cell.value.find(
+                      (slot) => slot.time.start == timeData[rowIndex]
+                    );
+                  if (slot) {
+                    return createScheduleCell(slot, cell, cellIndex, rowIndex);
+                  } else {
+                    let span = row.rowSpans.find((r) => r.index == cellIndex);
+                    return span && span.spanToRow > rowIndex ? null : (
+                      <td
+                        key={cellIndex}
+                        {...cell.getCellProps()}
+                        className={`min-w-[150px] border border-gray-200 px-4 py-3 text-center text-xs`}
+                      ></td>
+                    );
+                  }
                 }
-                return (
-                  <td
-                    key={index}
-                    {...cell.getCellProps()}
-                    className="px-4 py-3"
-                  >
-                    {(cell.value == "part-time" ||
-                      cell.value == "full-time") && (
-                      <TeacherTypeBadge
-                        isPartTime={cell.value == "part-time"}
-                      />
-                    )}
-                    {cell.value.start && cell.value.end && (
-                      <TimeProgress
-                        start={cell.value.start}
-                        end={cell.value.end}
-                      />
-                    )}
-                    {!(
-                      cell.value == "part-time" || cell.value == "full-time"
-                    ) &&
-                      !(cell.value.start && cell.value.end) &&
-                      cell.value}
-                  </td>
-                );
               })}
             </tr>
           );

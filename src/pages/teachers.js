@@ -1,9 +1,11 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { CreateButton } from "@/components/Buttons";
-import { Modal } from "@/components/Modals";
-import { SearchForm, TeacherForm } from "@/components/Forms";
-import { useState } from "react";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { CreateButton } from '@/components/Buttons';
+import { Modal } from '@/components/Modals';
+import { SearchForm, TeacherForm } from '@/components/Forms';
+import { useState } from 'react';
+import { TeacherTable } from '@/components/Tables';
+import { teachers } from '@/lib/test_data/teachers';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,11 +32,14 @@ export default function Teachers() {
             text="New Teacher"
           />
         </div>
+        <div className="overflow-x-auto">
+          <TeacherTable data={teachers} />
+        </div>
       </div>
     </>
   );
 }
 
 Teachers.getLayout = function getLayout(page) {
-  return <MainLayout name={"Teachers"}>{page}</MainLayout>;
+  return <MainLayout name={'Teachers'}>{page}</MainLayout>;
 };

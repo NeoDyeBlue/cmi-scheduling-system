@@ -1,19 +1,19 @@
-import Head from "next/head";
-import dynamic from "next/dynamic";
-import ScheduleTable from "@/components/Tables/ScheduleTable";
-import { useMemo } from "react";
-import { MainLayout } from "@/components/Layouts";
-const ClockCard = dynamic(() => import("@/components/Cards/ClockCard"), {
+import Head from 'next/head';
+import dynamic from 'next/dynamic';
+import { OngoingScheduleTable } from '@/components/Tables';
+import { useMemo } from 'react';
+import { MainLayout } from '@/components/Layouts';
+const ClockCard = dynamic(() => import('@/components/Cards/ClockCard'), {
   ssr: false,
 });
-import CountCard from "@/components/Cards/CountCard";
+import CountCard from '@/components/Cards/CountCard';
 import {
   MdCircle,
   MdIncompleteCircle,
   MdGroups,
   MdAccessTimeFilled,
-} from "react-icons/md";
-import currentSchedules from "@/lib/test_data/current-schedules";
+} from 'react-icons/md';
+import currentSchedules from '@/lib/test_data/current-schedules';
 
 export default function Home() {
   const sampleData = useMemo(() => currentSchedules, []);
@@ -69,7 +69,7 @@ export default function Home() {
             </p>
           </div>
           <div className="overflow-x-auto">
-            <ScheduleTable data={sampleData} />
+            <OngoingScheduleTable data={sampleData} />
           </div>
         </div>
       </div>
