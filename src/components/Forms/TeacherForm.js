@@ -31,7 +31,7 @@ export default function TeacherForm({ initialData, onCancel }) {
   // }, [teacherFormik]);
 
   async function handleSubmit(values) {
-    
+    console.log(values);
   }
   return (
     <FormikProvider value={teacherFormik}>
