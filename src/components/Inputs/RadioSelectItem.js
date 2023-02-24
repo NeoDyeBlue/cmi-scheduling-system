@@ -22,9 +22,12 @@ export default function RadioSelectItem({ children, long, checked, ...props }) {
           <MdRadioButtonUnchecked size={24} />
         </span>
         <span
-          className={classNames('text-ship-gray-300 transition-opacity', {
-            'opacity-100': checked,
-          })}
+          className={classNames(
+            'absolute top-0 left-0 text-primary-500 transition-opacity',
+            {
+              'opacity-0': !checked,
+            }
+          )}
         >
           <MdRadioButtonChecked size={24} />
         </span>
