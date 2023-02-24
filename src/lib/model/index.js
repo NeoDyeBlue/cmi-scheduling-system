@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import MongoConnect from "./mongo-connect/MongoConnect";
 // import schema from "./schema";
-import room from "./schema/Room";
-import teacher from "./schema/Teacher";
-import subject from "./schema/Subject";
-import schedule from "./schema/Schedule";
+import room from "./schema/room-schema";
+import teacher from "./schema/teacher-schema";
+import subject from "./schema/subject-schema";
+import schedule from "./schema/schedule-schema";
 class Model extends MongoConnect {
   constructor() {
     super();

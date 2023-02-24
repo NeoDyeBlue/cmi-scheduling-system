@@ -1,7 +1,7 @@
-import model from "..";
+import Model from "..";
 import MongoConnect from "../mongo-connect/MongoConnect";
 
-class ScheduleDA extends model {
+class Schedule extends Model {
   constructor() {
     super();
   }
@@ -18,5 +18,5 @@ class ScheduleDA extends model {
     }
   }
 }
-const schedule = new ScheduleDA();
+const schedule = new Schedule();
 export default schedule;

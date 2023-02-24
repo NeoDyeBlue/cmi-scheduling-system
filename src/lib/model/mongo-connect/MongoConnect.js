@@ -6,7 +6,7 @@ class MongoConnect {
     const DB_HOST = process.env.DB_HOST;
     const DB_PORT = process.env.DB_PORT;
 
-    this.MONGODB_URI = `mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+    this.MONGODB_URI = `mongodb+srv://admin:${process.env.DB_PASSWORD}@cluster0.vsdkxrp.mongodb.net/?retryWrites=true&w=majority`;
   }
   connect() {
     mongoose.connect(this.MONGODB_URI, {
