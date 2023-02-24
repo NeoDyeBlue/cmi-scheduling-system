@@ -16,6 +16,7 @@
     "formik": "^2.2.9",
     "framer-motion": "^9.0.4",
     "next": "13.1.6",
+    "next-swagger-doc": "^0.3.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hot-toast": "^2.4.0",
@@ -26,12 +27,14 @@
     "react-tooltip": "^5.8.1",
     "react-virtuoso": "^4.1.0",
     "react-wavify": "^1.7.0",
+    "swagger-ui-react": "^4.16.0-alpha.1",
     "swr": "^2.0.3",
     "use-file-picker": "^1.5.2",
     "yup": "^1.0.0",
     "zustand": "^4.3.3"
   },
   "devDependencies": {
+    "@types/node": "18.14.1",
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.21",
     "prettier": "^2.8.4",
