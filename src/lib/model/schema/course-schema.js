@@ -1,17 +1,15 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+
+const yearSectionSchema = new mongoose.Schema({
+  year: { type: String, required: true },
+  section: { type: Number, required: true },
+});
 
 const course = new mongoose.Schema({
-    courseName: { type: String , required: true},
-    courseCode: { type: String , required: true},
-    yearSection: new mongoose.Schema({
-    year: { type: String, required: true, enum: [
-            '1', '2', '3','4'
-        ]},
-    section : { type: String, enum: [
-            'A', 'B', 'C','D', 'E'
-        ]},
-    }),
-
-})
+  courseName: { type: String, required: true },
+  courseCode: { type: String, required: true, uniquer: true },
+  type: { type: String },
+  yearSection: [yearSectionSchema],
+});
 
 export default course;

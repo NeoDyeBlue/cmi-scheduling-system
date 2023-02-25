@@ -10,6 +10,7 @@ class Course extends Model {
       await data.save();
       return { data };
     } catch (error) {
+      console.log("error", error)
       throw new Error(`Cannot create subject : ${error}`);
     }
   }

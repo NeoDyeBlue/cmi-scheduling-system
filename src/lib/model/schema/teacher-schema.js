@@ -10,6 +10,8 @@ const teacher = new mongoose.Schema({
   assignedSubjects: new mongoose.Schema({
     subject: { type: mongoose.Types.ObjectId, ref: "Subject", required: true },
     course: { type: mongoose.Types.ObjectId, ref: "Course", required: true },
+    year: { type: String },
+    section: { type: String },
   }),
 });
 export default teacher;
