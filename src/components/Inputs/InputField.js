@@ -7,8 +7,12 @@ export default function InputField({ label, infoMessage, ...props }) {
   const [showPass, setShowPass] = useState(false);
   const [field, meta] = useField(props);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
+    <div className="flex w-full flex-col gap-2">
+      <div
+        className={classNames('flex items-center', {
+          '-mb-2': !label && props.type !== 'password',
+        })}
+      >
         {label && <label className="font-display font-medium">{label}</label>}
         {props.type == 'password' ? (
           <button
@@ -32,8 +36,8 @@ export default function InputField({ label, infoMessage, ...props }) {
             : props.type
         }
         className={classNames(
-          `w-full rounded-[10px] border bg-white p-4 font-body placeholder-ship-gray-300 
-          focus:outline-none focus:ring-1`,
+          `w-full rounded-lg border bg-white p-4 font-body placeholder-ship-gray-300 
+          focus:outline-none focus:ring-1 focus:ring-primary-500`,
           {
             'border-danger-500 focus:ring-danger-500':
               meta.error && meta.touched,

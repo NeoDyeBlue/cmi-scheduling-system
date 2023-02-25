@@ -1,13 +1,13 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { RoomTable } from "@/components/Tables";
-import { rooms } from "@/lib/test_data/rooms";
-import { useMemo } from "react";
-import { SearchForm } from "@/components/Forms";
-import { CreateButton } from "@/components/Buttons";
-import { useState } from "react";
-import { Modal } from "@/components/Modals";
-import { RoomForm } from "@/components/Forms";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { RoomTable } from '@/components/Tables';
+import { rooms } from '@/lib/test_data/rooms';
+import { useMemo } from 'react';
+import { SearchForm } from '@/components/Forms';
+import { CreateButton } from '@/components/Buttons';
+import { useState } from 'react';
+import { Modal } from '@/components/Modals';
+import { RoomForm } from '@/components/Forms';
 
 export default function Rooms() {
   const roomsData = useMemo(() => rooms, []);

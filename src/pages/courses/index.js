@@ -1,12 +1,15 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
-import { SearchForm } from "@/components/Forms";
-import { CreateButton } from "@/components/Buttons";
-import { useState } from "react";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { SearchForm, CourseForm } from '@/components/Forms';
+import { CreateButton } from '@/components/Buttons';
+import { useState } from 'react';
+import { collegeCourses } from '@/lib/test_data/courses';
+import { Modal } from '@/components/Modals';
+import { CourseTable } from '@/components/Tables';
 
 export default function Courses() {
-  const tabs = ["college", "SHS"];
+  const tabs = ['college', 'SHS'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
@@ -18,6 +21,13 @@ export default function Courses() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="New Course"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <CourseForm onCancel={() => setIsModalOpen(false)} />
+        </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder={`Search ${activeTab} courses`} />
           <CreateButton
@@ -39,10 +49,14 @@ export default function Courses() {
           </TabList>
 
           <TabPanel>
-            <h2>Any content 1</h2>
+            <div className="overflow-x-auto">
+              <CourseTable data={collegeCourses} />
+            </div>
           </TabPanel>
           <TabPanel>
-            <h2>Any content 2</h2>
+            <div className="overflow-x-auto">
+              <CourseTable data={[]} />
+            </div>
           </TabPanel>
         </Tabs>
       </div>

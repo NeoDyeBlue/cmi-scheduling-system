@@ -2,19 +2,13 @@ import { useTable, useExpanded } from 'react-table';
 import { useMemo } from 'react';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
-import {
-  MdDelete,
-  MdEdit,
-  MdArrowDropDown,
-  MdArrowRight,
-  MdDownload,
-} from 'react-icons/md';
+import { MdArrowDropDown, MdArrowRight, MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 
-export default function RoomTable({ data }) {
+export default function YearSectionTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
   const columns = useMemo(
     () => [
@@ -36,12 +30,12 @@ export default function RoomTable({ data }) {
         ),
       },
       {
-        Header: 'Code',
-        accessor: 'code', // accessor is the "key" in the data
+        Header: 'Year',
+        accessor: 'year', // accessor is the "key" in the data
       },
       {
-        Header: 'Name',
-        accessor: 'name',
+        Header: 'Section',
+        accessor: 'section',
       },
       {
         Header: () => null,
@@ -51,18 +45,6 @@ export default function RoomTable({ data }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            <ActionButton
-              icon={<MdEdit size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="edit"
-              toolTipContent="Edit"
-            />
-            <ActionButton
-              icon={<MdDelete size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="delete"
-              toolTipContent="Delete"
-            />
             <ActionButton
               icon={<MdDownload size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
@@ -87,7 +69,7 @@ export default function RoomTable({ data }) {
   } = useTable({ columns, data }, useExpanded);
 
   return (
-    <table {...getTableProps()} className="w-full">
+    <table {...getTableProps()} className="w-full border border-gray-200">
       <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
         {headerGroups.map((headerGroup, index) => (
           <tr
@@ -99,7 +81,7 @@ export default function RoomTable({ data }) {
               <th
                 key={index}
                 {...column.getHeaderProps()}
-                className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                className="px-4 py-3"
               >
                 {column.render('Header')}
               </th>
@@ -117,10 +99,10 @@ export default function RoomTable({ data }) {
                 {...row.getRowProps()}
                 {...row.getToggleRowExpandedProps({ title: '' })}
                 className={classNames(
-                  'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
+                  'cursor-pointer border-y border-gray-200 transition-colors',
                   {
-                    'bg-primary-900 text-white hover:bg-primary-900':
-                      row.isExpanded,
+                    'bg-primary-100 hover:bg-primary-100': row.isExpanded,
+                    'hover:bg-primary-50': !row.isExpanded,
                   }
                 )}
               >
@@ -130,7 +112,8 @@ export default function RoomTable({ data }) {
                       key={index}
                       {...cell.getCellProps()}
                       className={classNames('p-4', {
-                        'font-semibold uppercase': index == 1,
+                        'w-[50px]':
+                          index == 0 || index == row.allCells.length - 1,
                       })}
                     >
                       {cell.render('Cell')}
@@ -141,13 +124,12 @@ export default function RoomTable({ data }) {
               {row.isExpanded ? (
                 <tr>
                   <td colSpan={visibleColumns.length}>
-                    <div className="max-h-[400px] overflow-auto">
+                    <div className="max-h-[500px] overflow-auto">
                       <ScheduleTable
-                        data={row.original.schedules}
+                        data={row.original.schedules || []}
                         startTime="7:00 AM"
                         endTime="6:00 PM"
                         interval={30}
-                        type="room"
                       />
                     </div>
                   </td>

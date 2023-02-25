@@ -24,13 +24,22 @@ export default function MainLayout({ children, name }) {
         <Sidebar />
       </div>
       <div className="flex h-screen w-full flex-col overflow-y-auto">
-        <div className="flex items-center gap-4 px-6 pt-6">
-          <button onClick={() => setIsOpen(true)} className="md:hidden">
+        <div
+          className={classNames('flex items-center gap-4 px-6', {
+            'pt-6': name,
+          })}
+        >
+          <button
+            onClick={() => setIsOpen(true)}
+            className={classNames('md:hidden', { 'mt-6': !name })}
+          >
             <MdMenu size={32} />
           </button>
-          <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
-            {name}
-          </h1>
+          {name && (
+            <h1 className="font-display text-2xl font-bold capitalize md:text-3xl">
+              {name}
+            </h1>
+          )}
         </div>
         {children}
       </div>
