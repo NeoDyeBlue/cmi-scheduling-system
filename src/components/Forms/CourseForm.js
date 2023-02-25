@@ -79,6 +79,7 @@ export default function CourseForm({ initialData, onCancel }) {
                       min={1}
                       key={index}
                       type="number"
+                      placeholder="sections count"
                     />
 
                     <div className="flex w-[25px] flex-col gap-1">
