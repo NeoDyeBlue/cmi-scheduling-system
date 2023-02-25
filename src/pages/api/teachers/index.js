@@ -4,11 +4,13 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
+    
     const { image, firstName, ...payload } = req.body;
     const { filePath, error: uploadError } = await imageUploadLocal({
       image,
       firstName,
     });
+    console.log("req", req.body)
     if (filePath && !uploadError) {
       try {
         const { data } = await teacher.createTeacher({

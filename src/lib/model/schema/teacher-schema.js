@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const teacher = new mongoose.Schema({
-  firstname: { type: String, required: true },
-  middlename: { type: String },
-  lastname: { type: String },
+  firstName: { type: String, required: true },
+  middleName: { type: String },
+  lastName: { type: String },
   preferredDays: [String],
   image: { type: String },
   type: { type: String },

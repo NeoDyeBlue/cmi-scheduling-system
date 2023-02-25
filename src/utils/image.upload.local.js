@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+const bcrypt = require('bcrypt');
 
-export default function imageUploadLocal({ image, firstName }) {
+export default async function imageUploadLocal({ image, firstName }) {
   try {
     // remote the 'data:image'
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -12,8 +13,8 @@ export default function imageUploadLocal({ image, firstName }) {
     //write the binary data to file on disk.
     const filePath = path.join(
       process.cwd(),
-      '/lib/upload/images',
-      `${firstName}.${ext}`
+      'src/lib/upload/images',
+      `${firstName}-${await generateRandomString()}.${ext}`
     );
 
     fs.writeFileSync(filePath, buffer);
@@ -22,3 +23,11 @@ export default function imageUploadLocal({ image, firstName }) {
     return { error };
   }
 }
+
+const generateRandomString = async () => {
+  const saltRounds = 10;
+  const randomString = Math.random().toString(16).substring(2, 8);
+  const salt = await bcrypt.genSalt(saltRounds);
+  const hash = await bcrypt.hash(randomString, salt);
+  return hash;
+};
