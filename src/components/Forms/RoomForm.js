@@ -19,8 +19,18 @@ export default function RoomForm({ initialData, onCancel }) {
   return (
     <FormikProvider value={roomFormik}>
       <Form className="flex flex-col gap-6">
-        <InputField type="text" name="code" label="Room Code" />
-        <InputField type="text" name="name" label="Room Name" />
+        <InputField
+          type="text"
+          name="code"
+          label="Room Code"
+          placeholder="e.g. CB205"
+        />
+        <InputField
+          type="text"
+          name="name"
+          label="Room Name"
+          placeholder="e.g. Computer Laboratory 205"
+        />
         <div className="mb-1 flex gap-2">
           {onCancel && (
             <Button fullWidth type="button" onClick={onCancel} secondary>

@@ -1,6 +1,6 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo } from 'react';
-import TableActionButton from '../Buttons/TableActionButton';
+import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
 import { MdArrowDropDown, MdArrowRight, MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
@@ -45,7 +45,7 @@ export default function YearSectionTable({ data }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            <TableActionButton
+            <ActionButton
               icon={<MdDownload size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="export"

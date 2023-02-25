@@ -1,6 +1,6 @@
 import { useTable } from 'react-table';
 import { useMemo } from 'react';
-import TableActionButton from '../Buttons/TableActionButton';
+import { ActionButton } from '../Buttons';
 import { MdDelete, MdEdit } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -54,13 +54,13 @@ export default function CourseTable({ data }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            <TableActionButton
+            <ActionButton
               icon={<MdEdit size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
             />
-            <TableActionButton
+            <ActionButton
               icon={<MdDelete size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="delete"

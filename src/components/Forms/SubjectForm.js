@@ -20,8 +20,18 @@ export default function RoomForm({ initialData, onCancel }) {
   return (
     <FormikProvider value={roomFormik}>
       <Form className="flex flex-col gap-6">
-        <InputField type="text" name="code" label="Subject Code" />
-        <InputField type="text" name="name" label="Subject Name" />
+        <InputField
+          type="text"
+          name="code"
+          label="Subject Code"
+          placeholder="e.g. APPSDEV"
+        />
+        <InputField
+          type="text"
+          name="name"
+          label="Subject Name"
+          placeholder="e.g. Applications Development"
+        />
         <InputField type="number" name="units" label="Units" />
         <div className="mb-1 flex gap-2">
           {onCancel && (

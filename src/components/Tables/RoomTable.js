@@ -1,6 +1,6 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo } from 'react';
-import TableActionButton from '../Buttons/TableActionButton';
+import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
 import {
   MdDelete,
@@ -51,19 +51,19 @@ export default function RoomTable({ data }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            <TableActionButton
+            <ActionButton
               icon={<MdEdit size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
             />
-            <TableActionButton
+            <ActionButton
               icon={<MdDelete size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="delete"
               toolTipContent="Delete"
             />
-            <TableActionButton
+            <ActionButton
               icon={<MdDownload size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="export"

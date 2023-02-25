@@ -8,7 +8,6 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
   const router = useRouter();
   const currentRoute = router.asPath;
   const parentPath = router.pathname.replace(/\/[^\/]+$/, ''); // parentPath = '/parent'
-  console.log(parentPath);
   return (
     <li className="relative">
       <Link

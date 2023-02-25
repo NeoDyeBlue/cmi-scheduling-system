@@ -6,7 +6,7 @@ const Tooltip = dynamic(
   }
 );
 
-export default function TableActionButton({
+export default function ActionButton({
   icon,
   buttonColor,
   tooltipColor,
@@ -25,17 +25,19 @@ export default function TableActionButton({
       >
         {icon}
       </button>
-      <Tooltip
-        style={{
-          padding: '0.5rem 0.75rem',
-          borderRadius: '0.5rem',
-          backgroundColor: tooltipColor || '#3c3744',
-          zIndex: 40,
-        }}
-        id={toolTipId}
-        place="bottom"
-        delayShow={500}
-      />
+      {toolTipId && toolTipContent ? (
+        <Tooltip
+          style={{
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem',
+            backgroundColor: tooltipColor || '#3c3744',
+            zIndex: 40,
+          }}
+          id={toolTipId}
+          place="bottom"
+          delayShow={500}
+        />
+      ) : null}
     </>
   );
 }

@@ -1,10 +1,11 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { SearchForm } from '@/components/Forms';
+import { SearchForm, CourseForm } from '@/components/Forms';
 import { CreateButton } from '@/components/Buttons';
 import { useState } from 'react';
 import { collegeCourses } from '@/lib/test_data/courses';
+import { Modal } from '@/components/Modals';
 import { CourseTable } from '@/components/Tables';
 
 export default function Courses() {
@@ -20,6 +21,13 @@ export default function Courses() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="New Course"
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        >
+          <CourseForm onCancel={() => setIsModalOpen(false)} />
+        </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder={`Search ${activeTab} courses`} />
           <CreateButton

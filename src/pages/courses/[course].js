@@ -2,10 +2,10 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { bscsScheds, bscs } from '@/lib/test_data/courses';
+import { bscs } from '@/lib/test_data/courses';
 import { ScheduleTable } from '@/components/Tables';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { TableActionButton } from '@/components/Buttons';
+import { ActionButton } from '@/components/Buttons';
 import { MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -34,7 +34,7 @@ export default function Course() {
                 <h3 className="font-display text-xl font-semibold">
                   Section {section.section}
                 </h3>
-                <TableActionButton
+                <ActionButton
                   icon={<MdDownload size={16} className="text-white" />}
                   buttonColor={theme.colors.primary[400]}
                   toolTipId="export"
