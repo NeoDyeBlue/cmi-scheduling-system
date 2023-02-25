@@ -12,7 +12,7 @@ export default function imageUploadLocal({ image, firstName }) {
     //write the binary data to file on disk.
     const filePath = path.join(
       process.cwd(),
-      '../public/upload/images',
+      '/lib/upload/images',
       `${firstName}.${ext}`
     );
 

@@ -1,20 +1,18 @@
-import Model from "..";
+import Model from '..';
 
 class Teacher extends Model {
   constructor() {
     super();
   }
-  async createTeacher() {
+  async createTeacher(payload) {
     try {
-      const { data } = new this.Teacher(args);
-      await data.save((error) => {
-        new Error(`Cannot create Teacher : ${error}`);
-      });
+      const data = new this.Teacher(payload);
+      await data.save()
       return { data };
     } catch (error) {
-      return { error };
+      throw new Error(`Cannot create teacher : ${error}`);
     }
   }
 }
-const teacher = new Teacher()
-export default teacher
+const teacher = new Teacher();
+export default teacher;

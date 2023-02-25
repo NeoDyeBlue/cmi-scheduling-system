@@ -1,20 +1,17 @@
-import Model from "..";
-import MongoConnect from "../mongo-connect/MongoConnect";
+import Model from '..';
+import MongoConnect from '../mongo-connect/MongoConnect';
 
 class Schedule extends Model {
   constructor() {
     super();
   }
-  async createSchedule(args) {
+  async createSchedule(payload) {
     try {
-      const data = new this.Schedule(args);
-      await data.save((error) => {
-        new Error(`Cannot create schedule. : ${error}`);
-      });
+      const data = new this.Schedule(payload);
+      await data.save();
       return { data };
     } catch (error) {
-        console.log('error', error)
-      return { error };
+      throw new Error(`Cannot create subject : ${error}`);
     }
   }
 }

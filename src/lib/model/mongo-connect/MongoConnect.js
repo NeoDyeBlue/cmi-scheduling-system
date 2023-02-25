@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 class MongoConnect {
   constructor() {
@@ -6,18 +6,23 @@ class MongoConnect {
     const DB_HOST = process.env.DB_HOST;
     const DB_PORT = process.env.DB_PORT;
 
-    this.MONGODB_URI = `mongodb+srv://admin:${process.env.DB_PASSWORD}@cluster0.vsdkxrp.mongodb.net/?retryWrites=true&w=majority`;
+    this.MONGODB_URI = `mongodb+srv://admin:${process.env.DB_PASSWORD}@cluster0.vsdkxrp.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`;
+
   }
   connect() {
-    mongoose.connect(this.MONGODB_URI, {
+    mongoose
+      .connect(this.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       })
       .then(() => {
-        console.log("[MONGODB] : connected--------------------");
+        console.log('[MONGODB] : connected--------------------');
       })
       .catch((error) => {
         console.error(`[MONGODB] :  ${error}`);
+      })
+      .catch((error) => {
+        console.log(`Mongoose are failed to connect ${error}`);
       });
   }
 }
