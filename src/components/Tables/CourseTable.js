@@ -6,9 +6,11 @@ import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
+import { useRouter } from 'next/router';
 
 export default function CourseTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
+  const router = useRouter();
   const columns = useMemo(
     () => [
       //   {
@@ -110,6 +112,9 @@ export default function CourseTable({ data }) {
               <tr
                 key={index}
                 {...row.getRowProps()}
+                onClick={() =>
+                  router.push(`/courses/${row.allCells[0].value.toLowerCase()}`)
+                }
                 // {...row.getToggleRowExpandedProps({ title: '' })}
                 className={classNames(
                   'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
@@ -126,6 +131,7 @@ export default function CourseTable({ data }) {
                       {...cell.getCellProps()}
                       className={classNames('p-4', {
                         'whitespace-nowrap font-semibold uppercase': index == 0,
+                        'min-w-[300px]': index == 1,
                       })}
                     >
                       {cell.render('Cell')}

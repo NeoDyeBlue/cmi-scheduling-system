@@ -1,6 +1,6 @@
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic';
 const Tooltip = dynamic(
-  () => import("react-tooltip").then((module) => ({ default: module.Tooltip })),
+  () => import('react-tooltip').then((module) => ({ default: module.Tooltip })),
   {
     ssr: false,
   }
@@ -27,9 +27,9 @@ export default function TableActionButton({
       </button>
       <Tooltip
         style={{
-          padding: "0.5rem 0.75rem",
-          borderRadius: "0.5rem",
-          backgroundColor: tooltipColor || "#3c3744",
+          padding: '0.5rem 0.75rem',
+          borderRadius: '0.5rem',
+          backgroundColor: tooltipColor || '#3c3744',
           zIndex: 40,
         }}
         id={toolTipId}

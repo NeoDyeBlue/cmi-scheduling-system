@@ -41,10 +41,14 @@ export default function Courses() {
           </TabList>
 
           <TabPanel>
-            <CourseTable data={collegeCourses} />
+            <div className="overflow-x-auto">
+              <CourseTable data={collegeCourses} />
+            </div>
           </TabPanel>
           <TabPanel>
-            <CourseTable data={[]} />
+            <div className="overflow-x-auto">
+              <CourseTable data={[]} />
+            </div>
           </TabPanel>
         </Tabs>
       </div>
