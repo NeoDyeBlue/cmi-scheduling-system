@@ -1,9 +1,11 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { SearchForm, SubjectForm } from "@/components/Forms";
-import { useState } from "react";
-import { CreateButton } from "@/components/Buttons";
-import { Modal } from "@/components/Modals";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { SearchForm, SubjectForm } from '@/components/Forms';
+import { useState } from 'react';
+import { CreateButton } from '@/components/Buttons';
+import { Modal } from '@/components/Modals';
+import { subjects } from '@/lib/test_data/subjects';
+import { SubjectTable } from '@/components/Tables';
 
 export default function Subjects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +31,9 @@ export default function Subjects() {
             onClick={() => setIsModalOpen(true)}
             text="New Subject"
           />
+        </div>
+        <div className="overflow-x-auto">
+          <SubjectTable data={subjects} />
         </div>
       </div>
     </>

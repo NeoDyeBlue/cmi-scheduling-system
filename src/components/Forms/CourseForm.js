@@ -64,7 +64,7 @@ export default function CourseForm({ initialData, onCancel }) {
         <div className="flex flex-col gap-2">
           <p className="font-display font-medium">Year & Sections Count</p>
           <FieldArray name="yearSections">
-            {({ insert, remove }) => (
+            {({ insert, remove, push }) => (
               <div className="flex flex-col gap-2">
                 {courseFormik.values.yearSections.map((input, index) => (
                   <div key={index} className="flex items-center gap-4">
@@ -95,7 +95,7 @@ export default function CourseForm({ initialData, onCancel }) {
                         index == courseFormik.values.yearSections.length - 1 ? (
                           <ActionButton
                             onClick={() =>
-                              insert(index, {
+                              push({
                                 year:
                                   courseFormik.values.yearSections.length + 1,
                                 sections: 1,
