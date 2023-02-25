@@ -16,6 +16,12 @@ const teachers = [
             subject: {
               code: 'NLP',
             },
+            course: {
+              code: 'BSCS',
+              year: 4,
+              section: 'A',
+              type: 'college',
+            },
             room: {
               code: 'CB205',
               name: 'Computer Laboratory 205',
@@ -35,6 +41,12 @@ const teachers = [
             subject: {
               code: 'CSTHESIS1',
             },
+            course: {
+              code: 'BSCS',
+              year: 4,
+              section: 'A',
+              type: 'college',
+            },
             room: {
               code: 'CB205',
               name: 'Computer Laboratory 205',
@@ -47,6 +59,12 @@ const teachers = [
           {
             subject: {
               code: 'CSTHESIS2',
+            },
+            course: {
+              code: 'BSCS',
+              year: 4,
+              section: 'A',
+              type: 'college',
             },
             room: {
               code: 'CB205',
@@ -78,6 +96,12 @@ const teachers = [
             subject: {
               code: 'APPSDEV',
             },
+            course: {
+              code: 'BSCS',
+              year: 2,
+              section: 'A',
+              type: 'college',
+            },
             room: {
               code: 'CB206',
               name: 'Computer Laboratory 206',
@@ -97,6 +121,12 @@ const teachers = [
             subject: {
               code: 'PROG1',
             },
+            course: {
+              code: 'BSCS',
+              year: 1,
+              section: 'A',
+              type: 'college',
+            },
             time: {
               start: '7:00 AM',
               end: '10:00 AM',
@@ -113,6 +143,12 @@ const teachers = [
             room: {
               code: 'CB206',
               name: 'Computer Laboratory 206',
+            },
+            course: {
+              code: 'BSCS',
+              year: 4,
+              section: 'A',
+              type: 'college',
             },
             time: {
               start: '11:30 AM',

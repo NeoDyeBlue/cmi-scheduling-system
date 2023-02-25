@@ -47,6 +47,7 @@ export default function Course() {
                   startTime="7:00 AM"
                   endTime="6:00 PM"
                   interval={30}
+                  type="course"
                 />
               </div>
             </React.Fragment>

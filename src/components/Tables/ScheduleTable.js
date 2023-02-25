@@ -2,6 +2,7 @@ import { useTable } from 'react-table';
 import { useMemo } from 'react';
 import { parse, addMinutes, format } from 'date-fns';
 import Image from 'next/image';
+import classNames from 'classnames';
 
 export default function ScheduleTable({
   data,
@@ -187,10 +188,16 @@ export default function ScheduleTable({
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
-          <p className="font-display font-semibold">{slot?.subject?.code}</p>
+          {type !== 'subject' && (
+            <p className="font-display font-semibold">{slot?.subject?.code}</p>
+          )}
           {type !== 'teacher' && type !== 'room' ? (
             <>
-              <p className="font-medium">
+              <p
+                className={classNames('font-medium', {
+                  'font-display font-semibold': type !== 'course',
+                })}
+              >
                 {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
               </p>
               <p className="font-medium">{slot?.room?.code}</p>
@@ -202,6 +209,12 @@ export default function ScheduleTable({
           {type == 'room' && (
             <p className="font-medium">
               {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
+            </p>
+          )}
+          {type !== 'course' && (
+            <p className="font-medium">
+              {slot?.course?.code} {slot?.course?.year}
+              {slot?.course?.section}
             </p>
           )}
         </div>

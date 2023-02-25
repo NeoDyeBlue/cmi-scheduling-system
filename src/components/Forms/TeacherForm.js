@@ -18,7 +18,7 @@ export default function TeacherForm({ initialData, onCancel }) {
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
       preferredDays: initialData?.preferredDays || [],
-      type: initialData?.type || '',
+      type: initialData?.type || 'part-time',
     },
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
