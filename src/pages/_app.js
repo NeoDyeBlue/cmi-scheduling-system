@@ -18,7 +18,6 @@ const poppins = Poppins({
 export default function App({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
   const layout = getLayout(<Component {...pageProps} />);
-
   return (
     <>
       <style jsx global>
