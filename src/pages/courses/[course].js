@@ -78,9 +78,10 @@ export default function Course() {
         </div>
         <div className="flex flex-col gap-6">
           <h1 className="font-display text-4xl font-bold">{bscs.name}</h1>
-          <p>Class Schedules</p>
+          {/* <p>Class Schedules</p> */}
         </div>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <p className="text-sm">Choose a year:</p>
           <Tabs
             className="flex flex-col"
             // onSelect={(index) => setActiveTab(tabs[index])}
