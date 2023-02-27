@@ -35,18 +35,45 @@ class Course extends Model {
       throw error;
     }
   }
-  async getCourses(){
-    try{
+  async getCourses() {
+    try {
       const pipeline = [
-        
-      ]
-      const data = await this.Course.aggregate(pipeline)
-      return data
-    }catch(error){
-      throw error
+        {
+          $unwind: '$yearSections',
+        },
+        {
+          $group: {
+            _id: {
+              code: '$code',
+              year: '$yearSections.year',
+            },
+            name: { $first: '$name' },
+            sectionCount: { $sum: { $size: '$yearSections.sections' } },
+          },
+        },
+        {
+          $group: {
+            _id: '$_id.code',
+            code: { $first: '$_id.code' },
+            name: { $first: '$name' },
+            yearSections: {
+              $push: {
+                year: '$_id.year',
+                sectionCount: '$sectionCount',
+              },
+            },
+          },
+        },
+      ];
+
+      const data = await this.Course.aggregate(pipeline);
+
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
     }
   }
-
 }
 const course = new Course();
 export default course;
