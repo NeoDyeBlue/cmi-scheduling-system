@@ -11,15 +11,32 @@ class Course extends Model {
         .exec();
       if (isCourse) {
         throw errorThrower(
-          'courseError',
-          `Course code ${isCourse.code} must be unique`
+          'courseCodeError',
+          `Course code is already in use`
         );
       }
       const data = new this.Course(payload);
       await data.save();
       return data;
     } catch (error) {
-      throw error
+      throw error;
+    }
+  }
+
+  async getCoursesByCode({ code }) {
+    try {
+      const stages = [
+        {
+          $match: {
+            code: code,
+          },
+        },
+
+      ];
+      const data = await this.Course(stages);
+      return data
+    } catch (error) {
+      throw error;
     }
   }
 }
