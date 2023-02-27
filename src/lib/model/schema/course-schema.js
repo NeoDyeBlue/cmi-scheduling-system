@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
 
 const yearSectionSchema = new mongoose.Schema({
-  year: { type: String, required: true },
-  section: { type: Number, required: true },
+  year: { type: Number, required: true },
+  sections: new mongoose.Schema({ section: { type: String, required: true } }),
 });
 
 const course = new mongoose.Schema({
   name: { type: String, required: true },
   code: { type: String, required: true, unique: true },
   type: { type: String },
-  yearSection: [yearSectionSchema],
+  yearSections: [yearSectionSchema],
 });
 
 export default course;

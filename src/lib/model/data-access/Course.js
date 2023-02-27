@@ -21,20 +21,18 @@ class Course extends Model {
   }
 
   async getCoursesByCode({ code }) {
-    if (req.method === 'GET') {
-      try {
-        const stages = [
-          {
-            $match: {
-              code: code,
-            },
+    try {
+      const pipeline = [
+        {
+          $match: {
+            code: code,
           },
-        ];
-        const data = await this.Course(stages);
-        return data;
-      } catch (error) {
-        throw error;
-      }
+        },
+      ];
+      const data = await this.Course(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
     }
   }
 }
