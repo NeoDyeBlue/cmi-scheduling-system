@@ -7,11 +7,20 @@ import { useState } from 'react';
 import { collegeCourses } from '@/lib/test_data/courses';
 import { Modal } from '@/components/Modals';
 import { CourseTable } from '@/components/Tables';
+// import usePaginate from '@/hooks/usePaginate';
+// import ReactPaginate from 'react-paginate';
 
 export default function Courses() {
   const tabs = ['college', 'SHS'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // const { docs, pageData, setPageIndex } = usePaginate({
+  //   url: '/api/courses',
+  //   limit: 10,
+  //   query: {
+  //     type: activeTab.toLowerCase(),
+  //   },
+  // });
   return (
     <>
       <Head>
@@ -55,7 +64,7 @@ export default function Courses() {
           </TabPanel>
           <TabPanel>
             <div className="overflow-x-auto">
-              <CourseTable data={[]} type="shs" />
+              <CourseTable type="shs" />
             </div>
           </TabPanel>
         </Tabs>

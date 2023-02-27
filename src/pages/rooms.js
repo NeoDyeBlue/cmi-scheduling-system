@@ -1,17 +1,20 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import { RoomTable } from '@/components/Tables';
-import { rooms } from '@/lib/test_data/rooms';
-import { useMemo } from 'react';
 import { SearchForm } from '@/components/Forms';
 import { CreateButton } from '@/components/Buttons';
 import { useState } from 'react';
 import { Modal } from '@/components/Modals';
 import { RoomForm } from '@/components/Forms';
+import usePaginate from '@/hooks/usePaginate';
+import ReactPaginate from 'react-paginate';
 
 export default function Rooms() {
-  const roomsData = useMemo(() => rooms, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { docs, pageData, setPageIndex } = usePaginate({
+    url: '/api/rooms',
+    limit: 10,
+  });
   return (
     <>
       <Head>
@@ -32,8 +35,24 @@ export default function Rooms() {
           <SearchForm placeholder="Search Rooms" />
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>
-        <div className="overflow-x-auto">
-          <RoomTable data={roomsData} />
+        <div className="flex flex-col gap-4 overflow-x-auto">
+          <RoomTable data={docs} />
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
+          />
         </div>
       </div>
     </>

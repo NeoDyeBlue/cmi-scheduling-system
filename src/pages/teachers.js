@@ -5,10 +5,15 @@ import { Modal } from '@/components/Modals';
 import { SearchForm, TeacherForm } from '@/components/Forms';
 import { useState } from 'react';
 import { TeacherTable } from '@/components/Tables';
-import { teachers } from '@/lib/test_data/teachers';
+import usePaginate from '@/hooks/usePaginate';
+import ReactPaginate from 'react-paginate';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { docs, pageData, setPageIndex } = usePaginate({
+    url: '/api/teachers',
+    limit: 10,
+  });
   return (
     <>
       <Head>
@@ -32,8 +37,24 @@ export default function Teachers() {
             text="New Teacher"
           />
         </div>
-        <div className="overflow-x-auto">
-          <TeacherTable data={teachers} />
+        <div className="flex flex-col gap-4 overflow-x-auto">
+          <TeacherTable data={docs} />
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
+          />
         </div>
       </div>
     </>

@@ -16,6 +16,9 @@ import classNames from 'classnames';
 
 export default function SubjectTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
+
+  const subjects = useMemo(() => data, [data]);
+
   const columns = useMemo(
     () => [
       {
@@ -88,7 +91,7 @@ export default function SubjectTable({ data }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data }, useExpanded);
+  } = useTable({ columns, data: subjects }, useExpanded);
 
   return (
     <table {...getTableProps()} className="w-full">

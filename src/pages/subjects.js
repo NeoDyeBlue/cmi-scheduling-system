@@ -4,11 +4,16 @@ import { SearchForm, SubjectForm } from '@/components/Forms';
 import { useState } from 'react';
 import { CreateButton } from '@/components/Buttons';
 import { Modal } from '@/components/Modals';
-import { subjects } from '@/lib/test_data/subjects';
 import { SubjectTable } from '@/components/Tables';
+import usePaginate from '@/hooks/usePaginate';
+import ReactPaginate from 'react-paginate';
 
 export default function Subjects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { docs, pageData, setPageIndex } = usePaginate({
+    url: '/api/subjects',
+    limit: 10,
+  });
   return (
     <>
       <Head>
@@ -32,8 +37,24 @@ export default function Subjects() {
             text="New Subject"
           />
         </div>
-        <div className="overflow-x-auto">
-          <SubjectTable data={subjects} />
+        <div className="flex flex-col gap-4 overflow-x-auto">
+          <SubjectTable data={docs} />
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
+          />
         </div>
       </div>
     </>

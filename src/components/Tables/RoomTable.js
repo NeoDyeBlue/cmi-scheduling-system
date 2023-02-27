@@ -1,5 +1,5 @@
-import { useTable, useExpanded, usePagination } from 'react-table';
-import { useMemo, useState, useEffect } from 'react';
+import { useTable, useExpanded } from 'react-table';
+import { useMemo } from 'react';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
 import {
@@ -13,12 +13,11 @@ import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
-import ReactPaginate from 'react-paginate';
-import { useSWR } from 'swr';
 
 export default function RoomTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
-  const [activePageIndex, setActivePageIndex] = useState(1);
+
+  const rooms = useMemo(() => data, [data]);
 
   const columns = useMemo(
     () => [
@@ -88,28 +87,7 @@ export default function RoomTable({ data }) {
     rows,
     prepareRow,
     visibleColumns,
-    page, // Instead of using 'rows', we'll use page,
-    // which has only the rows for the active page
-
-    // The rest of these things are super handy, too ;)
-    canPreviousPage,
-    canNextPage,
-    pageOptions,
-    pageCount,
-    gotoPage,
-    nextPage,
-    previousPage,
-    setPageSize,
-    state: { pageIndex, pageSize },
-  } = useTable(
-    { columns, data, initialState: { pageIndex: 0 } },
-    useExpanded,
-    usePagination
-  );
-
-  function handlePageClick({ selected }) {
-    setActivePageIndex(selected);
-  }
+  } = useTable({ columns, data: rooms }, useExpanded);
 
   return (
     <div className="flex flex-col gap-2">
@@ -184,47 +162,6 @@ export default function RoomTable({ data }) {
           })}
         </tbody>
       </table>
-      <div className="">
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel="next >"
-          onPageChange={handlePageClick}
-          pageRangeDisplayed={5}
-          pageCount={pageCount}
-          previousLabel="< prev"
-          renderOnZeroPageCount={null}
-        />
-        <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-          {'<<'}
-        </button>{' '}
-        <button onClick={() => previousPage()} disabled={!canPreviousPage}>
-          {'<'}
-        </button>{' '}
-        <button onClick={() => nextPage()} disabled={!canNextPage}>
-          {'>'}
-        </button>{' '}
-        <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage}>
-          {'>>'}
-        </button>{' '}
-        <span>
-          Page{' '}
-          <strong>
-            {pageIndex + 1} of {pageOptions.length}
-          </strong>{' '}
-        </span>
-        <select
-          value={pageSize}
-          onChange={(e) => {
-            setPageSize(Number(e.target.value));
-          }}
-        >
-          {[10, 20, 30, 40, 50].map((pageSize) => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
-            </option>
-          ))}
-        </select>
-      </div>
     </div>
   );
 }

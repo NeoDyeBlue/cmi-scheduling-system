@@ -1,5 +1,5 @@
 import { useTable } from 'react-table';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { ActionButton } from '../Buttons';
 import { MdDelete, MdEdit } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
@@ -7,26 +7,20 @@ import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 import { useRouter } from 'next/router';
-import useSWR from 'swr';
 import ReactPaginate from 'react-paginate';
+import usePaginate from '@/hooks/usePaginate';
 
 export default function CourseTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
-  const [activePageIndex, setActivePageIndex] = useState(1);
   const router = useRouter();
 
-  //fetcher
-  // const controller = new AbortController();
-  // const { signal } = controller;
-  // const fetcher = (url) => fetch(url, { signal }).then((res) => res.json());
-
-  const {
-    data: courses,
-    error,
-    mutate,
-  } = useSWR(`/api/courses?page=${activePageIndex}&limit=2&type=${type}`);
-
-  const data = useMemo(() => courses?.data?.docs || [], [courses]);
+  const { docs, pageData, setPageIndex } = usePaginate({
+    url: '/api/courses',
+    limit: 10,
+    query: {
+      type,
+    },
+  });
 
   const columns = useMemo(
     () => [
@@ -81,16 +75,12 @@ export default function CourseTable({ type }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data });
+  } = useTable({ columns, data: docs });
 
   // useEffect(() => {
   //   // controller.abort();
   //   mutate();
   // }, [activePageIndex]);
-
-  function handlePageClick({ selected }) {
-    setActivePageIndex(selected + 1);
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -169,9 +159,9 @@ export default function CourseTable({ type }) {
       <ReactPaginate
         breakLabel="..."
         nextLabel="next >"
-        onPageChange={handlePageClick}
+        onPageChange={({ selected }) => setPageIndex(selected + 1)}
         pageRangeDisplayed={5}
-        pageCount={Math.ceil(courses?.data?.totalPages) || 0}
+        pageCount={Math.ceil(pageData?.totalPages) || 0}
         previousLabel="< prev"
         renderOnZeroPageCount={null}
         containerClassName="paginate-container"

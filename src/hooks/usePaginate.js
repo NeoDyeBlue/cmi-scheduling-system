@@ -1,16 +1,16 @@
 import useSWR from 'swr';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function usePaginate({
   url,
   limit,
   query,
   options,
-  initialIndex,
+  initialIndex = 1,
 }) {
   const [pageIndex, setPageIndex] = useState(initialIndex);
 
-  const getKey = () => {
+  const getKey = useMemo(() => {
     if (query && Object.keys(query).length) {
       // console.log(pageIndex, query);
       return `${url}?${new URLSearchParams(
@@ -19,19 +19,26 @@ export default function usePaginate({
     } else {
       return `${url}?page=${pageIndex}&limit=${limit}`;
     }
-  };
+  }, [limit, pageIndex, url, query]);
 
-  const { data, error, mutate, isValidating, isLoading } = useSWR(
-    getKey,
-    options
-  );
-
-  return {
-    data,
+  const {
+    data: result,
     error,
     mutate,
     isValidating,
     isLoading,
+  } = useSWR(getKey, options);
+
+  const { docs, ...pageData } = result?.data || {};
+
+  return {
+    docs: result?.data?.docs || [],
+    pageData,
+    error,
+    mutate,
+    isValidating,
+    isLoading,
+    pageIndex,
     setPageIndex,
   };
 }
