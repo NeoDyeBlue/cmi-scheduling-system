@@ -1,3 +1,4 @@
+import errorThrower, { validationError } from '@/utils/error.util';
 import Model from '..';
 
 class Subject extends Model {
@@ -7,11 +8,20 @@ class Subject extends Model {
 
   async createSubject(payload) {
     try {
+      const isSubject = await this.Subject.findOne({ code: payload.code })
+        .select(['code'])
+        .exec();
+      if (isSubject) {
+        throw errorThrower(
+          'subjectError',
+          `Subject code ${isSubject.code} must be unique`
+        );
+      }
       const data = new this.Subject(payload);
       await data.save();
-      return { data };
+      return data;
     } catch (error) {
-      throw new Error(`Cannot create subject : ${error}`);
+      throw error;
     }
   }
 }
