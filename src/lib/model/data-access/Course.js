@@ -41,6 +41,11 @@ class Course extends Model {
 
       const pipeline = [
         {
+          $sort: {
+            _id: 1,
+          },
+        },
+        {
           $match: {
             type: type,
           },
@@ -74,7 +79,7 @@ class Course extends Model {
           },
         },
       ];
-      const courseAggregate = await this.Course.aggregate(pipeline);
+      const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
         courseAggregate,
         options

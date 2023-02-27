@@ -19,21 +19,27 @@ class Room extends Model {
       throw error;
     }
   }
-  async getRoomsPaginate() {
+  async getRoomsPaginate({ page, limit }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
       const pipeline = [
         {
-          
-        }
+          $project: {
+            code: '$code',
+            name: '$name',
+            schedules: [],
+          },
+        },
       ];
       const roomAggregation = this.Room.aggregate(pipeline);
-      const { docs: data } = await this.Room.aggregatePaginate(
+      const data = await this.Room.aggregatePaginate(
         roomAggregation,
         options
       );
-      return data
+      
+      return data;
     } catch (error) {
+      console.log("errorerrorerrorerror",error)
       throw error;
     }
   }
