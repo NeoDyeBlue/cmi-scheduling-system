@@ -35,9 +35,16 @@ class Course extends Model {
       throw error;
     }
   }
-  async getCourses() {
+  async getCourses({ page, limit, type }) {
     try {
+      const options = { ...(page && limit ? { page, limit } : {}) };
+
       const pipeline = [
+        {
+          $match: {
+            type: type,
+          },
+        },
         {
           $unwind: '$yearSections',
         },
@@ -48,7 +55,9 @@ class Course extends Model {
               year: '$yearSections.year',
             },
             name: { $first: '$name' },
-            sectionCount: { $sum: { $size: '$yearSections.sections' } },
+            sectionCount: {
+              $sum: { $size: '$yearSections.sections.section' },
+            },
           },
         },
         {
@@ -65,9 +74,12 @@ class Course extends Model {
           },
         },
       ];
-
-      const data = await this.Course.aggregate(pipeline);
-
+      const courseAggregate = this.Course.aggregate(pipeline);
+      const { docs } = await this.Course.aggregatePaginate(
+        courseAggregate,
+        options
+      );
+      const data = docs;
       return data;
     } catch (error) {
       console.log('error', error);

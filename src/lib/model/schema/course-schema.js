@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const sectionSchema = new mongoose.Schema({
   section: { type: String, required: true },
@@ -14,6 +16,8 @@ const course = new mongoose.Schema({
   type: { type: String },
   yearSections: [yearSectionSchema],
 });
+course.plugin(mongoosePaginate);
+course.plugin(aggregatePaginate);
 
 export default course;
 // type: { type: [String], emum: ['shs', 'college'] },
