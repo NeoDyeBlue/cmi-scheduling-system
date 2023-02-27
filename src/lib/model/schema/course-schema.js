@@ -1,8 +1,11 @@
 import mongoose from 'mongoose';
 
+const sectionSchema = new mongoose.Schema({
+  section: { type: String, required: true },
+});
 const yearSectionSchema = new mongoose.Schema({
   year: { type: Number, required: true },
-  sections: new mongoose.Schema({ section: { type: String, required: true } }),
+  sections: [sectionSchema],
 });
 
 const course = new mongoose.Schema({
@@ -13,3 +16,4 @@ const course = new mongoose.Schema({
 });
 
 export default course;
+// type: { type: [String], emum: ['shs', 'college'] },

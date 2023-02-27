@@ -20,7 +20,7 @@ class Course extends Model {
     }
   }
 
-  async getCoursesByCode({ code }) {
+  async getCourseScheduleByCode({ code }) {
     try {
       const pipeline = [
         {
@@ -35,6 +35,18 @@ class Course extends Model {
       throw error;
     }
   }
+  async getCourses(){
+    try{
+      const pipeline = [
+        
+      ]
+      const data = await this.Course.aggregate(pipeline)
+      return data
+    }catch(error){
+      throw error
+    }
+  }
+
 }
 const course = new Course();
 export default course;
