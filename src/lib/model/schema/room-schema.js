@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const room = new mongoose.Schema({
   code: { type: String, unique: true },
@@ -6,6 +8,9 @@ const room = new mongoose.Schema({
   type: { type: [String], default: 'all', enum: ['shs', 'college', 'speech lab','hm lab','computer','big room', 'all'] },
   level: { type: String, enum: ['shs', 'college', 'both'] },
 });
+room.plugin(mongoosePaginate);
+room.plugin(aggregatePaginate);
+
 export default room;
 
 

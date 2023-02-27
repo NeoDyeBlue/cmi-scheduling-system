@@ -1,5 +1,6 @@
 // sample schema.
-
+import mongoosePaginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose from "mongoose";
 const schedule = new mongoose.Schema(
   {
@@ -16,5 +17,7 @@ const schedule = new mongoose.Schema(
   },
   { timestamp: true }
 );
+schedule.plugin(mongoosePaginate);
+schedule.plugin(aggregatePaginate);
 
 export default schedule;
