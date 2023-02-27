@@ -10,7 +10,10 @@ export const courseSchema = yup.object().shape({
     .of(
       yup.object().shape({
         year: yup.number().required('Required'),
-        sections: yup.number().min(1).required('Required'),
+        sections: yup
+          .number()
+          .min(1, 'Section count must be equal or greater than 1')
+          .required('Required'),
       })
     )
     .min(1, 'Add at least one year and section')

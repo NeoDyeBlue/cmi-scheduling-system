@@ -222,7 +222,7 @@ export default function TeacherTable({ data }) {
               {row.isExpanded ? (
                 <tr>
                   <td colSpan={visibleColumns.length}>
-                    <div className="max-h-[400px] overflow-auto">
+                    <div className="overflow-auto">
                       <ScheduleTable
                         data={row.original.schedules}
                         startTime="7:00 AM"

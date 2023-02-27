@@ -37,7 +37,7 @@ export default function InputField({ label, infoMessage, ...props }) {
         }
         className={classNames(
           `w-full rounded-lg border bg-white p-4 font-body placeholder-ship-gray-300 
-          focus:outline-none focus:ring-1 focus:ring-primary-500`,
+          focus:outline-none focus:ring-1`,
           {
             'border-danger-500 focus:ring-danger-500':
               meta.error && meta.touched,
