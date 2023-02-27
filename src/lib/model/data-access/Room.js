@@ -11,7 +11,7 @@ class Room extends Model {
       .exec();
     if (isRoom) {
       throw errorThrower(
-        'roomCodeError',
+        'RoomCodeError',
         `Room code is already in use`
       );
     }
