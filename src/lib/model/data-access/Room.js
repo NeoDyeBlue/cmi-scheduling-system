@@ -39,7 +39,6 @@ class Room extends Model {
       
       return data;
     } catch (error) {
-      console.log("errorerrorerrorerror",error)
       throw error;
     }
   }

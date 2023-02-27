@@ -23,12 +23,41 @@ class Teacher extends Model {
           },
         },
         {
-          totalTeachers: {
-            $sum: '$totalByType',
+          $project: {
+            totalTeachers: {
+              $sum: '$totalByType',
+            },
           },
         },
       ];
       const data = await this.Teacher.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+  async getTeacherPaginate({ page, limit }) {
+    try {
+      const options = { ...(page && limit ? { page, limit } : {}) };
+      const pipeline = [
+        {
+          $project: {
+            teacherId: '11-1111',
+            firstName: '$firstName',
+            lastName: '$lastName',
+            image: '$image',
+            type: '$type',
+            preferredDays: '$preferredDays',
+            schedules: [],
+          },
+        },
+      ];
+      const teacherAggregation = this.Teacher.aggregate(pipeline);
+      const data = await this.Teacher.aggregatePaginate(
+        teacherAggregation,
+        options
+      );
       return data;
     } catch (error) {
       throw error;

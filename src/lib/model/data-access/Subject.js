@@ -24,6 +24,30 @@ class Subject extends Model {
       throw error;
     }
   }
+  async getSubjectsPagination({ limit, page }) {
+    try {
+      const options = { ...(page && limit ? { page, limit } : {}) };
+      const pipeline = [
+        {
+          $project: {
+            code: '$code',
+            name: '$name',
+            units: '$units',
+            schedules: [],
+          },
+        },
+      ];
+      const subjectAggregation = this.Subject.aggregate(pipeline);
+      const data = await this.Subject.aggregatePaginate(
+        subjectAggregation,
+        options
+      );
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 const subject = new Subject();
