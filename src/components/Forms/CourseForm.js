@@ -6,6 +6,7 @@ import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import { MdAdd, MdRemove } from 'react-icons/md';
 import { courseSchema } from '@/lib/validators/course-validator';
+import { toast } from 'react-hot-toast';
 
 export default function CourseForm({ initialData, onCancel }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -14,7 +15,7 @@ export default function CourseForm({ initialData, onCancel }) {
       code: initialData?.code || '',
       name: initialData?.name || '',
       type: initialData?.type || 'college',
-      yearSections: initialData?.yearSections || [{ year: 1, sections: 1 }],
+      yearSections: initialData?.yearSections || [{ year: 1, sectionCount: 1 }],
     },
     onSubmit: handleSubmit,
     validationSchema: courseSchema,
@@ -22,6 +23,27 @@ export default function CourseForm({ initialData, onCancel }) {
 
   async function handleSubmit(values) {
     console.log(values);
+    try {
+      const res = await fetch('/api/courses', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        console.log(result);
+        toast.success('Course Added');
+      } else if (!result?.success && result?.error) {
+        if (result?.error == 'CourseCodeError') {
+          courseFormik.setFieldError('code', result?.errorMessage);
+        }
+      } else {
+        toast.error("Can't add course");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Can't add course");
+    }
   }
   return (
     <FormikProvider value={courseFormik}>
@@ -75,7 +97,7 @@ export default function CourseForm({ initialData, onCancel }) {
                       {index + 1}
                     </p>
                     <InputField
-                      name={`yearSections[${index}].sections`}
+                      name={`yearSections[${index}].sectionCount`}
                       min={1}
                       key={index}
                       type="number"
@@ -99,7 +121,7 @@ export default function CourseForm({ initialData, onCancel }) {
                               push({
                                 year:
                                   courseFormik.values.yearSections.length + 1,
-                                sections: 1,
+                                sectionCount: 1,
                               })
                             }
                             icon={<MdAdd size={16} className="text-white" />}

@@ -2,9 +2,10 @@ import { FormikProvider, Form, useFormik } from 'formik';
 import { InputField } from '../Inputs';
 import { Button } from '../Buttons';
 import { subjectSchema } from '@/lib/validators/subject-validator';
+import { toast } from 'react-hot-toast';
 
 export default function RoomForm({ initialData, onCancel }) {
-  const roomFormik = useFormik({
+  const subjectFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
       name: initialData?.name || '',
@@ -15,10 +16,29 @@ export default function RoomForm({ initialData, onCancel }) {
   });
 
   async function handleSubmit(values) {
-    console.log(values);
+    try {
+      const res = await fetch('/api/subjects', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        toast.success('Subject Added');
+      } else if (!result?.success && result?.error) {
+        if (result?.error == 'SubjectCodeError') {
+          subjectFormik.setFieldError('code', result?.errorMessage);
+        }
+      } else {
+        toast.error("Can't add subject");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Can't add subject");
+    }
   }
   return (
-    <FormikProvider value={roomFormik}>
+    <FormikProvider value={subjectFormik}>
       <Form className="flex flex-col gap-6">
         <InputField
           type="text"

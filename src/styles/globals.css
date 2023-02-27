@@ -37,6 +37,31 @@ body,
   .tab-active {
     @apply bg-primary-200 font-semibold text-primary-900 hover:bg-primary-200;
   }
+
+  .paginate-container {
+    @apply flex gap-2 text-sm leading-none;
+  }
+
+  .paginate-button {
+    @apply flex gap-2 rounded-lg border border-gray-300 px-3 py-2 hover:bg-primary-50 hover:text-primary-500;
+  }
+
+  .paginate-link {
+    @apply flex min-w-[30px] items-center justify-center rounded-lg border border-gray-300 
+        px-2 py-2 text-center hover:bg-gray-100 hover:text-primary-500;
+  }
+
+  .paginate-link-active {
+    @apply border-0 bg-primary-700 text-white hover:bg-primary-700 hover:text-white;
+  }
+
+  .paginate-break {
+    @apply flex min-w-[30px] items-center justify-center rounded-lg px-2 py-2 text-center;
+  }
+
+  .paginate-link-disabled {
+    @apply cursor-default text-ship-gray-300 hover:bg-white hover:text-ship-gray-300;
+  }
 }
 
 .clip-path {
