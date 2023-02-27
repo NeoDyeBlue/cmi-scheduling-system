@@ -22,6 +22,7 @@ export default function CourseForm({ initialData, onCancel }) {
   });
 
   async function handleSubmit(values) {
+    console.log(values);
     try {
       const res = await fetch('/api/courses', {
         method: 'POST',

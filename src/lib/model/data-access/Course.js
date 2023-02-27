@@ -74,7 +74,7 @@ class Course extends Model {
           },
         },
       ];
-      const courseAggregate = await this.Course.aggregate(pipeline);
+      const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
         courseAggregate,
         options
