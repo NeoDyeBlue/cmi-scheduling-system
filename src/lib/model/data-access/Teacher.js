@@ -1,5 +1,5 @@
 import Model from '..';
-
+import errorThrower from '@/utils/error.util';
 class Teacher extends Model {
   constructor() {
     super();
@@ -8,10 +8,10 @@ class Teacher extends Model {
     try {
       const data = new this.Teacher(payload);
       await data.save()
-      return { data };
+      return  data ;
     } catch (error) {
       console.log("error", error)
-      throw new Error(`Cannot create teacher : ${error}`);
+      throw error
     }
   }
 }

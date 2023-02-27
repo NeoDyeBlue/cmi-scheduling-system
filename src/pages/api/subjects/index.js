@@ -4,10 +4,10 @@ export const handler = async (req, res) => {
   if (req.method === 'POST') {
     const payload = req.body;
     try {
-      const { data } = await subject.createSubject(payload);
+      const  data  = await subject.createSubject(payload);
       return successResponse(req, res, data);
     } catch (error) {
-      return errorResponse(req, res, 'Something went wrong.', 400, error);
+      return errorResponse(req, res, error.message, 400, error.name);
     }
   }
 };

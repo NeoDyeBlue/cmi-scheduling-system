@@ -7,7 +7,7 @@ const yearSectionSchema = new mongoose.Schema({
 
 const course = new mongoose.Schema({
   name: { type: String, required: true },
-  code: { type: String, required: true, uniquer: true },
+  code: { type: String, required: true, unique: true },
   type: { type: String },
   yearSection: [yearSectionSchema],
 });
