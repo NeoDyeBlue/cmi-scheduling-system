@@ -42,7 +42,9 @@ export default function TeacherForm({ initialData, onCancel }) {
       if (result && result.success) {
         toast.success('Teacher added');
       }
+      console.log(result);
     } catch (error) {
+      console.log(error);
       toast.error('Something went wrong');
     }
   }

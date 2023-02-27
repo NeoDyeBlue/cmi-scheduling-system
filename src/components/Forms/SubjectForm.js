@@ -5,7 +5,7 @@ import { subjectSchema } from '@/lib/validators/subject-validator';
 import { toast } from 'react-hot-toast';
 
 export default function RoomForm({ initialData, onCancel }) {
-  const roomFormik = useFormik({
+  const subjectFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
       name: initialData?.name || '',
@@ -24,10 +24,12 @@ export default function RoomForm({ initialData, onCancel }) {
       });
       const result = await res.json();
       if (result?.success) {
-        console.log(result.data);
         toast.success('Subject Added');
+      } else if (!result?.success && result?.error) {
+        if (result?.error == 'SubjectCodeError') {
+          subjectFormik.setFieldError('code', result?.errorMessage);
+        }
       } else {
-        console.log(result);
         toast.error("Can't add subject");
       }
     } catch (error) {
@@ -36,7 +38,7 @@ export default function RoomForm({ initialData, onCancel }) {
     }
   }
   return (
-    <FormikProvider value={roomFormik}>
+    <FormikProvider value={subjectFormik}>
       <Form className="flex flex-col gap-6">
         <InputField
           type="text"
