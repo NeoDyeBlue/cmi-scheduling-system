@@ -10,10 +10,7 @@ class Course extends Model {
         .select(['code'])
         .exec();
       if (isCourse) {
-        throw errorThrower(
-          'CourseCodeError',
-          `Course code is already in use`
-        );
+        throw errorThrower('CourseCodeError', `Course code is already in use`);
       }
       const data = new this.Course(payload);
       await data.save();
@@ -24,19 +21,20 @@ class Course extends Model {
   }
 
   async getCoursesByCode({ code }) {
-    try {
-      const stages = [
-        {
-          $match: {
-            code: code,
+    if (req.method === 'GET') {
+      try {
+        const stages = [
+          {
+            $match: {
+              code: code,
+            },
           },
-        },
-
-      ];
-      const data = await this.Course(stages);
-      return data
-    } catch (error) {
-      throw error;
+        ];
+        const data = await this.Course(stages);
+        return data;
+      } catch (error) {
+        throw error;
+      }
     }
   }
 }
