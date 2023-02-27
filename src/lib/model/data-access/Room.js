@@ -19,7 +19,7 @@ class Room extends Model {
       await data.save();
       return  data ;
     } catch (error) {
-      throw errorThrower('roomError', 'Cannot create teacher')
+      throw error
     }
   }
 }

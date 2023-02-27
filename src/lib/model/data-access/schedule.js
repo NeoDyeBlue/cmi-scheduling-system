@@ -13,7 +13,7 @@ class Schedule extends Model {
       await data.save();
       return  data ;
     } catch (error) {
-      throw errorThrower('scheduleError', 'Cannot create schedule')
+      throw error
     }
   }
 }
