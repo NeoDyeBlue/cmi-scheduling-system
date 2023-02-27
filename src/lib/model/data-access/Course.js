@@ -11,7 +11,7 @@ class Course extends Model {
         .exec();
       if (isCourse) {
         throw errorThrower(
-          'courseCodeError',
+          'CourseCodeError',
           `Course code is already in use`
         );
       }

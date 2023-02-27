@@ -13,7 +13,7 @@ class Subject extends Model {
         .exec();
       if (isSubject) {
         throw errorThrower(
-          'subjectCodeError',
+          'SubjectCodeError',
           `Subject code is already in use`
         );
       }

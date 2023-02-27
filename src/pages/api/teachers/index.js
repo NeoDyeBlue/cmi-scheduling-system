@@ -10,7 +10,7 @@ export const handler = async (req, res) => {
       image,
       firstName,
     });
-    console.log("req", req.body)
+   
     if (filePath && !uploadError) {
       try {
         const  data  = await teacher.createTeacher({
@@ -23,6 +23,7 @@ export const handler = async (req, res) => {
         return errorResponse(req, res, 'Something went wrong.', 400, error);
       }
     } else {
+      console.log("uploadError", uploadError)
       return errorResponse(req, res, 'Upload image failed.', 400, uploadError);
     }
   }
