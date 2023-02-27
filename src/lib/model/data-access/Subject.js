@@ -13,8 +13,8 @@ class Subject extends Model {
         .exec();
       if (isSubject) {
         throw errorThrower(
-          'subjectError',
-          `Subject code ${isSubject.code} must be unique`
+          'subjectCodeError',
+          `Subject code is already in use`
         );
       }
       const data = new this.Subject(payload);

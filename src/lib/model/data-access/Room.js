@@ -11,8 +11,8 @@ class Room extends Model {
       .exec();
     if (isRoom) {
       throw errorThrower(
-        'roomError',
-        `Room code ${isRoom.code} must be unique`
+        'roomCodeError',
+        `Room code is already in use`
       );
     }
       const data = new this.Room(payload);
