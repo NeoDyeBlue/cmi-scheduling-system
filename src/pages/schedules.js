@@ -2,97 +2,16 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useCallback, useState } from 'react';
+import { MdAdd } from 'react-icons/md';
 import { parse, format, addMinutes } from 'date-fns';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { Button } from '@/components/Buttons';
+import { Scheduler } from '@/components/Inputs';
+import DraggableSchedule from '@/components/Misc/DraggableSchedule';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 export default function Schedules() {
-  const ResponsiveGridLayout = WidthProvider(GridLayout);
-
-  const startTime = '7:00 AM';
-  const endTime = '6:00 PM';
-  const interval = 30;
-
-  const timeData = useMemo(() => {
-    const start = parse(startTime, 'hh:mm a', new Date());
-    const end = parse(endTime, 'hh:mm a', new Date());
-
-    let current = start;
-    const times = [];
-
-    while (current <= end) {
-      times.push(format(current, 'h:mm a'));
-      current = addMinutes(current, interval);
-    }
-
-    return times;
-  }, [startTime, endTime, interval]);
-
-  const headers = [
-    { i: 'times-left', name: 'Time', x: 0, y: 0, w: 1, h: 1, static: true },
-    { i: 'mon', name: 'Monday', x: 1, y: 0, w: 1, h: 1, static: true },
-    { i: 'tue', name: 'Tuesday', x: 2, y: 0, w: 1, h: 1, static: true },
-    { i: 'wed', name: 'Wednesday', x: 3, y: 0, w: 1, h: 1, static: true },
-    { i: 'thu', name: 'Thursday', x: 4, y: 0, w: 1, h: 1, static: true },
-    { i: 'fri', name: 'Friday', x: 5, y: 0, w: 1, h: 1, static: true },
-    { i: 'sat', name: 'Saturday', x: 6, y: 0, w: 1, h: 1, static: true },
-    { i: 'sun', name: 'Sunday', x: 7, y: 0, w: 1, h: 1, static: true },
-    { i: 'times-right', name: 'Time', x: 8, y: 0, w: 1, h: 1, static: true },
-    // { i: 'b', x: 1, y: 0, w: 3, h: 2, minW: 2, maxW: 4 },
-    // { i: 'c', x: 4, y: 0, w: 1, h: 2 },
-  ];
-
-  const times = timeData.map((time, index) => [
-    {
-      i: `${index}${time}`,
-      name: time,
-      x: 0,
-      y: index + 1,
-      w: 1,
-      h: 1,
-      static: true,
-    },
-    {
-      i: `${index}${index}${time}`,
-      name: time,
-      x: headers.length,
-      y: index + 1,
-      w: 1,
-      h: 1,
-      static: true,
-    },
-  ]);
-
-  const layout = [
-    ...headers,
-    ...times.flat(),
-    { i: 'a', x: 1, y: 1, w: 1, h: 2, minW: 1, minH: 2, maxW: 1 },
-    { i: 'b', x: 2, y: 1, w: 1, h: 2, minW: 1, minH: 2, maxW: 1 },
-  ];
-
-  const headerColumns = headers.map((header) => (
-    <div
-      key={header.i}
-      className="flex items-center justify-center bg-white font-display text-xs font-semibold capitalize"
-    >
-      {header.name}
-    </div>
-  ));
-
-  const timeRows = times.flat().map((time) => (
-    <div
-      key={time.i}
-      className="flex items-center justify-center border 
-    border-gray-200 text-xs capitalize"
-    >
-      {time.name}
-    </div>
-  ));
-
-  // const [layouts, setLayouts] = useState(layout);
-  // const handleLayoutChange = useCallback(
-  //   (layout, layouts) => setLayouts(layouts),
-  //   []
-  // );
-
   return (
     <>
       <Head>
@@ -101,58 +20,95 @@ export default function Schedules() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="relative flex w-full flex-col gap-6 p-6">
-        <ResponsiveGridLayout
-          className="w-full border-collapse border border-gray-200"
-          layout={layout}
-          cols={headerColumns.length}
-          rowHeight={36}
-          maxRows={timeData.length + 1}
-          // onLayoutChange={handleLayoutChange}
-          resizeHandles={['s']}
-          // width={1200}
-          isBounded={true}
-          margin={[1, 1]}
-          preventCollision
-          compactType={null}
-        >
-          {headerColumns}
-          {timeRows}
-          <div
-            key="a"
-            className="flex cursor-move items-center justify-center rounded-md bg-primary-500 text-white"
+      <DndProvider backend={HTML5Backend}>
+        <div className="relative flex w-full gap-4 p-6">
+          <Tabs
+            className="flex w-full gap-4"
+            // onSelect={(index) => setActiveTab(tabs[index])}
           >
-            a
-          </div>
-          <div
-            key="b"
-            className="flex cursor-move items-center justify-center rounded-md bg-green-500 text-white"
-          >
-            b
-          </div>
+            <div className="flex w-fit flex-col gap-4">
+              {/* <button className="flex gap-2 rounded-md bg-primary-500 leading-none text-white
+            items-center justify-center px-3 py-2">
+              <MdAdd size={18} /> Room
+            </button> */}
+              <Button small secondary>
+                <MdAdd size={20} /> Room
+              </Button>
+              <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
+                <Tab selectedClassName="tab-active" className="tab">
+                  CB205
+                </Tab>
+                <Tab selectedClassName="tab-active" className="tab">
+                  SHS201
+                </Tab>
+              </TabList>
+            </div>
+            <div className="w-full">
+              <TabPanel>
+                <Scheduler
+                  startTime="7:00 AM"
+                  endTime="6:00 PM"
+                  interval={30}
+                />
+              </TabPanel>
+              <TabPanel>
+                <Scheduler
+                  startTime="7:00 AM"
+                  endTime="6:00 PM"
+                  interval={30}
+                />
+              </TabPanel>
+            </div>
+          </Tabs>
           {/* <div
-            key="end"
-            style={{ height: 0 }}
-            data-grid={{
-              x: 0,
-              y: timeData.length + 1,
-              w: headers.length,
-              h: 1,
-              static: true,
-            }}
-          /> */}
-          {/* <div key="a">a</div>
-          <div key="b">b</div>
-          <div key="c">c</div> */}
-        </ResponsiveGridLayout>
-        {/* <div
           className={classNames(
             'grid',
             `grid-cols-[${headerColumns.length}]`,
             `grid-rows-[repeat(${timeData.length}, 36px)]`
           )}
         ></div> */}
-      </div>
+          <ul className="flex min-h-[300px] min-w-[200px] flex-col gap-2 bg-gray-100 p-2">
+            <li
+              className="flex h-[80px] w-full items-center justify-center rounded-md border
+          border-black bg-white"
+              draggable
+              unselectable="on"
+              // this is a hack for firefox
+              // Firefox requires some kind of initialization
+              // which we can do by adding this attribute
+              // @see https://bugzilla.mozilla.org/show_bug.cgi?id=568313
+              onDragStart={(e) => e.dataTransfer.setData('text/plain', 'hello')}
+              key="test-key1"
+              data-grid={{
+                minH: 2,
+              }}
+            >
+              Schedule 1
+            </li>
+            <li
+              className="flex h-[80px] w-full items-center justify-center rounded-md border
+          border-black bg-white"
+              draggable
+              unselectable="on"
+              key="test-key2"
+              // this is a hack for firefox
+              // Firefox requires some kind of initialization
+              // which we can do by adding this attribute
+              // @see https://bugzilla.mozilla.org/show_bug.cgi?id=568313
+              onDragStart={(e) =>
+                e.dataTransfer.setData('text/plain', 'testestest')
+              }
+              data-grid={{
+                minH: 2,
+              }}
+            >
+              Schedule 2
+            </li>
+            <DraggableSchedule text={'sched1'} />
+            <DraggableSchedule text={'sched2'} />
+          </ul>
+        </div>
+      </DndProvider>
     </>
   );
 }
