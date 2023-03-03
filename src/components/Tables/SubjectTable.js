@@ -1,7 +1,6 @@
-import { useTable, useExpanded } from 'react-table';
+import { useTable } from 'react-table';
 import { useMemo } from 'react';
 import { ActionButton } from '../Buttons';
-import ScheduleTable from './ScheduleTable';
 import {
   MdDelete,
   MdEdit,
@@ -21,23 +20,6 @@ export default function SubjectTable({ data }) {
 
   const columns = useMemo(
     () => [
-      {
-        // Make an expander cell
-        Header: () => null, // No header
-        id: 'expander', // It needs an ID
-        Cell: ({ row }) => (
-          // Use Cell to render an expander for each row.
-          // We can use the getToggleRowExpandedProps prop-getter
-          // to build the expander.
-          <span>
-            {row.isExpanded ? (
-              <MdArrowDropDown size={24} />
-            ) : (
-              <MdArrowRight size={24} />
-            )}
-          </span>
-        ),
-      },
       {
         Header: 'Code',
         accessor: 'code', // accessor is the "key" in the data
@@ -91,7 +73,7 @@ export default function SubjectTable({ data }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data: subjects }, useExpanded);
+  } = useTable({ columns, data: subjects });
 
   return (
     <table {...getTableProps()} className="w-full">
@@ -122,13 +104,8 @@ export default function SubjectTable({ data }) {
               <tr
                 key={index}
                 {...row.getRowProps()}
-                {...row.getToggleRowExpandedProps({ title: '' })}
                 className={classNames(
-                  'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
-                  {
-                    'bg-primary-900 text-white hover:bg-primary-900':
-                      row.isExpanded,
-                  }
+                  'border-y border-gray-200 transition-colors'
                 )}
               >
                 {row.cells.map((cell, index) => {
@@ -145,21 +122,6 @@ export default function SubjectTable({ data }) {
                   );
                 })}
               </tr>
-              {row.isExpanded ? (
-                <tr>
-                  <td colSpan={visibleColumns.length}>
-                    <div className="overflow-auto">
-                      <ScheduleTable
-                        data={row.original.schedules}
-                        startTime="7:00 AM"
-                        endTime="6:00 PM"
-                        interval={30}
-                        type="subject"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ) : null}
             </React.Fragment>
           );
         })}
