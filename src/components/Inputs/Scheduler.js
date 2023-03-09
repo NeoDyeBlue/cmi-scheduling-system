@@ -1,6 +1,13 @@
 import GridLayout, { WidthProvider } from 'react-grid-layout';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { parse, format, addMinutes } from 'date-fns';
+import useSchedulerStore from '@/stores/useSchedulerStore';
+import classNames from 'classnames';
+
+/**
+ * fix layout change handler
+ * restrict dragging based on sched
+ */
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -12,6 +19,9 @@ export default function Scheduler({
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
   const [layout, setLayout] = useState(initialLayout);
   const [schedules, setSchedules] = useState([]);
+
+  //stores
+  const { draggingSchedule } = useSchedulerStore();
 
   const timeData = useMemo(() => {
     const start = parse(startTime, 'hh:mm a', new Date());
@@ -39,8 +49,6 @@ export default function Scheduler({
       { i: 'sat', name: 'Saturday', x: 6, y: 0, w: 1, h: 1, static: true },
       { i: 'sun', name: 'Sunday', x: 7, y: 0, w: 1, h: 1, static: true },
       { i: 'times-right', name: 'Time', x: 8, y: 0, w: 1, h: 1, static: true },
-      // { i: 'b', x: 1, y: 0, w: 3, h: 2, minW: 2, maxW: 4 },
-      // { i: 'c', x: 4, y: 0, w: 1, h: 2 },
     ],
     []
   );
@@ -88,50 +96,59 @@ export default function Scheduler({
     </div>
   ));
 
-  const scheduleCells = schedules.map((schedule) => (
-    <div
-      key={schedule.i}
-      className="flex cursor-move items-center justify-center rounded-md bg-primary-300"
-    >
-      sched
-    </div>
-  ));
+  const scheduleCells = schedules.map((schedule) => {
+    // <SchedulerSchedItem key={schedule.i} data={schedule.data} />
+    const data = schedule.data;
+    return (
+      <div
+        key={schedule.i}
+        className={classNames(
+          'flex cursor-move select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
+          {
+            'border-warning-400 bg-warning-100':
+              data?.teacher?.type == 'part-time',
+            'border-success-400 bg-success-100':
+              data?.teacher?.type == 'full-time',
+          }
+        )}
+      >
+        <div className="flex flex-col text-center">
+          <p className="font-display font-semibold">{data.code}</p>
+        </div>
+        <div className="flex flex-col text-center">
+          <p className="text-xs font-medium">
+            {data?.teacher?.firstName} {data?.teacher?.lastName}
+          </p>
+        </div>
+      </div>
+    );
+  });
 
-  useEffect(
-    () =>
-      setLayout((prev) => [
-        ...headers,
-        ...prev,
-        { i: 'a', x: 1, y: 1, w: 1, h: 2, minW: 1, minH: 2, maxW: 1 },
-        { i: 'b', x: 2, y: 1, w: 1, h: 2, minW: 1, minH: 2, maxW: 1 },
-        ...schedules,
-        ...timeLayout.flat(),
-      ]),
-    [headers, timeLayout, schedules]
-  );
+  useEffect(() => {
+    console.log('r');
+    setLayout(() => [...headers, ...schedules, ...timeLayout.flat()]);
+  }, [headers, schedules, timeLayout]);
 
   const onDrop = (layout, layoutItem, _event) => {
-    // console.log(layoutItem, layout);
-    // alert(
-    //   `Dropped element props:\n${JSON.stringify(
-    //     layoutItem,
-    //     ['x', 'y', 'w', 'h', 'minH', 'i'],
-    //     2
-    //   )}`
-    // );
-    setSchedules((prev) => [...prev, layoutItem]);
+    const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
+    setSchedules((prev) => [...prev, { ...layoutItem, i: data.code, data }]);
   };
 
   function handleLayoutChange(newLayout) {
-    //   setLayout(newLayout);
+    setLayout(newLayout);
+    console.log('changed');
   }
 
-  function onDropDragOver(e) {
-    const text = e.dataTransfer.getData('text/plain');
-    console.log(text, e.dataTransfer);
+  function onDropDragOver() {
+    return {
+      w: 1,
+      h: 2,
+      minH: 2,
+      maxH: draggingSchedule.units * 2 + 1,
+    };
   }
 
-  console.log(layout);
+  // console.log(layout);
 
   return (
     <ResponsiveGridLayout
@@ -143,31 +160,16 @@ export default function Scheduler({
       onDrop={onDrop}
       onLayoutChange={handleLayoutChange}
       resizeHandles={['s']}
-      //   onLayoutChange={() => console.log('changed')}
-      // width={1200}
       isBounded={true}
       margin={[0, 0]}
       preventCollision
       compactType={null}
       isDroppable
-      droppingItem={{ i: '__dropping-elem__', w: 1, h: 2, minH: 2 }}
       onDropDragOver={onDropDragOver}
     >
       {headerColumns}
       {scheduleCells}
       {timeRows}
-      <div
-        key="a"
-        className="flex cursor-move items-center justify-center rounded-md bg-primary-500 text-white"
-      >
-        a
-      </div>
-      <div
-        key="b"
-        className="flex cursor-move items-center justify-center rounded-md bg-green-500 text-white"
-      >
-        b
-      </div>
     </ResponsiveGridLayout>
   );
 }

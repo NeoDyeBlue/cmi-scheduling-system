@@ -5,3 +5,4 @@ export { default as RadioSelect } from './RadioSelect';
 export { default as RadioSelectItem } from './RadioSelectItem';
 export { default as ImagePicker } from './ImagePicker';
 export { default as Scheduler } from './Scheduler';
+export { default as SchedulerSchedItem } from './SchedulerSchedItem';

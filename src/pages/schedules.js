@@ -1,17 +1,26 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
-import GridLayout, { WidthProvider } from 'react-grid-layout';
-import { useMemo, useCallback, useState } from 'react';
 import { MdAdd } from 'react-icons/md';
-import { parse, format, addMinutes } from 'date-fns';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Button } from '@/components/Buttons';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { schedulerData } from '@/lib/test_data/scheduler';
 
 export default function Schedules() {
+  const draggableSchedules = schedulerData.subjects.map(
+    (subject, subjIndex) => {
+      const { teachers, ...newData } = subject;
+      return subject.teachers.map((teacher, teacherIndex) => (
+        <DraggableSchedule
+          key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
+          data={{ ...newData, teacher }}
+        />
+      ));
+    }
+  );
+
+  console.log(draggableSchedules.flat());
   return (
     <>
       <Head>
@@ -20,95 +29,40 @@ export default function Schedules() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <DndProvider backend={HTML5Backend}>
-        <div className="relative flex w-full gap-4 p-6">
-          <Tabs
-            className="flex w-full gap-4"
-            // onSelect={(index) => setActiveTab(tabs[index])}
-          >
-            <div className="flex w-fit flex-col gap-4">
-              {/* <button className="flex gap-2 rounded-md bg-primary-500 leading-none text-white
-            items-center justify-center px-3 py-2">
-              <MdAdd size={18} /> Room
-            </button> */}
-              <Button small secondary>
-                <MdAdd size={20} /> Room
-              </Button>
-              <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
-                <Tab selectedClassName="tab-active" className="tab">
-                  CB205
-                </Tab>
-                <Tab selectedClassName="tab-active" className="tab">
-                  SHS201
-                </Tab>
-              </TabList>
-            </div>
-            <div className="w-full">
-              <TabPanel>
-                <Scheduler
-                  startTime="7:00 AM"
-                  endTime="6:00 PM"
-                  interval={30}
-                />
-              </TabPanel>
-              <TabPanel>
-                <Scheduler
-                  startTime="7:00 AM"
-                  endTime="6:00 PM"
-                  interval={30}
-                />
-              </TabPanel>
-            </div>
-          </Tabs>
-          {/* <div
-          className={classNames(
-            'grid',
-            `grid-cols-[${headerColumns.length}]`,
-            `grid-rows-[repeat(${timeData.length}, 36px)]`
-          )}
-        ></div> */}
-          <ul className="flex min-h-[300px] min-w-[200px] flex-col gap-2 bg-gray-100 p-2">
-            <li
-              className="flex h-[80px] w-full items-center justify-center rounded-md border
-          border-black bg-white"
-              draggable
-              unselectable="on"
-              // this is a hack for firefox
-              // Firefox requires some kind of initialization
-              // which we can do by adding this attribute
-              // @see https://bugzilla.mozilla.org/show_bug.cgi?id=568313
-              onDragStart={(e) => e.dataTransfer.setData('text/plain', 'hello')}
-              key="test-key1"
-              data-grid={{
-                minH: 2,
-              }}
-            >
-              Schedule 1
-            </li>
-            <li
-              className="flex h-[80px] w-full items-center justify-center rounded-md border
-          border-black bg-white"
-              draggable
-              unselectable="on"
-              key="test-key2"
-              // this is a hack for firefox
-              // Firefox requires some kind of initialization
-              // which we can do by adding this attribute
-              // @see https://bugzilla.mozilla.org/show_bug.cgi?id=568313
-              onDragStart={(e) =>
-                e.dataTransfer.setData('text/plain', 'testestest')
-              }
-              data-grid={{
-                minH: 2,
-              }}
-            >
-              Schedule 2
-            </li>
-            <DraggableSchedule text={'sched1'} />
-            <DraggableSchedule text={'sched2'} />
+      <div className="relative flex w-full gap-4 p-6">
+        <Tabs
+          className="flex w-full gap-4"
+          // onSelect={(index) => setActiveTab(tabs[index])}
+        >
+          <div className="flex w-fit flex-col gap-4">
+            <Button small secondary>
+              <MdAdd size={20} /> Room
+            </Button>
+            <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
+              <Tab selectedClassName="tab-active" className="tab">
+                CB205
+              </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                SHS201
+              </Tab>
+            </TabList>
+          </div>
+          <div className="w-full">
+            <TabPanel>
+              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
+            </TabPanel>
+            <TabPanel>
+              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
+            </TabPanel>
+          </div>
+        </Tabs>
+        <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">
+          <p className="font-display text-lg font-semibold">Subjects</p>
+          <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+            {draggableSchedules.flat()}
           </ul>
         </div>
-      </DndProvider>
+      </div>
     </>
   );
 }
