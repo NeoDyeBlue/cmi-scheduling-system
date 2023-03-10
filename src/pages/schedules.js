@@ -6,21 +6,24 @@ import { Button } from '@/components/Buttons';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { schedulerData } from '@/lib/test_data/scheduler';
+import { useEffect } from 'react';
+import useSchedulerStore from '@/stores/useSchedulerStore';
 
 export default function Schedules() {
-  const draggableSchedules = schedulerData.subjects.map(
-    (subject, subjIndex) => {
-      const { teachers, ...newData } = subject;
-      return subject.teachers.map((teacher, teacherIndex) => (
-        <DraggableSchedule
-          key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-          data={{ ...newData, teacher }}
-        />
-      ));
-    }
-  );
+  const { setSubjects, subjects } = useSchedulerStore();
 
-  console.log(draggableSchedules.flat());
+  useEffect(() => setSubjects(schedulerData.subjects), [setSubjects]);
+
+  const draggableSchedules = subjects.map((subject, subjIndex) => {
+    const { teachers, ...newData } = subject;
+    return subject.teachers.map((teacher, teacherIndex) => (
+      <DraggableSchedule
+        key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
+        data={{ ...newData, teacher }}
+      />
+    ));
+  });
+
   return (
     <>
       <Head>

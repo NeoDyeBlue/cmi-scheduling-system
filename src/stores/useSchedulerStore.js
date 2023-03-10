@@ -1,11 +1,25 @@
 import { create } from 'zustand';
 
 const useSchedulerStore = create((set) => ({
-  draggingSchedule: null,
-  setDraggingSchedule: null,
-  setDraggingSchedule: (schedule) =>
+  subjects: [],
+  subjectScheds: [],
+  draggingSubject: null,
+  resizingSubject: null,
+  setDraggingSubject: (subject) =>
     set(() => ({
-      draggingSchedule: schedule,
+      draggingSubject: subject,
+    })),
+  setResizingSubject: (subject) =>
+    set(() => ({
+      resizingSubject: subject,
+    })),
+  setSubjects: (payload) =>
+    set(() => ({
+      subjects: payload,
+    })),
+  setSubjectScheds: (payload) =>
+    set(() => ({
+      subjectScheds: payload,
     })),
 }));
 

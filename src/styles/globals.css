@@ -66,7 +66,7 @@ body,
 
 .grid-lines {
   background-image: repeating-linear-gradient(#ccc 0 1px, transparent 1px 100%),
-  repeating-linear-gradient(90deg, #ccc 0 1px, transparent 1px 100%);
+    repeating-linear-gradient(90deg, #ccc 0 1px, transparent 1px 100%);
   /** 
   * - 10px -> grid spacing  (px)
   * - 12 -> number of cols  (grid unit).

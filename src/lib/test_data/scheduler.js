@@ -13,6 +13,14 @@ const schedulerData = {
       units: 3,
       teachers: [
         {
+          id: '11-1112',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          image:
+            'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
+          type: 'full-time',
+        },
+        {
           id: '11-1111',
           firstName: 'John',
           lastName: 'Doe',
