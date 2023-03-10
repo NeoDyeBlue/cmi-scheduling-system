@@ -11,6 +11,8 @@ import classNames from 'classnames';
  * @todo remove placed scheds
  * @todo show subject scheds from the same room
  * @todo fix grid responsiveness
+ * @todo check if drop, drag,or resizing of schedules is valid by creating restrictions
+ * @todo update time left for the placed subject schedules
  */
 
 export default function Scheduler({
