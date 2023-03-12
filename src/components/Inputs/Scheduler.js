@@ -3,14 +3,15 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { parse, format, addMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import classNames from 'classnames';
+import { nanoid } from 'nanoid';
 
 /**
- * @todo fix the maxH of the subjectScheds before or after the same subjectSched is dropped or resized
- * @todo merge subjects if applicable or is in the same column and adjacent Y
+ * @todo fix merge subjects if applicable or is in the same column and adjacent Y
  * @todo remove placed scheds
  * @todo show subject scheds from the same room
  * @todo fix grid responsiveness
  * @todo check if drop, drag,or resizing of schedules is valid by creating restrictions
+ * @todo restrict dropping of other elements to the table
  */
 
 export default function Scheduler({
@@ -24,6 +25,7 @@ export default function Scheduler({
   const [layout, setLayout] = useState(initialLayout);
   const [isDraggingFromOutside, setIsDraggingFromOutside] = useState(false);
   const [subjectsData, setSubjectsData] = useState([]);
+  const [isResizing, setIsResizing] = useState(false);
   const [scheduleLayout, setScheduleLayout] = useState([]);
 
   //stores
@@ -109,14 +111,14 @@ export default function Scheduler({
     .filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
       return subjectsData.some(
-        (data) => data.id == `${subjectCode}_${teacherId}`
+        (data) => data.id == `${subjectCode}~${teacherId}`
       );
     })
     .map((schedule) => {
       // <SchedulerSchedItem key={schedule.i} data={schedule.data} />
       const data = subjectsData.find((subject) => {
         const { subjectCode, teacherId } = parseSubjSchedId(schedule.i);
-        return subject.id == `${subjectCode}_${teacherId}`;
+        return subject.id == `${subjectCode}~${teacherId}`;
       })?.data;
 
       return (
@@ -154,22 +156,11 @@ export default function Scheduler({
     const subjSchedIds = subjectsData.map((data) => data.id);
     const subjSchedItems = layout.filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(`${subjectCode}_${teacherId}`);
+      return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
     });
 
     setScheduleLayout(subjSchedItems);
 
-    //set new sched data
-    // const subjSchedIdsCountRemoved = subjSchedIds.reduce((accumulator, item) => {
-    //   const [code, teacher] = item.split('_');
-    //   if (
-    //     !accumulator.some((obj) => obj.code == code && obj.teacher == teacher)
-    //   ) {
-    //     return [...accumulator, { code, teacher }];
-    //   } else {
-    //     return accumulator;
-    //   }
-    // }, []);
     const subjSchedIdsParsed = subjSchedIds.map((id) => {
       const { subjectCode, teacherId } = parseSubjSchedId(id);
       return { code: subjectCode, teacher: teacherId };
@@ -179,7 +170,7 @@ export default function Scheduler({
     subjSchedIdsParsed.forEach(({ code, teacher }) => {
       //get the subject layout items from subject code
       const subjSchedLayoutItems = subjSchedItems.filter(
-        (item) => item.i.split('_')[0] == code
+        (item) => item.i.split('~')[0] == code
       );
       //set the subject's times and days
       const schedules = subjSchedLayoutItems.map((layout) => ({
@@ -200,27 +191,34 @@ export default function Scheduler({
   }, [layout, subjectsData, timeData, setSubjectScheds]);
 
   //other funcs
-  function parseSubjSchedId(id, separator = '_') {
-    const [subjectCode, teacherId, placementCount] = id.split(separator);
-    return { subjectCode, teacherId, placementCount };
+  function parseSubjSchedId(id, separator = '~') {
+    const [subjectCode, teacherId, nanoId] = id.split(separator);
+    return { subjectCode, teacherId, nanoId };
   }
 
-  function updateSubjSchedsMaxH(layoutItem, fromDrop = false) {
-    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+  /**
+   *
+   * @param {Array} layoutSource - what layout to use
+   * @param {String} layoutItemId - the layout "i" in SUBJCODE~##-####~nanoId format
+   */
+
+  function updateSubjSchedsMaxH(layoutSource, layoutItemId) {
+    const { subjectCode, teacherId } = parseSubjSchedId(layoutItemId);
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}_${teacherId}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
     if (subjectData) {
       const unitsMaxSpan = subjectData.units * 2 + 1;
-      const subjSchedItems = layout.filter((item) => {
+      const subjSchedItems = layoutSource.filter((item) => {
         const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
         return subjectCode == itemSubjCode;
       });
-      if (fromDrop) {
-        subjSchedItems.push({
-          ...layoutItem,
-        });
-      }
+
+      // if (fromDrop) {
+      //   subjSchedItems.push({
+      //     ...layoutItem,
+      //   });
+      // }
 
       const { totalRowSpanCount, itemCount } = subjSchedItems.reduce(
         (accumulator, currentItem) => {
@@ -232,20 +230,16 @@ export default function Scheduler({
         { totalRowSpanCount: 0, itemCount: 0 }
       );
 
-      console.log(totalRowSpanCount, itemCount);
+      const remainingRowSpan = unitsMaxSpan - totalRowSpanCount + itemCount - 1;
 
       const updatedSubjSchedItems = subjSchedItems.map((item) => ({
         ...item,
         i: item.i,
         // formula here needs more tests
-        maxH:
-          ((totalRowSpanCount * itemCount + item.h) % unitsMaxSpan) +
-          (itemCount % 2 === 0 ? 0 : 1),
+        maxH: remainingRowSpan + item.h,
       }));
 
-      console.log(updatedSubjSchedItems);
-
-      const sameLayoutItemsRemoved = layout.filter((item) => {
+      const sameLayoutItemsRemoved = layoutSource.filter((item) => {
         return !updatedSubjSchedItems.some(
           (subjSchedItem) => subjSchedItem.i == item.i
         );
@@ -253,59 +247,122 @@ export default function Scheduler({
 
       setLayout([...sameLayoutItemsRemoved, ...updatedSubjSchedItems]);
     } else {
+      setLayout(layoutSource);
+    }
+  }
+
+  /**
+   *
+   * @param {Array} layoutSource - what layout to use
+   * @param {Object} layoutItem - the layout item to check for adjacents
+   * @param {Boolean} fromDrop - if from dropped item
+   * @returns {Array} - the new layout with merged items
+   */
+
+  function mergeYAdjacentSubjScheds(
+    layoutSource,
+    layoutItem,
+    fromDrop = false
+  ) {
+    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    )?.data;
+    if (subjectData) {
+      const subjSchedItems = layoutSource.filter((item) => {
+        const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
+        return subjectCode == itemSubjCode;
+      });
+
       if (fromDrop) {
-        setLayout((prev) => [
-          ...prev,
-          {
-            ...layoutItem,
-          },
-        ]);
+        subjSchedItems.push({
+          ...layoutItem,
+        });
+      }
+
+      const { totalRowSpanCount } = subjSchedItems.reduce(
+        (accumulator, currentItem) => {
+          return {
+            totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
+            itemCount: (accumulator.itemCount += 1),
+          };
+        },
+        { totalRowSpanCount: 0, itemCount: 0 }
+      );
+
+      const mergedIds = [];
+      const mergedItems = [];
+
+      subjSchedItems.forEach((item) => {
+        const yAdjacents = subjSchedItems.filter(
+          (subjSchedItem) =>
+            subjSchedItem.i !== item.i &&
+            (subjSchedItem.y + subjSchedItem.h == item.y ||
+              subjSchedItem.y == item.y + item.h) &&
+            !mergedIds.includes(subjSchedItem.i) &&
+            subjSchedItem.x == item.x
+        );
+
+        console.log(yAdjacents, item.i);
+
+        if (yAdjacents.length) {
+          const { totalMergingRowSpans, yStart } = yAdjacents.reduce(
+            (accumulator, currentItem) => {
+              return {
+                totalMergingRowSpans: (accumulator.totalMergingRowSpans +=
+                  currentItem.h),
+                yStart:
+                  accumulator.yStart > currentItem.y
+                    ? currentItem.y
+                    : accumulator.yStart,
+              };
+            },
+            { totalMergingRowSpans: item.h, yStart: item.y }
+          );
+          console.table({
+            totalMergingRowSpans,
+            totalRowSpanCount,
+            yStart,
+            itemH: item.h,
+            shouldMerge: totalRowSpanCount % totalMergingRowSpans,
+          });
+          if (
+            totalMergingRowSpans < 7 &&
+            totalRowSpanCount % totalMergingRowSpans == 0
+          ) {
+            mergedItems.push({
+              ...item,
+              maxH: totalMergingRowSpans,
+              h: totalMergingRowSpans,
+              y: yStart,
+            });
+
+            mergedIds.push(
+              ...yAdjacents.map((yAdjacentItem) => yAdjacentItem.i),
+              item.i
+            );
+          }
+        }
+      });
+
+      const sameLayoutItemsRemoved = layoutSource.filter((item) => {
+        return !mergedIds.includes(item.i);
+      });
+
+      // console.log(subjSchedItems);
+
+      return [
+        ...sameLayoutItemsRemoved,
+        ...(mergedItems.length ? mergedItems : [layoutItem]),
+      ];
+    } else {
+      if (fromDrop) {
+        return [...layoutSource, layoutItem];
       }
     }
   }
 
-  function updateSubjSchedsMaxHOnResize(newLayout, layoutItem) {
-    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
-    const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}_${teacherId}`
-    )?.data;
-    const unitsMaxSpan = subjectData.units * 2 + 1;
-    const subjSchedItems = newLayout.filter((item) => {
-      const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
-      return subjectCode == itemSubjCode;
-    });
-
-    const { totalRowSpanCount, itemCount } = subjSchedItems.reduce(
-      (accumulator, currentItem) => {
-        return {
-          totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
-          itemCount: (accumulator.itemCount += 1),
-        };
-      },
-      { totalRowSpanCount: 0, itemCount: 0 }
-    );
-
-    console.log(totalRowSpanCount, itemCount, subjSchedItems);
-
-    const updatedSubjSchedItems = subjSchedItems.map((item) => ({
-      ...item,
-      i: item.i,
-      // formula here needs more tests
-      maxH:
-        ((totalRowSpanCount * itemCount + item.h) % unitsMaxSpan) +
-        (itemCount % 2 === 0 ? 0 : 1),
-    }));
-
-    console.log(updatedSubjSchedItems);
-
-    const sameLayoutItemsRemoved = newLayout.filter((item) => {
-      return !updatedSubjSchedItems.some(
-        (subjSchedItem) => subjSchedItem.i == item.i
-      );
-    });
-
-    setLayout([...sameLayoutItemsRemoved, ...updatedSubjSchedItems]);
-  }
+  // console.log(layout);
 
   function createRestrictions() {
     const startX = 1;
@@ -326,26 +383,20 @@ export default function Scheduler({
   function onDrop(newLayout, layoutItem, _event) {
     const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
     if (layoutItem.x !== 0 && layoutItem.x !== 8) {
-      //get the count of placed same subject
-      const count = scheduleLayout.reduce((accumulator, currentItem) => {
-        const subjCode = currentItem.i.split('_')[0];
-        if (subjCode == data.code) {
-          return accumulator + 1;
-        } else {
-          return accumulator;
-        }
-      }, 1);
+      const nanoId = nanoid(10);
+      const layoutItemId = `${data.code}~${data.teacher.id}~${nanoId}`;
+      const dataId = `${data.code}~${data.teacher.id}`;
 
-      const layoutItemId = `${data.code}_${data.teacher.id}_${count}`;
-      const dataId = `${data.code}_${data.teacher.id}`;
-
-      updateSubjSchedsMaxH(
+      const mergedItemsLayout = mergeYAdjacentSubjScheds(
+        layout,
         {
           ...layoutItem,
           i: layoutItemId,
         },
         true
       );
+
+      updateSubjSchedsMaxH(mergedItemsLayout, layoutItemId);
 
       // setLayout((prev) => [
       //   ...prev,
@@ -367,7 +418,7 @@ export default function Scheduler({
   }
 
   function handleLayoutChange(newLayout) {
-    if (!isDraggingFromOutside) {
+    if (!isDraggingFromOutside && !isResizing) {
       // let mergedLayout = [];
       // const subjSchedIds = subjectsData.map((scheduleData) => scheduleData.id);
       // subjSchedIds.forEach((id) => {
@@ -391,7 +442,7 @@ export default function Scheduler({
     //set item dragging item maxH and minH
     const { totalRowSpanCount, itemCount } = scheduleLayout.reduce(
       (accumulator, currentItem) => {
-        const subjCode = currentItem.i.split('_')[0];
+        const subjCode = currentItem.i.split('~')[0];
         if (subjCode == draggingSubject.code) {
           return {
             totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
@@ -418,10 +469,19 @@ export default function Scheduler({
     // console.log(layoutItem);
   }
 
-  function onDragStop(newLayout, layoutItem) {}
+  function onDragStop(newLayout, layoutItem) {
+    const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
+    updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
+  }
+
+  function onResizeStart() {
+    setIsResizing(true);
+  }
 
   function onResizeStop(newLayout, layoutItem) {
-    updateSubjSchedsMaxHOnResize(newLayout, layoutItem);
+    const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
+    updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
+    setIsResizing(false);
   }
 
   // console.log(layout);
@@ -443,9 +503,9 @@ export default function Scheduler({
       isDroppable
       onDropDragOver={onDropDragOver}
       onDragStart={onDragStart}
-      // onDragStop={onDragStop}
+      onDragStop={onDragStop}
+      onResizeStart={onResizeStart}
       onResizeStop={onResizeStop}
-      // onResizeEnd={onResizeEnd}
     >
       {headerColumns}
       {scheduleCells}
