@@ -3,7 +3,7 @@ import { MainLayout } from '@/components/Layouts';
 import { MdAdd } from 'react-icons/md';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Button } from '@/components/Buttons';
-import { Scheduler } from '@/components/Inputs';
+import { Scheduler, SchedulerGrid } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { schedulerData } from '@/lib/test_data/scheduler';
 import { useEffect } from 'react';
@@ -55,7 +55,11 @@ export default function Schedules() {
               <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
             </TabPanel>
             <TabPanel>
-              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
+              <SchedulerGrid
+                startTime="6:00 AM"
+                endTime="6:00 PM"
+                interval={30}
+              />
             </TabPanel>
           </div>
         </Tabs>

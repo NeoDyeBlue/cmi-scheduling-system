@@ -6,7 +6,6 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 
 /**
- * @todo fix merge subjects if applicable or is in the same column and adjacent Y
  * @todo remove placed scheds
  * @todo show subject scheds from the same room
  * @todo fix grid responsiveness
@@ -26,6 +25,7 @@ export default function Scheduler({
   const [isDraggingFromOutside, setIsDraggingFromOutside] = useState(false);
   const [subjectsData, setSubjectsData] = useState([]);
   const [isResizing, setIsResizing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [scheduleLayout, setScheduleLayout] = useState([]);
 
   //stores
@@ -45,7 +45,17 @@ export default function Scheduler({
       current = addMinutes(current, interval);
     }
 
-    return times;
+    const pairedTimes = times.reduce(
+      (accumulator, currentItem, currentIndex) => {
+        if (currentIndex !== times.length - 1) {
+          return [...accumulator, [currentItem, times[currentIndex + 1]]];
+        }
+        return accumulator;
+      },
+      []
+    );
+
+    return pairedTimes;
   }, [startTime, endTime, interval]);
 
   //layouts
@@ -66,10 +76,10 @@ export default function Scheduler({
 
   const timeLayout = useMemo(
     () =>
-      timeData.map((time, index) => [
+      timeData.map((times, index) => [
         {
-          i: `${index}${time}`,
-          name: time,
+          i: `${index}${nanoid(10)}`,
+          times,
           x: 0,
           y: index + 1,
           w: 1,
@@ -77,8 +87,8 @@ export default function Scheduler({
           static: true,
         },
         {
-          i: `${index}${index}${time}`,
-          name: time,
+          i: `${index}${nanoid(11)}`,
+          times,
           x: headers.length,
           y: index + 1,
           w: 1,
@@ -89,21 +99,22 @@ export default function Scheduler({
     [timeData, headers.length]
   );
 
-  const headerColumns = headers.map((header) => (
-    <div
-      key={header.i}
-      className="flex items-center justify-center font-display text-xs font-semibold capitalize"
-    >
-      {header.name}
+  const headerColumns = headers.map((item) => (
+    <div key={item.i} className="flex h-[40px] items-center justify-center">
+      <p className="font-display text-xs font-semibold capitalize leading-none">
+        {item.name}
+      </p>
     </div>
   ));
 
-  const timeRows = timeLayout.flat().map((time) => (
+  const timeRows = timeLayout.flat().map((item) => (
     <div
-      key={time.i}
-      className="flex items-center justify-center text-xs capitalize"
+      key={item.i}
+      className={classNames(
+        'flex h-[40px] items-center justify-center gap-1 px-3 text-center text-xs capitalize leading-none'
+      )}
     >
-      {time.name}
+      <p>{item.times[0]}</p> - <p>{item.times[1]}</p>
     </div>
   ));
 
@@ -177,8 +188,8 @@ export default function Scheduler({
         teacherId: teacher,
         day: layout.x,
         time: {
-          start: timeData[layout.y - 1],
-          end: timeData[layout.y - 1 + layout.h - 1],
+          start: timeData[layout.y - 1][0],
+          end: timeData[layout.y - 1 + layout.h - 1][1],
         },
       }));
       //add to the sched array
@@ -208,7 +219,7 @@ export default function Scheduler({
       (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
     if (subjectData) {
-      const unitsMaxSpan = subjectData.units * 2 + 1;
+      const unitsMaxSpan = subjectData.units * 2;
       const subjSchedItems = layoutSource.filter((item) => {
         const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
         return subjectCode == itemSubjCode;
@@ -230,7 +241,9 @@ export default function Scheduler({
         { totalRowSpanCount: 0, itemCount: 0 }
       );
 
-      const remainingRowSpan = unitsMaxSpan - totalRowSpanCount + itemCount - 1;
+      const remainingRowSpan = unitsMaxSpan - totalRowSpanCount;
+
+      // console.log(remainingRowSpan - itemCount);
 
       const updatedSubjSchedItems = subjSchedItems.map((item) => ({
         ...item,
@@ -303,7 +316,7 @@ export default function Scheduler({
             subjSchedItem.x == item.x
         );
 
-        console.log(yAdjacents, item.i);
+        // console.log(yAdjacents, item.y);
 
         if (yAdjacents.length) {
           const { totalMergingRowSpans, yStart } = yAdjacents.reduce(
@@ -319,17 +332,15 @@ export default function Scheduler({
             },
             { totalMergingRowSpans: item.h, yStart: item.y }
           );
-          console.table({
-            totalMergingRowSpans,
-            totalRowSpanCount,
-            yStart,
-            itemH: item.h,
-            shouldMerge: totalRowSpanCount % totalMergingRowSpans,
-          });
-          if (
-            totalMergingRowSpans < 7 &&
-            totalRowSpanCount % totalMergingRowSpans == 0
-          ) {
+          // console.table({
+          //   totalMergingRowSpans,
+          //   totalRowSpanCount,
+          //   yStart,
+          //   itemH: item.h,
+          //   shouldMerge: totalRowSpanCount % totalMergingRowSpans == 0,
+          //   mergeValue: totalRowSpanCount % totalMergingRowSpans,
+          // });
+          if (totalMergingRowSpans <= subjectData.units * 2) {
             mergedItems.push({
               ...item,
               maxH: totalMergingRowSpans,
@@ -345,6 +356,8 @@ export default function Scheduler({
         }
       });
 
+      console.log(mergedItems);
+
       const sameLayoutItemsRemoved = layoutSource.filter((item) => {
         return !mergedIds.includes(item.i);
       });
@@ -353,7 +366,7 @@ export default function Scheduler({
 
       return [
         ...sameLayoutItemsRemoved,
-        ...(mergedItems.length ? mergedItems : [layoutItem]),
+        ...(mergedItems.length ? mergedItems : fromDrop ? [layoutItem] : []),
       ];
     } else {
       if (fromDrop) {
@@ -418,21 +431,7 @@ export default function Scheduler({
   }
 
   function handleLayoutChange(newLayout) {
-    if (!isDraggingFromOutside && !isResizing) {
-      // let mergedLayout = [];
-      // const subjSchedIds = subjectsData.map((scheduleData) => scheduleData.id);
-      // subjSchedIds.forEach((id) => {
-      //   const subjCode = id.split('_')[0];
-      //   const layouts = newLayout.filter((layout) => {
-      //     const layoutSubjCode = layout.i.split('_')[0];
-      //     return layoutSubjCode == subjCode;
-      //   });
-
-      //   //check for adjacents
-      //   const merged = layouts.reduce((accumulator, obj) => {
-
-      //   })
-      // }, []);
+    if (!isDraggingFromOutside && !isResizing && !isDragging) {
       setLayout(newLayout);
       console.log('layout changed');
     }
@@ -454,24 +453,25 @@ export default function Scheduler({
       },
       { totalRowSpanCount: 0, itemCount: 0 }
     );
-    const unitsMaxSpan = draggingSubject.units * 2 + 1;
+    const unitsMaxSpan = draggingSubject.units * 2;
     const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
 
     return {
       w: 1,
-      h: 2,
-      minH: 2,
+      minH: 1,
       maxH,
     };
   }
 
   function onDragStart(newLayout, layoutItem) {
     // console.log(layoutItem);
+    setIsDragging(true);
   }
 
   function onDragStop(newLayout, layoutItem) {
     const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
     updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
+    setIsDragging(false);
   }
 
   function onResizeStart() {
@@ -484,14 +484,12 @@ export default function Scheduler({
     setIsResizing(false);
   }
 
-  // console.log(layout);
-
   return (
     <ResponsiveGridLayout
       className="grid-lines w-full border-r border-b border-gray-200"
       layout={layout.length ? layout : [...headers, ...timeLayout.flat()]}
       cols={headerColumns.length}
-      rowHeight={36}
+      rowHeight={40}
       maxRows={timeRows.length + 1}
       onDrop={onDrop}
       onLayoutChange={handleLayoutChange}

@@ -85,8 +85,8 @@ export default function DraggableSchedule({ data }) {
   return (
     <li
       className={classNames(
-        `flex w-full flex-col gap-4 rounded-md border 
-        border-gray-300 bg-white p-4 transition-all`,
+        `flex w-full flex-col gap-4 rounded-md 
+        border border-gray-300 bg-white p-4 transition-all`,
         {
           'group cursor-grab hover:border-primary-400 hover:bg-primary-400 hover:text-white hover:shadow-lg':
             isDraggable,

@@ -72,7 +72,7 @@ body,
   * - 12 -> number of cols  (grid unit).
   * - 75px -> row height    (px)
   */
-  background-size: calc((100% / 9)) 36px;
+  background-size: calc((100% / 9)) 40px;
 }
 
 .clip-path {
