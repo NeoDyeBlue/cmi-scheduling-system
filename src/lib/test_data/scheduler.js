@@ -33,6 +33,17 @@ const schedulerData = {
           image:
             'https://res.cloudinary.com/dppgyhery/image/upload/v1631456010/samples/people/kitchen-bar.jpg',
           type: 'part-time',
+          existingSchedules: [
+            {
+              day: 0,
+              times: [
+                {
+                  start: '7:00 AM',
+                  end: '9:00 AM',
+                },
+              ],
+            },
+          ],
           preferredDayTimes: [
             {
               day: 0,
@@ -79,6 +90,17 @@ const schedulerData = {
           image:
             'https://res.cloudinary.com/dppgyhery/image/upload/v1631456010/samples/people/kitchen-bar.jpg',
           type: 'part-time',
+          existingSchedules: [
+            {
+              day: 0,
+              times: [
+                {
+                  start: '7:00 AM',
+                  end: '9:00 AM',
+                },
+              ],
+            },
+          ],
           preferredDayTimes: [
             {
               day: 0,

@@ -408,76 +408,107 @@ export default function Scheduler({
         //if the day is preffered
         if (preffered) {
           const availableTimesY = [];
-          const timeStartIndex = timeData.findIndex((time) => {
+          const unavailableTimesY = [];
+          const unavailableTimeYPairs = [];
+          const existingScheduleTimes =
+            subjectData?.teacher?.existingSchedules.find(
+              (existingSchedule) => existingSchedule.day == preffered.day
+            )?.times || [];
+
+          const preferredTimeStartIndex = timeData.findIndex((time) => {
             return time[0] == preffered?.time?.start;
           });
-          const timeEndIndex = timeData.findIndex((time) => {
+          const preferredTimeEndIndex = timeData.findIndex((time) => {
             return time[1] == preffered?.time?.end;
           });
 
-          //get all the available time indexes of the teacher
+          //get all the available time indexes of the teacher from preffered day start and end
           for (
-            let availableY = timeStartIndex;
-            availableY <= timeEndIndex;
+            let availableY = preferredTimeStartIndex;
+            availableY <= preferredTimeEndIndex;
             availableY++
           ) {
             availableTimesY.push(availableY + 1);
           }
-
-          //get all the schedule items from the same day
-          const columnItems = layoutSource
-            .filter((item) => item.x == x)
-            .sort((a, b) => {
-              if (a.y < b.y) return -1;
-              if (a.y > b.y) return 1;
-              return 0;
-            });
-          let restrictionYStart = null;
-          const nearestColumnItemY = {
-            start: availableTimesY[0],
-            end: availableTimesY[availableTimesY.length - 1],
-          };
-          for (let y = 1; y <= timeData.length; y++) {
-            const nearestColumnItem = columnItems.find((item) => item.y >= y);
-            if (nearestColumnItem) {
-              nearestColumnItemY.start = nearestColumnItem.y;
-              nearestColumnItemY.end =
-                nearestColumnItem.y + nearestColumnItem.h - 1;
-            } else if (
-              !nearestColumnItem &&
-              !availableTimesY.includes(y) &&
-              y > nearestColumnItemY.end
-            ) {
-              nearestColumnItemY.start = availableTimesY.find(
-                (yPos) => y < yPos
-              );
-              nearestColumnItemY.end =
-                availableTimesY[availableTimesY.length - 1];
-            }
-            if (
-              !availableTimesY.includes(y) &&
-              !restrictionYStart &&
-              y < nearestColumnItemY.start
-            ) {
-              restrictionYStart = y;
-            }
-            if (restrictionYStart && y == nearestColumnItemY.start - 1) {
-              const restrictionId = `restriction~${nanoid(10)}`;
-              restrictionIds.push(restrictionId);
-              restrictedAreas.push({
-                i: restrictionId,
-                type: 'restriction',
-                x,
-                y: restrictionYStart,
-                w: 1,
-                maxW: 1,
-                minH: 1,
-                h: Math.abs(nearestColumnItemY.start - restrictionYStart),
-                static: true,
-              });
-              restrictionYStart = null;
+          //get all the unavailable time indexes of the teacher
+          for (
+            let unavailableY = 1;
+            unavailableY <= timeData.length;
+            unavailableY++
+          ) {
+            if (!availableTimesY.includes(unavailableY)) {
+              unavailableTimesY.push(unavailableY);
             }
           }
+
+          //get all the unavailable existing schedule time indexes of the teacher
+          if (existingScheduleTimes.length) {
+            existingScheduleTimes.forEach((scheduleTime) => {
+              const timeStartIndex = timeData.findIndex((time) => {
+                return time[0] == scheduleTime.start;
+              });
+              const timeEndIndex = timeData.findIndex((time) => {
+                return time[1] == scheduleTime.end;
+              });
+
+              for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+                unavailableTimesY.push(i + 1);
+              }
+            });
+          }
+
+          //get all the schedule items from the same day
+          const columnItems = layoutSource.filter(
+            (item) => item.x == x && item.y !== 0
+          );
+          columnItems.forEach((item) => {
+            for (let i = item.y; i < item.y + item.h; i++) {
+              unavailableTimesY.push(i);
+            }
+          });
+
+          //make the unavailableTimesY into pairs
+          const duplicatesRemoved = unavailableTimesY
+            .reduce(
+              (acc, value) =>
+                unavailableTimesY.indexOf(value) ===
+                unavailableTimesY.lastIndexOf(value)
+                  ? [...acc, value]
+                  : acc,
+              []
+            )
+            .sort(function (a, b) {
+              return a - b;
+            });
+          let start = duplicatesRemoved[0];
+          let prev = duplicatesRemoved[0];
+
+          for (let i = 1; i <= duplicatesRemoved.length; i++) {
+            if (duplicatesRemoved[i] === prev + 1) {
+              prev = duplicatesRemoved[i];
+            } else {
+              unavailableTimeYPairs.push([start, prev]);
+              start = duplicatesRemoved[i];
+              prev = duplicatesRemoved[i];
+            }
+          }
+
+          // create the restrictions
+          unavailableTimeYPairs.forEach((pairs) => {
+            const restrictionId = `restriction~${nanoid(10)}`;
+            restrictionIds.push(restrictionId);
+            restrictedAreas.push({
+              i: restrictionId,
+              type: 'restriction',
+              x,
+              y: pairs[0],
+              w: 1,
+              maxW: 1,
+              minH: 1,
+              h: Math.abs(pairs[0] - pairs[1]) + 1,
+              static: true,
+            });
+          });
         }
       }
     }
