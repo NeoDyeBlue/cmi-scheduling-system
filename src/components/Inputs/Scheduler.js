@@ -26,6 +26,7 @@ export default function Scheduler({
   const [subjectsData, setSubjectsData] = useState([]);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
   const [scheduleLayout, setScheduleLayout] = useState([]);
 
   //stores
@@ -100,7 +101,10 @@ export default function Scheduler({
   );
 
   const headerColumns = headers.map((item) => (
-    <div key={item.i} className="flex h-[40px] items-center justify-center">
+    <div
+      key={item.i}
+      className="flex h-[40px] items-center justify-center overflow-hidden whitespace-nowrap"
+    >
       <p className="font-display text-xs font-semibold capitalize leading-none">
         {item.name}
       </p>
@@ -111,7 +115,7 @@ export default function Scheduler({
     <div
       key={item.i}
       className={classNames(
-        'flex h-[40px] items-center justify-center gap-1 px-3 text-center text-xs capitalize leading-none'
+        'flex h-[40px] items-center justify-center gap-1 overflow-hidden px-3 text-center text-xs capitalize leading-none'
       )}
     >
       <p>{item.times[0]}</p> - <p>{item.times[1]}</p>
@@ -157,11 +161,26 @@ export default function Scheduler({
       );
     });
 
+  const cellRestrictions = layout
+    .filter((item) => {
+      return restrictionLayouItemIds.includes(item.i);
+    })
+    .map((restriction) => {
+      // <SchedulerSchedItem key={schedule.i} data={schedule.data} />
+
+      return <div key={restriction.i} className="bg-gray-500/50"></div>;
+    });
+
   //effects
-  useEffect(
-    () => setIsDraggingFromOutside(draggingSubject ? true : false),
-    [draggingSubject]
-  );
+  useEffect(() => {
+    if (draggingSubject) {
+      createRestrictions(layout, draggingSubject);
+      setIsDraggingFromOutside(true);
+    } else {
+      removeRestrictions();
+      setIsDraggingFromOutside(false);
+    }
+  }, [draggingSubject]);
 
   useEffect(() => {
     const subjSchedIds = subjectsData.map((data) => data.id);
@@ -356,8 +375,6 @@ export default function Scheduler({
         }
       });
 
-      console.log(mergedItems);
-
       const sameLayoutItemsRemoved = layoutSource.filter((item) => {
         return !mergedIds.includes(item.i);
       });
@@ -375,22 +392,108 @@ export default function Scheduler({
     }
   }
 
-  // console.log(layout);
-
-  function createRestrictions() {
-    const startX = 1;
+  function createRestrictions(layoutSource, subjectData) {
     const endX = 7;
-    const startY = 1;
-    const endY = timeData.length;
 
-    let restrictedAreas = [];
-    let allowedAreas = [];
+    const restrictedAreas = [];
+    const restrictionIds = [];
 
-    if (draggingSubject.teacher.type == 'part-time') {
-      draggingSubject.teacher.prefferedDayTimes.forEach(daytime);
+    if (subjectData?.teacher?.type == 'part-time') {
+      //for every day of the week
+      for (let x = 1; x <= endX; x++) {
+        const preffered = subjectData?.teacher?.preferredDayTimes.find(
+          (dayTimes) => dayTimes.day == x - 1
+        );
+
+        //if the day is preffered
+        if (preffered) {
+          const availableTimesY = [];
+          const timeStartIndex = timeData.findIndex((time) => {
+            return time[0] == preffered?.time?.start;
+          });
+          const timeEndIndex = timeData.findIndex((time) => {
+            return time[1] == preffered?.time?.end;
+          });
+
+          //get all the available time indexes of the teacher
+          for (
+            let availableY = timeStartIndex;
+            availableY <= timeEndIndex;
+            availableY++
+          ) {
+            availableTimesY.push(availableY + 1);
+          }
+
+          //get all the schedule items from the same day
+          const columnItems = layoutSource
+            .filter((item) => item.x == x)
+            .sort((a, b) => {
+              if (a.y < b.y) return -1;
+              if (a.y > b.y) return 1;
+              return 0;
+            });
+          let restrictionYStart = null;
+          const nearestColumnItemY = {
+            start: availableTimesY[0],
+            end: availableTimesY[availableTimesY.length - 1],
+          };
+          for (let y = 1; y <= timeData.length; y++) {
+            const nearestColumnItem = columnItems.find((item) => item.y >= y);
+            if (nearestColumnItem) {
+              nearestColumnItemY.start = nearestColumnItem.y;
+              nearestColumnItemY.end =
+                nearestColumnItem.y + nearestColumnItem.h - 1;
+            } else if (
+              !nearestColumnItem &&
+              !availableTimesY.includes(y) &&
+              y > nearestColumnItemY.end
+            ) {
+              nearestColumnItemY.start = availableTimesY.find(
+                (yPos) => y < yPos
+              );
+              nearestColumnItemY.end =
+                availableTimesY[availableTimesY.length - 1];
+            }
+            if (
+              !availableTimesY.includes(y) &&
+              !restrictionYStart &&
+              y < nearestColumnItemY.start
+            ) {
+              restrictionYStart = y;
+            }
+            if (restrictionYStart && y == nearestColumnItemY.start - 1) {
+              const restrictionId = `restriction~${nanoid(10)}`;
+              restrictionIds.push(restrictionId);
+              restrictedAreas.push({
+                i: restrictionId,
+                type: 'restriction',
+                x,
+                y: restrictionYStart,
+                w: 1,
+                maxW: 1,
+                minH: 1,
+                h: Math.abs(nearestColumnItemY.start - restrictionYStart),
+                static: true,
+              });
+              restrictionYStart = null;
+            }
+          }
+        }
+      }
     }
 
-    for (let index = 1; index <= endX; index++) {}
+    setRestrictionLayoutItemIds(restrictionIds);
+    setLayout((prev) => [...prev, ...restrictedAreas]);
+  }
+
+  function removeRestrictions() {
+    setLayout((prev) =>
+      prev.filter((layoutItem) => {
+        return !restrictionLayouItemIds.includes(layoutItem.i);
+      })
+    );
+
+    setRestrictionLayoutItemIds([]);
   }
 
   function onDrop(newLayout, layoutItem, _event) {
@@ -508,6 +611,7 @@ export default function Scheduler({
       {headerColumns}
       {scheduleCells}
       {timeRows}
+      {cellRestrictions}
     </ResponsiveGridLayout>
   );
 }

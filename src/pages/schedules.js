@@ -3,7 +3,7 @@ import { MainLayout } from '@/components/Layouts';
 import { MdAdd } from 'react-icons/md';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Button } from '@/components/Buttons';
-import { Scheduler, SchedulerGrid } from '@/components/Inputs';
+import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { schedulerData } from '@/lib/test_data/scheduler';
 import { useEffect } from 'react';
@@ -11,7 +11,6 @@ import useSchedulerStore from '@/stores/useSchedulerStore';
 
 export default function Schedules() {
   const { setSubjects, subjects } = useSchedulerStore();
-
   useEffect(() => setSubjects(schedulerData.subjects), [setSubjects]);
 
   const draggableSchedules = subjects.map((subject, subjIndex) => {
@@ -55,19 +54,32 @@ export default function Schedules() {
               <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
             </TabPanel>
             <TabPanel>
-              <SchedulerGrid
-                startTime="6:00 AM"
-                endTime="6:00 PM"
-                interval={30}
-              />
+              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
             </TabPanel>
           </div>
         </Tabs>
         <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">
           <p className="font-display text-lg font-semibold">Subjects</p>
-          <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-            {draggableSchedules.flat()}
-          </ul>
+          <Tabs className="flex flex-col gap-3">
+            <TabList className="scrollbar-hide flex w-full gap-2 overflow-y-auto">
+              <Tab selectedClassName="tab-active" className="tab">
+                Course
+              </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                Room
+              </Tab>
+            </TabList>
+            <TabPanel>
+              <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+                {draggableSchedules.flat()}
+              </ul>
+            </TabPanel>
+            <TabPanel>
+              <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+                {/* {draggableSchedules.flat()} */}
+              </ul>
+            </TabPanel>
+          </Tabs>
         </div>
       </div>
     </>

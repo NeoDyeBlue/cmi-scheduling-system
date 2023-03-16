@@ -16,6 +16,12 @@ const schedulerData = {
           id: '11-1112',
           firstName: 'Jane',
           lastName: 'Doe',
+          otherSchedules: [
+            {
+              day: 0,
+              times: [{ start: '6:00 AM', end: '9:00 AM' }],
+            },
+          ],
           image:
             'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
           type: 'full-time',

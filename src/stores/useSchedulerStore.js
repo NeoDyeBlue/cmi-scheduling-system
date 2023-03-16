@@ -5,6 +5,7 @@ const useSchedulerStore = create((set) => ({
   subjectScheds: [],
   draggingSubject: null,
   resizingSubject: null,
+  currentRoom: '',
   setDraggingSubject: (subject) =>
     set(() => ({
       draggingSubject: subject,
@@ -20,6 +21,10 @@ const useSchedulerStore = create((set) => ({
   setSubjectScheds: (payload) =>
     set(() => ({
       subjectScheds: payload,
+    })),
+  setCurrentRoom: (payload) =>
+    set(() => ({
+      currentRoom: payload,
     })),
 }));
 
