@@ -392,29 +392,35 @@ export default function Scheduler({
     }
   }
 
+  /**
+   *
+   * @param {Array} layoutSource - what layout to use
+   * @param {Object} subjectData
+   */
+
   function createRestrictions(layoutSource, subjectData) {
     const endX = 7;
 
     const restrictedAreas = [];
     const restrictionIds = [];
 
-    if (subjectData?.teacher?.type == 'part-time') {
-      //for every day of the week
-      for (let x = 1; x <= endX; x++) {
+    for (let x = 1; x <= endX; x++) {
+      let availableTimesY = [];
+      let unavailableTimesY = [];
+      let unavailableTimeYPairs = [];
+      const existingScheduleTimes =
+        (subjectData?.teacher?.existingSchedules &&
+          subjectData?.teacher?.existingSchedules.find(
+            (existingSchedule) => existingSchedule.day == x - 1
+          )?.times) ||
+        [];
+
+      if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
           (dayTimes) => dayTimes.day == x - 1
         );
 
-        //if the day is preffered
         if (preffered) {
-          const availableTimesY = [];
-          const unavailableTimesY = [];
-          const unavailableTimeYPairs = [];
-          const existingScheduleTimes =
-            subjectData?.teacher?.existingSchedules.find(
-              (existingSchedule) => existingSchedule.day == preffered.day
-            )?.times || [];
-
           const preferredTimeStartIndex = timeData.findIndex((time) => {
             return time[0] == preffered?.time?.start;
           });
@@ -430,92 +436,103 @@ export default function Scheduler({
           ) {
             availableTimesY.push(availableY + 1);
           }
-          //get all the unavailable time indexes of the teacher
-          for (
-            let unavailableY = 1;
-            unavailableY <= timeData.length;
-            unavailableY++
-          ) {
-            if (!availableTimesY.includes(unavailableY)) {
-              unavailableTimesY.push(unavailableY);
-            }
-          }
+        }
+      } else if (subjectData?.teacher?.type == 'full-time') {
+        availableTimesY = [...Array(timeData.length + 1).keys()].slice(1);
+      }
 
-          //get all the unavailable existing schedule time indexes of the teacher
-          if (existingScheduleTimes.length) {
-            existingScheduleTimes.forEach((scheduleTime) => {
-              const timeStartIndex = timeData.findIndex((time) => {
-                return time[0] == scheduleTime.start;
-              });
-              const timeEndIndex = timeData.findIndex((time) => {
-                return time[1] == scheduleTime.end;
-              });
-
-              for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-                unavailableTimesY.push(i + 1);
-              }
-            });
-          }
-
-          //get all the schedule items from the same day
-          const columnItems = layoutSource.filter(
-            (item) => item.x == x && item.y !== 0
-          );
-          columnItems.forEach((item) => {
-            for (let i = item.y; i < item.y + item.h; i++) {
-              unavailableTimesY.push(i);
-            }
-          });
-
-          //make the unavailableTimesY into pairs
-          const duplicatesRemoved = unavailableTimesY
-            .reduce(
-              (acc, value) =>
-                unavailableTimesY.indexOf(value) ===
-                unavailableTimesY.lastIndexOf(value)
-                  ? [...acc, value]
-                  : acc,
-              []
-            )
-            .sort(function (a, b) {
-              return a - b;
-            });
-          let start = duplicatesRemoved[0];
-          let prev = duplicatesRemoved[0];
-
-          for (let i = 1; i <= duplicatesRemoved.length; i++) {
-            if (duplicatesRemoved[i] === prev + 1) {
-              prev = duplicatesRemoved[i];
-            } else {
-              unavailableTimeYPairs.push([start, prev]);
-              start = duplicatesRemoved[i];
-              prev = duplicatesRemoved[i];
-            }
-          }
-
-          // create the restrictions
-          unavailableTimeYPairs.forEach((pairs) => {
-            const restrictionId = `restriction~${nanoid(10)}`;
-            restrictionIds.push(restrictionId);
-            restrictedAreas.push({
-              i: restrictionId,
-              type: 'restriction',
-              x,
-              y: pairs[0],
-              w: 1,
-              maxW: 1,
-              minH: 1,
-              h: Math.abs(pairs[0] - pairs[1]) + 1,
-              static: true,
-            });
-          });
+      //get all the unavailable time indexes of the teacher based on available times
+      for (
+        let unavailableY = 1;
+        unavailableY <= timeData.length;
+        unavailableY++
+      ) {
+        if (!availableTimesY.includes(unavailableY)) {
+          unavailableTimesY.push(unavailableY);
         }
       }
+
+      //get all the unavailable existing schedule time indexes of the teacher
+      if (existingScheduleTimes.length) {
+        existingScheduleTimes.forEach((scheduleTime) => {
+          const timeStartIndex = timeData.findIndex((time) => {
+            return time[0] == scheduleTime.start;
+          });
+          const timeEndIndex = timeData.findIndex((time) => {
+            return time[1] == scheduleTime.end;
+          });
+
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+            unavailableTimesY.push(i + 1);
+          }
+        });
+      }
+
+      //get all the schedule items from the same day
+      let columnItemsUsedIndexes = [];
+      const columnItems = layoutSource.filter(
+        (item) => item.x == x && item.y !== 0
+      );
+      columnItems.forEach((item) => {
+        for (let i = item.y; i < item.y + item.h; i++) {
+          columnItemsUsedIndexes.push(i);
+        }
+      });
+
+      //make the unavailableTimesY into pairs
+      const duplicatesRemoved = unavailableTimesY
+        .filter(
+          (unavailableY) => !columnItemsUsedIndexes.includes(unavailableY)
+        )
+        .reduce(
+          (acc, value) =>
+            unavailableTimesY.indexOf(value) ===
+            unavailableTimesY.lastIndexOf(value)
+              ? [...acc, value]
+              : acc,
+          []
+        )
+        .sort(function (a, b) {
+          return a - b;
+        });
+      let start = duplicatesRemoved[0];
+      let prev = duplicatesRemoved[0];
+
+      for (let i = 1; i <= duplicatesRemoved.length; i++) {
+        if (duplicatesRemoved[i] === prev + 1) {
+          prev = duplicatesRemoved[i];
+        } else {
+          unavailableTimeYPairs.push([start, prev]);
+          start = duplicatesRemoved[i];
+          prev = duplicatesRemoved[i];
+        }
+      }
+
+      // create the restrictions
+      unavailableTimeYPairs.forEach((pairs) => {
+        const restrictionId = `restriction~${nanoid(10)}`;
+        restrictionIds.push(restrictionId);
+        restrictedAreas.push({
+          i: restrictionId,
+          type: 'restriction',
+          x,
+          y: pairs[0],
+          w: 1,
+          maxW: 1,
+          minH: 1,
+          h: Math.abs(pairs[0] - pairs[1]) + 1,
+          static: true,
+        });
+      });
     }
 
     setRestrictionLayoutItemIds(restrictionIds);
     setLayout((prev) => [...prev, ...restrictedAreas]);
   }
+
+  /**
+   * removes the restrictions
+   */
 
   function removeRestrictions() {
     setLayout((prev) =>
@@ -525,6 +542,13 @@ export default function Scheduler({
     );
 
     setRestrictionLayoutItemIds([]);
+  }
+
+  function handleLayoutChange(newLayout) {
+    if (!isDraggingFromOutside && !isResizing && !isDragging) {
+      setLayout(newLayout);
+      console.log('layout changed');
+    }
   }
 
   function onDrop(newLayout, layoutItem, _event) {
@@ -545,13 +569,6 @@ export default function Scheduler({
 
       updateSubjSchedsMaxH(mergedItemsLayout, layoutItemId);
 
-      // setLayout((prev) => [
-      //   ...prev,
-      //   {
-      //     ...layoutItem,
-      //     i: layoutItemId,
-      //   },
-      // ]);
       if (!subjectsData.some((data) => data.id == dataId)) {
         setSubjectsData((prev) => [
           ...prev,
@@ -561,13 +578,6 @@ export default function Scheduler({
           },
         ]);
       }
-    }
-  }
-
-  function handleLayoutChange(newLayout) {
-    if (!isDraggingFromOutside && !isResizing && !isDragging) {
-      setLayout(newLayout);
-      console.log('layout changed');
     }
   }
 
@@ -598,23 +608,38 @@ export default function Scheduler({
   }
 
   function onDragStart(newLayout, layoutItem) {
-    // console.log(layoutItem);
     setIsDragging(true);
+    if (!isDraggingFromOutside) {
+      const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${subjectCode}~${teacherId}`
+      )?.data;
+      createRestrictions(layout, subjectData);
+    }
   }
 
   function onDragStop(newLayout, layoutItem) {
     const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
     updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
+    if (!isDraggingFromOutside) {
+      removeRestrictions();
+    }
     setIsDragging(false);
   }
 
-  function onResizeStart() {
+  function onResizeStart(newLayout, layoutItem) {
     setIsResizing(true);
+    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    )?.data;
+    createRestrictions(layout, subjectData);
   }
 
   function onResizeStop(newLayout, layoutItem) {
     const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
     updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
+    removeRestrictions();
     setIsResizing(false);
   }
 

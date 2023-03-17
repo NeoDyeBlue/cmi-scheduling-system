@@ -16,10 +16,15 @@ const schedulerData = {
           id: '11-1112',
           firstName: 'Jane',
           lastName: 'Doe',
-          otherSchedules: [
+          existingSchedules: [
             {
-              day: 0,
-              times: [{ start: '6:00 AM', end: '9:00 AM' }],
+              day: 5,
+              times: [
+                {
+                  start: '7:00 AM',
+                  end: '9:00 AM',
+                },
+              ],
             },
           ],
           image:
@@ -75,6 +80,17 @@ const schedulerData = {
           image:
             'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
           type: 'full-time',
+          existingSchedules: [
+            {
+              day: 5,
+              times: [
+                {
+                  start: '7:00 AM',
+                  end: '9:00 AM',
+                },
+              ],
+            },
+          ],
         },
       ],
     },
