@@ -5,9 +5,10 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Button } from '@/components/Buttons';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
-import { schedulerData } from '@/lib/test_data/scheduler';
+import { schedulerData, selectedRooms } from '@/lib/test_data/scheduler';
 import { useEffect } from 'react';
 import useSchedulerStore from '@/stores/useSchedulerStore';
+import { nanoid } from 'nanoid';
 
 export default function Schedules() {
   const { setSubjects, subjects } = useSchedulerStore();
@@ -23,6 +24,29 @@ export default function Schedules() {
     ));
   });
 
+  const selectedRoomTabs = selectedRooms.map((room, index) => (
+    <Tab
+      key={`${room.code}-${index}`}
+      className="tab"
+      selectedClassName="tab-active"
+    >
+      {room.code}
+    </Tab>
+  ));
+
+  const selectedRoomTabPanels = selectedRooms.map((room) => (
+    <TabPanel key={`${room.code}`}>
+      <Scheduler
+        startTime="6:00 AM"
+        endTime="6:00 PM"
+        interval={30}
+        className="tab"
+        roomCode={room.code}
+        initialRoomSubjScheds={room.schedules}
+      />
+    </TabPanel>
+  ));
+
   return (
     <>
       <Head>
@@ -31,55 +55,67 @@ export default function Schedules() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="relative flex w-full gap-4 p-6">
-        <Tabs
-          className="flex w-full gap-4"
-          // onSelect={(index) => setActiveTab(tabs[index])}
-        >
-          <div className="flex w-fit flex-col gap-4">
-            <Button small secondary>
-              <MdAdd size={20} /> Room
-            </Button>
-            <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
-              <Tab selectedClassName="tab-active" className="tab">
-                CB205
-              </Tab>
-              <Tab selectedClassName="tab-active" className="tab">
-                SHS201
-              </Tab>
-            </TabList>
-          </div>
-          <div className="w-full">
-            <TabPanel>
-              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
-            </TabPanel>
-            <TabPanel>
-              <Scheduler startTime="6:00 AM" endTime="6:00 PM" interval={30} />
-            </TabPanel>
-          </div>
-        </Tabs>
-        <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">
-          <p className="font-display text-lg font-semibold">Subjects</p>
-          <Tabs className="flex flex-col gap-3">
-            <TabList className="scrollbar-hide flex w-full gap-2 overflow-y-auto">
-              <Tab selectedClassName="tab-active" className="tab">
-                Course
-              </Tab>
-              <Tab selectedClassName="tab-active" className="tab">
-                Room
-              </Tab>
-            </TabList>
-            <TabPanel>
-              <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-                {draggableSchedules.flat()}
-              </ul>
-            </TabPanel>
-            <TabPanel>
-              <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-                {/* {draggableSchedules.flat()} */}
-              </ul>
-            </TabPanel>
+      <div className="relative flex w-full flex-col gap-4 p-6">
+        <div>
+          <p>Creating schedules for:</p>
+          <h1 className="font-display font-semibold">
+            Bachelor of Science in Computer Science 1A
+          </h1>
+        </div>
+        <div className="relative flex w-full gap-4">
+          <Tabs
+            className="flex w-full gap-4"
+            // onSelect={(index) => setActiveTab(tabs[index])}
+          >
+            <div className="flex w-fit flex-col gap-4">
+              <Button small secondary>
+                <MdAdd size={20} /> Room
+              </Button>
+              <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
+                {selectedRoomTabs}
+              </TabList>
+            </div>
+            <div className="w-full">
+              {/* <TabPanel>
+                <Scheduler
+                  startTime="6:00 AM"
+                  endTime="6:00 PM"
+                  interval={30}
+                />
+              </TabPanel>
+              <TabPanel>
+                <Scheduler
+                  startTime="6:00 AM"
+                  endTime="6:00 PM"
+                  interval={30}
+                />
+              </TabPanel> */}
+              {selectedRoomTabPanels}
+            </div>
           </Tabs>
+          <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">
+            <p className="font-display text-lg font-semibold">Subjects</p>
+            <Tabs className="flex flex-col gap-3">
+              <TabList className="scrollbar-hide flex w-full gap-2 overflow-y-auto">
+                <Tab selectedClassName="tab-active" className="tab">
+                  Course
+                </Tab>
+                <Tab selectedClassName="tab-active" className="tab">
+                  Room
+                </Tab>
+              </TabList>
+              <TabPanel>
+                <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+                  {draggableSchedules.flat()}
+                </ul>
+              </TabPanel>
+              <TabPanel>
+                <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+                  {/* {draggableSchedules.flat()} */}
+                </ul>
+              </TabPanel>
+            </Tabs>
+          </div>
         </div>
       </div>
     </>

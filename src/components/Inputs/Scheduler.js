@@ -2,15 +2,16 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { parse, format, addMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
+import { MdRemove } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 
 /**
- * @todo remove placed scheds
  * @todo show subject scheds from the same room
  * @todo fix grid responsiveness
- * @todo check if drop, drag,or resizing of schedules is valid by creating restrictions
  * @todo restrict dropping of other elements to the table
+ * @todo fix the isDragging not triggering restrictions
+ * @todo fix layout resetting on tab change
  */
 
 export default function Scheduler({
@@ -79,7 +80,7 @@ export default function Scheduler({
     () =>
       timeData.map((times, index) => [
         {
-          i: `${index}${nanoid(10)}`,
+          i: `${index}-${times[0]}`,
           times,
           x: 0,
           y: index + 1,
@@ -88,7 +89,7 @@ export default function Scheduler({
           static: true,
         },
         {
-          i: `${index}${nanoid(11)}`,
+          i: `${index}-${times[1]}`,
           times,
           x: headers.length,
           y: index + 1,
@@ -140,7 +141,7 @@ export default function Scheduler({
         <div
           key={schedule.i}
           className={classNames(
-            'flex cursor-move select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
+            'group relative flex cursor-move select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
             {
               'border-warning-400 bg-warning-100':
                 data?.teacher?.type == 'part-time',
@@ -149,6 +150,21 @@ export default function Scheduler({
             }
           )}
         >
+          <button
+            onClick={(e) => {
+              removeLayoutItem(schedule.i);
+            }}
+            className={classNames(
+              `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
+              justify-center rounded-full border border-gray-200 bg-white text-center 
+              `,
+              {
+                'group-hover:flex': !isResizing,
+              }
+            )}
+          >
+            <MdRemove size={16} />
+          </button>
           <div className="flex flex-col text-center">
             <p className="font-display font-semibold">{data.code}</p>
           </div>
@@ -168,7 +184,7 @@ export default function Scheduler({
     .map((restriction) => {
       // <SchedulerSchedItem key={schedule.i} data={schedule.data} />
 
-      return <div key={restriction.i} className="bg-gray-500/50"></div>;
+      return <div key={restriction.i} className="bg-gray-300/50"></div>;
     });
 
   //effects
@@ -217,6 +233,7 @@ export default function Scheduler({
         schedules,
       });
     });
+
     setSubjectScheds(newSubjectScheds);
   }, [layout, subjectsData, timeData, setSubjectScheds]);
 
@@ -224,6 +241,20 @@ export default function Scheduler({
   function parseSubjSchedId(id, separator = '~') {
     const [subjectCode, teacherId, nanoId] = id.split(separator);
     return { subjectCode, teacherId, nanoId };
+  }
+
+  function removeLayoutItem(layoutId) {
+    const newLayout = layout.filter((item) => item.i !== layoutId);
+    setLayout(newLayout);
+    setSubjectsData((prev) =>
+      prev.filter((data) =>
+        newLayout.some((item) => {
+          const { subjectCode, teacherId } = parseSubjSchedId(item.i);
+          return `${subjectCode}~${teacherId}` == data.id;
+        })
+      )
+    );
+    removeRestrictions();
   }
 
   /**
@@ -550,6 +581,8 @@ export default function Scheduler({
       console.log('layout changed');
     }
   }
+
+  console.log(isDragging, isResizing);
 
   function onDrop(newLayout, layoutItem, _event) {
     const data = JSON.parse(_event.dataTransfer.getData('text/plain'));

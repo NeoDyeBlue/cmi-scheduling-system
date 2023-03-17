@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 
-const useSchedulerStore = create((set) => ({
+const useSchedulerStore = create((set, get) => ({
   subjects: [],
   subjectScheds: [],
   draggingSubject: null,
   resizingSubject: null,
+  layouts: [],
   currentRoom: '',
   setDraggingSubject: (subject) =>
     set(() => ({
@@ -26,6 +27,14 @@ const useSchedulerStore = create((set) => ({
     set(() => ({
       currentRoom: payload,
     })),
+  setLayout: (roomCode, layout) => {
+    const filteredLayouts = get().layouts.filter(
+      (layoutObj) => layoutObj.roomCode !== roomCode
+    );
+    set(() => ({
+      layouts: [...filteredLayouts, { roomCode, layout }],
+    }));
+  },
 }));
 
 export default useSchedulerStore;

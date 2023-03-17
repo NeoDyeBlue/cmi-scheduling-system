@@ -139,4 +139,55 @@ const schedulerData = {
   ],
 };
 
-export { schedulerData };
+const selectedRooms = [
+  {
+    code: 'CB206',
+    name: 'Computer Laboratory 206',
+    schedules: [
+      {
+        day: 5,
+        subjects: [
+          {
+            code: 'OOP',
+            name: 'Object Oriented Programming',
+            time: {
+              start: '8:00 AM',
+              end: '11:00 AM',
+            },
+            course: {
+              code: 'BSCS',
+              year: 2,
+              section: 'A',
+            },
+            teacher: {
+              id: '11-1112',
+              firstName: 'Jane',
+              lastName: 'Doe',
+              existingSchedules: [
+                {
+                  day: 6,
+                  times: [
+                    {
+                      start: '2:00 PM',
+                      end: '5:00 PM',
+                    },
+                  ],
+                },
+              ],
+              image:
+                'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
+              type: 'full-time',
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    code: 'CB205',
+    name: 'Computer Laboratory 205',
+    schedules: [],
+  },
+];
+
+export { schedulerData, selectedRooms };
