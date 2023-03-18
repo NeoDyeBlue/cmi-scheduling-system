@@ -139,45 +139,45 @@ const schedulerData = {
   ],
 };
 
-const selectedRooms = [
+const rooms = [
   {
     code: 'CB206',
     name: 'Computer Laboratory 206',
     schedules: [
       {
-        day: 5,
-        subjects: [
-          {
-            code: 'OOP',
-            name: 'Object Oriented Programming',
-            time: {
-              start: '8:00 AM',
-              end: '11:00 AM',
-            },
-            course: {
-              code: 'BSCS',
-              year: 2,
-              section: 'A',
-            },
-            teacher: {
-              id: '11-1112',
-              firstName: 'Jane',
-              lastName: 'Doe',
-              existingSchedules: [
+        subject: {
+          code: 'OOP',
+          name: 'Object Oriented Programming',
+          units: 3,
+        },
+        teacher: {
+          id: '11-1112',
+          firstName: 'Jane',
+          lastName: 'Doe',
+          existingSchedules: [
+            {
+              day: 4,
+              times: [
                 {
-                  day: 6,
-                  times: [
-                    {
-                      start: '2:00 PM',
-                      end: '5:00 PM',
-                    },
-                  ],
+                  start: '7:00 AM',
+                  end: '10:00 AM',
                 },
               ],
-              image:
-                'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
-              type: 'full-time',
             },
+          ],
+          image:
+            'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
+          type: 'full-time',
+        },
+        dayTimes: [
+          {
+            day: 5,
+            times: [
+              {
+                start: '8:00 AM',
+                end: '11:00 AM',
+              },
+            ],
           },
         ],
       },
@@ -190,4 +190,4 @@ const selectedRooms = [
   },
 ];
 
-export { schedulerData, selectedRooms };
+export { schedulerData, rooms };

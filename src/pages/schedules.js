@@ -1,20 +1,66 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
-import { MdAdd } from 'react-icons/md';
+import { MdAdd, MdClose } from 'react-icons/md';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Button } from '@/components/Buttons';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
-import { schedulerData, selectedRooms } from '@/lib/test_data/scheduler';
-import { useEffect } from 'react';
+import { schedulerData } from '@/lib/test_data/scheduler';
+import { useEffect, useState } from 'react';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { nanoid } from 'nanoid';
+import { RoomSelector, Modal } from '@/components/Modals';
 
 export default function Schedules() {
-  const { setSubjects, subjects } = useSchedulerStore();
-  useEffect(() => setSubjects(schedulerData.subjects), [setSubjects]);
+  const {
+    setCourseSubjects,
+    courseSubjects,
+    selectedRooms,
+    setSubjectsData,
+    subjectsData,
+  } = useSchedulerStore();
+  useEffect(() => {
+    setCourseSubjects(schedulerData.subjects);
+    const courseSubjectsData = [];
+    schedulerData.subjects.forEach((subject) => {
+      subject.teachers.forEach((teacher) => {
+        const dataId = `${subject.code}~${teacher.id}`;
+        const { teachers, ...newData } = subject;
+        courseSubjectsData.push({
+          id: dataId,
+          data: { ...newData, teacher },
+        });
+      });
+    });
+    setSubjectsData(courseSubjectsData);
+  }, [setCourseSubjects, setSubjectsData]);
 
-  const draggableSchedules = subjects.map((subject, subjIndex) => {
+  useEffect(() => {
+    if (subjectsData.length) {
+      const roomSubjectsData = [];
+      selectedRooms.forEach((room) => {
+        room.schedules.forEach((schedule) => {
+          const dataId = `${schedule.subject.code}~${schedule.teacher.id}`;
+          if (
+            !subjectsData.some((data) => data.id == dataId) &&
+            !roomSubjectsData.some((data) => data.id == dataId)
+          ) {
+            roomSubjectsData.push({
+              id: `${schedule.subject.code}~${schedule.teacher.id}`,
+              data: {
+                ...schedule.subject,
+                teacher: schedule.teacher,
+              },
+            });
+          }
+        });
+      });
+      setSubjectsData([...subjectsData, ...roomSubjectsData]);
+    }
+  }, [selectedRooms]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
     const { teachers, ...newData } = subject;
     return subject.teachers.map((teacher, teacherIndex) => (
       <DraggableSchedule
@@ -27,9 +73,19 @@ export default function Schedules() {
   const selectedRoomTabs = selectedRooms.map((room, index) => (
     <Tab
       key={`${room.code}-${index}`}
-      className="tab"
+      className="tab group relative"
       selectedClassName="tab-active"
     >
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+        className="absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
+              justify-center rounded-full border border-gray-200 bg-white text-center 
+              text-ship-gray-900 group-hover:flex"
+      >
+        <MdClose size={16} />
+      </button>
       {room.code}
     </Tab>
   ));
@@ -42,7 +98,7 @@ export default function Schedules() {
         interval={30}
         className="tab"
         roomCode={room.code}
-        initialRoomSubjScheds={room.schedules}
+        roomSchedules={room.schedules}
       />
     </TabPanel>
   ));
@@ -55,6 +111,13 @@ export default function Schedules() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <Modal
+        label="Add a Room"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      >
+        <RoomSelector onSelectClose={() => setIsModalOpen(false)} />
+      </Modal>
       <div className="relative flex w-full flex-col gap-4 p-6">
         <div>
           <p>Creating schedules for:</p>
@@ -65,10 +128,10 @@ export default function Schedules() {
         <div className="relative flex w-full gap-4">
           <Tabs
             className="flex w-full gap-4"
-            // onSelect={(index) => setActiveTab(tabs[index])}
+            onSelect={(index) => console.log(index)}
           >
             <div className="flex w-fit flex-col gap-4">
-              <Button small secondary>
+              <Button small secondary onClick={() => setIsModalOpen(true)}>
                 <MdAdd size={20} /> Room
               </Button>
               <TabList className="scrollbar-hide flex w-full flex-col gap-2 overflow-y-auto">
@@ -90,7 +153,16 @@ export default function Schedules() {
                   interval={30}
                 />
               </TabPanel> */}
-              {selectedRoomTabPanels}
+              {!selectedRooms.length ? (
+                <div
+                  className="flex h-full items-center justify-center rounded-md border border-dashed 
+                border-gray-400 text-center text-gray-400"
+                >
+                  <p className="text-xl">Select a room for scheduling</p>
+                </div>
+              ) : (
+                selectedRoomTabPanels
+              )}
             </div>
           </Tabs>
           <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">

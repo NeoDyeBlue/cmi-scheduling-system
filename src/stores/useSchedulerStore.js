@@ -1,38 +1,43 @@
 import { create } from 'zustand';
 
 const useSchedulerStore = create((set, get) => ({
-  subjects: [],
-  subjectScheds: [],
+  courseSubjects: [],
+  subjectsData: [],
   draggingSubject: null,
-  resizingSubject: null,
-  layouts: [],
-  currentRoom: '',
+  selectedRooms: [],
+  subjectScheds: [],
+  roomsSubjSchedsLayouts: [],
+  setCourseSubjects: (payload) =>
+    set(() => ({
+      courseSubjects: payload,
+    })),
   setDraggingSubject: (subject) =>
     set(() => ({
       draggingSubject: subject,
-    })),
-  setResizingSubject: (subject) =>
-    set(() => ({
-      resizingSubject: subject,
-    })),
-  setSubjects: (payload) =>
-    set(() => ({
-      subjects: payload,
     })),
   setSubjectScheds: (payload) =>
     set(() => ({
       subjectScheds: payload,
     })),
-  setCurrentRoom: (payload) =>
+  setSubjectsData: (payload) =>
     set(() => ({
-      currentRoom: payload,
+      subjectsData: payload,
     })),
-  setLayout: (roomCode, layout) => {
-    const filteredLayouts = get().layouts.filter(
+  setSelectedRooms: (payload) =>
+    set(() => ({
+      selectedRooms: payload,
+    })),
+  setAllRoomSubjSchedsLayout: (payload) => {
+    set(() => ({
+      roomsSubjSchedsLayouts: payload,
+    }));
+  },
+  setRoomSubjSchedsLayout: (roomCode, layout) => {
+    const filteredLayouts = get().roomsSubjSchedsLayouts.filter(
       (layoutObj) => layoutObj.roomCode !== roomCode
     );
     set(() => ({
-      layouts: [...filteredLayouts, { roomCode, layout }],
+      roomsSubjSchedsLayouts: [...filteredLayouts, { roomCode, layout }],
     }));
   },
 }));

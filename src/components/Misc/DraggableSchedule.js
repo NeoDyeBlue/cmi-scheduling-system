@@ -22,19 +22,19 @@ export default function DraggableSchedule({ data }) {
 
   useEffect(() => {
     const subject = subjectScheds.find((subj) => subj.subjectCode == data.code);
-    const isTheTeacher =
-      subject?.schedules?.some((sched) => sched.teacherId == data.teacher.id) ||
-      false;
+    const isTheTeacher = subject?.teacherId == data.teacher.id;
 
     if (subject && !isTheTeacher) {
       setIsDraggable(false);
     } else {
       let totalMinutesDuration = 0;
-      subject?.schedules.forEach((sched) => {
-        const start = parse(sched.time.start, 'hh:mm a', new Date());
-        const end = parse(sched.time.end, 'hh:mm a', new Date());
+      subject?.schedules?.forEach((sched) => {
+        sched.times.forEach((time) => {
+          const start = parse(time.start, 'hh:mm a', new Date());
+          const end = parse(time.end, 'hh:mm a', new Date());
 
-        totalMinutesDuration += differenceInMinutes(end, start);
+          totalMinutesDuration += differenceInMinutes(end, start);
+        });
       });
 
       const hoursDuration = Math.floor(totalMinutesDuration / 60);
