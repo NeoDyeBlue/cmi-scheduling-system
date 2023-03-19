@@ -1,12 +1,17 @@
 import { create } from 'zustand';
 
 const useSchedulerStore = create((set, get) => ({
+  course: null,
   courseSubjects: [],
   subjectsData: [],
   draggingSubject: null,
   selectedRooms: [],
   subjectScheds: [],
   roomsSubjSchedsLayouts: [],
+  setCourse: (payload) =>
+    set(() => ({
+      course: payload,
+    })),
   setCourseSubjects: (payload) =>
     set(() => ({
       courseSubjects: payload,

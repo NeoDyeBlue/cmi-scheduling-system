@@ -7,13 +7,11 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 
 /**
- * @todo show subject scheds from the same room
- * @todo include the subject restriction if placing in another room
  * @todo fix grid responsiveness
  * @todo restrict dropping of other elements to the table
  * @todo fix the isDragging not triggering restrictions
- * @todo fix the maxH of initial schedules
- * @todo what if other room subject is also not finished or it has schedules in another room that is not shown
+ * @todo remove room
+ * @todo show subject info on layout item(optional)
  */
 
 export default function Scheduler({
@@ -42,6 +40,8 @@ export default function Scheduler({
     setRoomSubjSchedsLayout,
     roomsSubjSchedsLayouts,
     setAllRoomSubjSchedsLayout,
+    courseSubjects,
+    course,
   } = useSchedulerStore();
 
   // memos
@@ -152,30 +152,37 @@ export default function Scheduler({
         <div
           key={schedule.i}
           className={classNames(
-            'group relative flex cursor-move select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
+            'group relative flex select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
             {
               'border-warning-400 bg-warning-100':
-                data?.teacher?.type == 'part-time',
+                data?.teacher?.type == 'part-time' && !schedule.static,
               'border-success-400 bg-success-100':
-                data?.teacher?.type == 'full-time',
+                data?.teacher?.type == 'full-time' && !schedule.static,
+              'border border-gray-400 bg-gray-100': schedule.static,
+            },
+            {
+              'cursor-default': schedule.static,
+              'cursor-move': !schedule.static,
             }
           )}
         >
-          <button
-            onClick={(e) => {
-              removeLayoutItem(schedule.i);
-            }}
-            className={classNames(
-              `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
-              justify-center rounded-full border border-gray-200 bg-white text-center 
-              `,
-              {
-                'group-hover:flex': !isResizing,
-              }
-            )}
-          >
-            <MdRemove size={16} />
-          </button>
+          {!schedule.static && (
+            <button
+              onClick={(e) => {
+                removeLayoutItem(schedule.i);
+              }}
+              className={classNames(
+                `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
+                      justify-center rounded-full border border-gray-200 bg-white text-center 
+                      `,
+                {
+                  'group-hover:flex': !isResizing,
+                }
+              )}
+            >
+              <MdRemove size={16} />
+            </button>
+          )}
           <div className="flex flex-col text-center">
             <p className="font-display font-semibold">{data.code}</p>
           </div>
@@ -219,12 +226,23 @@ export default function Scheduler({
                 i: `${subjSchedule.subject.code}~${
                   subjSchedule.teacher.id
                 }~${nanoid(10)}`,
-                x: dayTime.day + 1,
+                x: dayTime.day,
                 w: 1,
                 y: yStart,
                 minH: 1,
                 h: Math.abs(yEnd - yStart) + 1,
                 maxW: 1,
+                /**
+                 * will be static only if:
+                 * - subject is not in the courseSubjects
+                 * - if subject is in the courseSubjects, check if it has the same year and section
+                 */
+                static:
+                  courseSubjects.some(
+                    (subject) => subject.code !== subjSchedule.subject.code
+                  ) &&
+                  `${course.year}${course.section}` !==
+                    `${subjSchedule.course.year}${subjSchedule.course.section}`,
               });
             });
           });
@@ -253,7 +271,6 @@ export default function Scheduler({
   }, [draggingSubject]);
 
   useEffect(() => {
-    console.log('effe2');
     const subjSchedIds = subjectsData.map((data) => data.id);
     const subjSchedItems = layout.filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
@@ -273,7 +290,7 @@ export default function Scheduler({
       return { code: subjectCode, teacher: teacherId };
     });
 
-    const newSubjectScheds = [];
+    const newRoomSubjectScheds = [];
     //for each schedIds
 
     subjSchedIdsParsed.forEach(({ code, teacher }) => {
@@ -289,18 +306,6 @@ export default function Scheduler({
           end: timeData[layout.y - 1 + layout.h - 1][1],
         },
       }));
-
-      const savedSubjectScheds = subjectScheds.find(
-        (subjSched) =>
-          subjSched.subjectCode == code && subjSched.teacherId == teacher
-      );
-      let schedsFromOtherRooms = [];
-
-      if (savedSubjectScheds) {
-        schedsFromOtherRooms = savedSubjectScheds.schedules.filter(
-          (schedule) => schedule.roomCode !== roomCode
-        );
-      }
 
       //group by day
       const groupedByDay = [];
@@ -320,26 +325,61 @@ export default function Scheduler({
         }
       }
       //add to the sched array
-      newSubjectScheds.push({
+      newRoomSubjectScheds.push({
         subjectCode: code,
         teacherId: teacher,
-        schedules: [...schedsFromOtherRooms, ...groupedByDay],
+        schedules: [...groupedByDay],
       });
     });
+    // problem with setting this cause removing a sched wont update this
+
+    let newScheds = [];
+
+    if (subjectScheds.length) {
+      subjectScheds.forEach((subjSched) => {
+        const newSubjSched = newRoomSubjectScheds.find(
+          (newRoomSubjSched) =>
+            subjSched.subjectCode == newRoomSubjSched.subjectCode &&
+            subjSched.teacherId == newRoomSubjSched.teacherId
+        );
+
+        //check if new sched exists then update the new room scheds
+        if (newSubjSched) {
+          newScheds.push({
+            ...newSubjSched,
+            schedules: [
+              ...subjSched.schedules.filter(
+                (sched) => sched.roomCode !== roomCode
+              ),
+              ...newSubjSched.schedules,
+            ],
+          });
+        } else {
+          newScheds.push({
+            ...subjSched,
+            schedules: [
+              ...subjSched.schedules.filter(
+                (sched) => sched.roomCode !== roomCode
+              ),
+            ],
+          });
+        }
+      });
+    } else {
+      newScheds = newRoomSubjectScheds;
+    }
+
     setSubjectScheds([
-      ...subjectScheds.filter(
+      ...newScheds.filter((newSched) => newSched.schedules.length),
+      ...newRoomSubjectScheds.filter(
         (sched) =>
-          !newSubjectScheds.some(
+          !newScheds.some(
             (newSched) =>
               sched.subjectCode == newSched.subjectCode &&
               sched.teacherId == newSched.teacherId
           )
       ),
-      ...newSubjectScheds,
     ]);
-    // if (newSubjectScheds.length) {
-    //   setSubjectScheds(newSubjectScheds);
-    // }
     setRoomSubjSchedsLayout(roomCode, subjSchedItems);
   }, [
     layout,
@@ -359,14 +399,6 @@ export default function Scheduler({
   function removeLayoutItem(layoutId) {
     const newLayout = layout.filter((item) => item.i !== layoutId);
     setLayout(newLayout);
-    // setSubjectsData((prev) =>
-    //   prev.filter((data) =>
-    //     newLayout.some((item) => {
-    //       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-    //       return `${subjectCode}~${teacherId}` == data.id;
-    //     })
-    //   )
-    // );
     removeRestrictions();
   }
 
@@ -389,8 +421,6 @@ export default function Scheduler({
     const subjectData = subjectsData.find(
       (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
-
-    console.log(otherRoomLayouts);
 
     if (subjectData) {
       const unitsMaxSpan = subjectData.units * 2;
@@ -452,13 +482,6 @@ export default function Scheduler({
         ],
       };
 
-      const sameLayoutItemsRemoved = layoutSource.filter(
-        (item) =>
-          !updatedSubjSchedItems.some(
-            (subjSchedItem) => subjSchedItem.i == item.i
-          )
-      );
-
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
       setLayout([...headers, ...newRoomLayout.layout, ...timeLayout.flat()]);
     } else {
@@ -508,8 +531,6 @@ export default function Scheduler({
             subjSchedItem.x == item.x
         );
 
-        // console.log(yAdjacents, item.y);
-
         if (yAdjacents.length) {
           const { totalMergingRowSpans, yStart } = yAdjacents.reduce(
             (accumulator, currentItem) => {
@@ -524,14 +545,7 @@ export default function Scheduler({
             },
             { totalMergingRowSpans: item.h, yStart: item.y }
           );
-          // console.table({
-          //   totalMergingRowSpans,
-          //   totalRowSpanCount,
-          //   yStart,
-          //   itemH: item.h,
-          //   shouldMerge: totalRowSpanCount % totalMergingRowSpans == 0,
-          //   mergeValue: totalRowSpanCount % totalMergingRowSpans,
-          // });
+
           if (totalMergingRowSpans <= subjectData.units * 2) {
             mergedItems.push({
               ...item,
@@ -584,13 +598,23 @@ export default function Scheduler({
       const existingScheduleTimes =
         (subjectData?.teacher?.existingSchedules &&
           subjectData?.teacher?.existingSchedules.find(
-            (existingSchedule) => existingSchedule.day == x - 1
+            (existingSchedule) => existingSchedule.day == x
           )?.times) ||
         [];
+      const inSchedulerDayTimes = subjectScheds
+        .filter((subjSched) => subjSched.teacherId == subjectData.teacher.id)
+        .map((subj) => subj.schedules)
+        .flat();
+      const inSchedulerTimes = inSchedulerDayTimes
+        .filter((dayTimes) => dayTimes.day == x)
+        .map((dayTimes) => dayTimes.times)
+        .flat();
+
+      console.log(inSchedulerTimes);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
-          (dayTimes) => dayTimes.day == x - 1
+          (dayTimes) => dayTimes.day == x
         );
 
         if (preffered) {
@@ -628,6 +652,21 @@ export default function Scheduler({
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingScheduleTimes.length) {
         existingScheduleTimes.forEach((scheduleTime) => {
+          const timeStartIndex = timeData.findIndex((time) => {
+            return time[0] == scheduleTime.start;
+          });
+          const timeEndIndex = timeData.findIndex((time) => {
+            return time[1] == scheduleTime.end;
+          });
+
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+            unavailableTimesY.push(i + 1);
+          }
+        });
+      }
+
+      if (inSchedulerTimes.length) {
+        inSchedulerTimes.forEach((scheduleTime) => {
           const timeStartIndex = timeData.findIndex((time) => {
             return time[0] == scheduleTime.start;
           });
@@ -729,7 +768,6 @@ export default function Scheduler({
     if (layoutItem.x !== 0 && layoutItem.x !== 8) {
       const nanoId = nanoid(10);
       const layoutItemId = `${data.code}~${data.teacher.id}~${nanoId}`;
-      const dataId = `${data.code}~${data.teacher.id}`;
 
       const mergedItemsLayout = mergeYAdjacentSubjScheds(
         layout,
@@ -741,20 +779,8 @@ export default function Scheduler({
       );
 
       updateSubjSchedsMaxH(mergedItemsLayout, layoutItemId);
-
-      // if (!subjectsData.some((data) => data.id == dataId)) {
-      //   setSubjectsData((prev) => [
-      //     ...prev,
-      //     {
-      //       id: dataId,
-      //       data,
-      //     },
-      //   ]);
-      // }
     }
   }
-
-  console.log(subjectScheds);
 
   function onDropDragOver() {
     //set item dragging item maxH and minH
@@ -825,8 +851,6 @@ export default function Scheduler({
     removeRestrictions();
     setIsResizing(false);
   }
-
-  // console.log(subjectScheds);
 
   return (
     <ResponsiveGridLayout

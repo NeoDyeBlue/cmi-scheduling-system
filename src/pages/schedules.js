@@ -17,9 +17,11 @@ export default function Schedules() {
     selectedRooms,
     setSubjectsData,
     subjectsData,
+    setCourse,
   } = useSchedulerStore();
   useEffect(() => {
     setCourseSubjects(schedulerData.subjects);
+    setCourse(schedulerData.course);
     const courseSubjectsData = [];
     schedulerData.subjects.forEach((subject) => {
       subject.teachers.forEach((teacher) => {
@@ -32,7 +34,7 @@ export default function Schedules() {
       });
     });
     setSubjectsData(courseSubjectsData);
-  }, [setCourseSubjects, setSubjectsData]);
+  }, [setCourseSubjects, setSubjectsData, setCourse]);
 
   useEffect(() => {
     if (subjectsData.length) {
@@ -167,7 +169,10 @@ export default function Schedules() {
           </Tabs>
           <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-400 p-3">
             <p className="font-display text-lg font-semibold">Subjects</p>
-            <Tabs className="flex flex-col gap-3">
+            <ul className="flex h-fit min-w-[200px] flex-col gap-3">
+              {draggableSchedules.flat()}
+            </ul>
+            {/* <Tabs className="flex flex-col gap-3">
               <TabList className="scrollbar-hide flex w-full gap-2 overflow-y-auto">
                 <Tab selectedClassName="tab-active" className="tab">
                   Course
@@ -183,10 +188,9 @@ export default function Schedules() {
               </TabPanel>
               <TabPanel>
                 <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-                  {/* {draggableSchedules.flat()} */}
                 </ul>
               </TabPanel>
-            </Tabs>
+            </Tabs> */}
           </div>
         </div>
       </div>
