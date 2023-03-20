@@ -20,4 +20,5 @@ course.plugin(mongoosePaginate);
 course.plugin(aggregatePaginate);
 
 export default course;
+
 // type: { type: [String], emum: ['shs', 'college'] },

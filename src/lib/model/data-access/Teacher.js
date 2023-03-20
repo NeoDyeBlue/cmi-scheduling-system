@@ -43,12 +43,13 @@ class Teacher extends Model {
       const pipeline = [
         {
           $project: {
-            teacherId: '11-1111',
+            teacherId: '$teacherId',
             firstName: '$firstName',
             lastName: '$lastName',
             image: '$image',
             type: '$type',
-            preferredDays: '$preferredDays',
+            preferredDayTimes: '$preferredDays',
+            assignedSubjects: '$assignedSubjects',
             schedules: [],
           },
         },
@@ -60,9 +61,11 @@ class Teacher extends Model {
       );
       return data;
     } catch (error) {
+      console.log('error', error);
       throw error;
     }
   }
+  
 }
 const teacher = new Teacher();
 export default teacher;

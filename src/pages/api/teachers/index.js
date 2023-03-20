@@ -28,9 +28,10 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'GET') {
     try {
-      const limit = 2;
-      const page = 1;
-      // const { limit, page } = req.query;
+      // const limit = 2;
+      // const page = 1;
+      const { limit, page } = req.query;
+
       const data = await teacher.getTeacherPaginate({ limit, page });
       return successResponse(req, res, data);
     } catch (error) {
@@ -38,5 +39,11 @@ export const handler = async (req, res) => {
     }
   }
 };
-
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
 export default handler;

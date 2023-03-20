@@ -5,15 +5,25 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 const room = new mongoose.Schema({
   code: { type: String, unique: true },
   name: { type: String, unique: true },
-  type: { type: [String], default: 'all', enum: ['shs', 'college', 'speech lab','hm lab','computer','big room', 'all'] },
-  level: { type: String, enum: ['shs', 'college', 'both'] },
+  type: {
+    type: [String],
+    default: 'all',
+    enum: [
+      'shs',
+      'college',
+      'speech lab',
+      'hm lab',
+      'computer',
+      'big room',
+      'all',
+    ],
+  },
+  level: { type: String, enum: ['shs', 'college', 'all'], default: 'all' },
 });
 room.plugin(mongoosePaginate);
 room.plugin(aggregatePaginate);
 
 export default room;
-
-
 
 // SHS Rooms
 // 101-103, 105-108, 201-208
