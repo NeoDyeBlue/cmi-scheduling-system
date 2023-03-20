@@ -28,53 +28,112 @@ export const teacherSchema = yup.object().shape({
   preferredDayTimes: yup
     .array()
     .nullable()
-    .of(
-      yup.object().shape({
-        day: yup.number().min(1).max(7).required('Required'),
-        start: yup
-          .string()
-          .required('Required')
-          .test(
-            'is-after',
-            'Start time must be before end time',
-            function (value) {
-              const { parent } = this;
-              const endTime = parent.end;
-              return isAfterStartTime(value, endTime);
-            }
+    .when('type', {
+      is: (value) => value == 'part-time',
+      then: () =>
+        yup
+          .array()
+          .of(
+            yup.object().shape({
+              day: yup.number().min(1).max(7).required('Required'),
+              start: yup
+                .string()
+                .required('Required')
+                .test(
+                  'is-after',
+                  'Start time must be before end time',
+                  function (value) {
+                    const { parent } = this;
+                    const endTime = parent.end;
+                    return isAfterStartTime(value, endTime);
+                  }
+                )
+                .test(
+                  'is-valid',
+                  'Start time must be at least 1 hour before end time',
+                  function (value) {
+                    const { parent } = this;
+                    const endTime = parent.end;
+                    return hasHourGap(value, endTime);
+                  }
+                ),
+              end: yup
+                .string()
+                .required('Required')
+                .test(
+                  'is-after',
+                  'End time must be after start time',
+                  function (value) {
+                    const { parent } = this;
+                    const startTime = parent.start;
+                    return isAfterStartTime(startTime, value);
+                  }
+                )
+                .test(
+                  'is-valid',
+                  'End time must be at least 1 hour after start time',
+                  function (value) {
+                    const { parent } = this;
+                    const startTime = parent.start;
+                    return hasHourGap(startTime, value);
+                  }
+                ),
+            })
           )
-          .test(
-            'is-valid',
-            'Start time must be at least 1 hour before end time',
-            function (value) {
-              const { parent } = this;
-              const endTime = parent.end;
-              return hasHourGap(value, endTime);
-            }
-          ),
-        end: yup
-          .string()
-          .required('Required')
-          .test(
-            'is-after',
-            'End time must be after start time',
-            function (value) {
-              const { parent } = this;
-              const startTime = parent.start;
-              return isAfterStartTime(startTime, value);
-            }
-          )
-          .test(
-            'is-valid',
-            'End time must be at least 1 hour after start time',
-            function (value) {
-              const { parent } = this;
-              const startTime = parent.start;
-              return hasHourGap(startTime, value);
-            }
-          ),
-      })
-    )
-    .min(1, 'Select at least one option')
-    .required('Required'),
+          .min(1, 'Select at least one option')
+          .required('Required'),
+      otherwise: () => yup.array().nullable().notRequired(),
+    }),
+  // preferredDayTimes: yup
+  //   .array()
+  //   .nullable()
+  //   .of(
+  //     yup.object().shape({
+  //       day: yup.number().min(1).max(7).required('Required'),
+  //       start: yup
+  //         .string()
+  //         .required('Required')
+  //         .test(
+  //           'is-after',
+  //           'Start time must be before end time',
+  //           function (value) {
+  //             const { parent } = this;
+  //             const endTime = parent.end;
+  //             return isAfterStartTime(value, endTime);
+  //           }
+  //         )
+  //         .test(
+  //           'is-valid',
+  //           'Start time must be at least 1 hour before end time',
+  //           function (value) {
+  //             const { parent } = this;
+  //             const endTime = parent.end;
+  //             return hasHourGap(value, endTime);
+  //           }
+  //         ),
+  //       end: yup
+  //         .string()
+  //         .required('Required')
+  //         .test(
+  //           'is-after',
+  //           'End time must be after start time',
+  //           function (value) {
+  //             const { parent } = this;
+  //             const startTime = parent.start;
+  //             return isAfterStartTime(startTime, value);
+  //           }
+  //         )
+  //         .test(
+  //           'is-valid',
+  //           'End time must be at least 1 hour after start time',
+  //           function (value) {
+  //             const { parent } = this;
+  //             const startTime = parent.start;
+  //             return hasHourGap(startTime, value);
+  //           }
+  //         ),
+  //     })
+  //   )
+  //   .min(1, 'Select at least one option')
+  //   .required('Required'),
 });

@@ -19,8 +19,8 @@ export default function TeacherForm({ initialData, onCancel }) {
       image: initialData?.image?.url || null,
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
-      preferredDayTimes: initialData?.preferredDayTimes || [],
       type: initialData?.type || 'part-time',
+      preferredDayTimes: initialData?.preferredDayTimes || [],
     },
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
@@ -35,11 +35,14 @@ export default function TeacherForm({ initialData, onCancel }) {
   ];
 
   async function handleSubmit(values) {
-    console.log(values);
     try {
       const res = await fetch('/api/teachers', {
         method: 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          preferredDayTimes:
+            values.type == 'part-time' ? values.preferredDayTimes : [],
+        }),
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -99,12 +102,13 @@ export default function TeacherForm({ initialData, onCancel }) {
                 label="Preferred Day Times"
                 infoMessage="You can select more than one"
                 name="preferredDayTimes"
-                // error={
-                //   teacherFormik.errors.preferredDayTimes &&
-                //   teacherFormik.touched.preferredDayTimes
-                //     ? teacherFormik.errors.preferredDayTimes
-                //     : null
-                // }
+                error={
+                  teacherFormik.errors.preferredDayTimes &&
+                  teacherFormik.touched.preferredDayTimes &&
+                  typeof teacherFormik.errors.preferredDayTimes == 'string'
+                    ? teacherFormik.errors.preferredDayTimes
+                    : null
+                }
               >
                 {daysOfWeek.map((day, index) => {
                   const isChecked = teacherFormik.values.preferredDayTimes.some(
