@@ -1,12 +1,15 @@
 import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
-const time = new mongoose.Schema({
+// const time = new mongoose.Schema({
+//   start: { type: String },
+//   end: { type: String },
+// });
+const preferredDayTimes = new mongoose.Schema({
+  day: { type: Number, required: true },
   start: { type: String },
   end: { type: String },
-});
-const preferredDaysSchema = new mongoose.Schema({
-  day: { type: String },
-  time: [time],
 });
 const assignedSubjectsSchema = new mongoose.Schema({
   subject: { type: mongoose.Types.ObjectId, ref: 'Subject', required: true },
@@ -20,8 +23,11 @@ const teacher = new mongoose.Schema({
   middleName: { type: String },
   lastName: { type: String },
   image: { type: String },
+  teacherId: { type: String, unique: true },
   type: { type: String },
-  preferredDays: [preferredDaysSchema],
+  preferredDayTimes: [preferredDayTimes],
   assignedSubjects: [assignedSubjectsSchema],
 });
+teacher.plugin(mongoosePaginate);
+teacher.plugin(aggregatePaginate);
 export default teacher;

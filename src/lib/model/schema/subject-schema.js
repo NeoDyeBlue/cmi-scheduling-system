@@ -10,6 +10,7 @@ const subject = new mongoose.Schema({
   level: { type: String },
   sem: { type: [Number], required: true, enum: [1, 2] },
 });
+
 subject.plugin(mongoosePaginate);
 subject.plugin(aggregatePaginate);
 export default subject;
