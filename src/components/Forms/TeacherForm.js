@@ -1,4 +1,4 @@
-import { FormikProvider, Form, useFormik } from 'formik';
+import { FormikProvider, Form, useFormik, FieldArray } from 'formik';
 import {
   InputField,
   MultiSelect,
@@ -8,29 +8,34 @@ import {
   RadioSelectItem,
 } from '../Inputs';
 import { Button } from '../Buttons';
+import classNames from 'classnames';
 import { teacherSchema } from '@/lib/validators/teacher-validator';
 import { toast } from 'react-hot-toast';
 
 export default function TeacherForm({ initialData, onCancel }) {
   const teacherFormik = useFormik({
     initialValues: {
+      teacherId: initialData?.teacher?.teacherId || '',
       image: initialData?.image?.url || null,
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
-      preferredDays: initialData?.preferredDays || [],
+      preferredDayTimes: initialData?.preferredDayTimes || [],
       type: initialData?.type || 'part-time',
     },
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
   });
-
-  // useEffect(() => {
-  //   if (teacherFormik.values.type == "full-time") {
-  //     teacherFormik.setFieldValue("preferredDays", []);
-  //   }
-  // }, [teacherFormik]);
+  const daysOfWeek = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   async function handleSubmit(values) {
+    console.log(values);
     try {
       const res = await fetch('/api/teachers', {
         method: 'POST',
@@ -55,6 +60,12 @@ export default function TeacherForm({ initialData, onCancel }) {
           name="image"
           label="Teacher Picture"
           infoMessage="File should be in '.jpg' or '.png', max file size is 5mb"
+        />
+        <InputField
+          type="text"
+          name="teacherId"
+          label="Teacher ID"
+          placeholder="e.g. 11-1111"
         />
         <InputField type="text" name="firstName" label="First Name" />
         <InputField type="text" name="lastName" label="Last Name" />
@@ -82,66 +93,87 @@ export default function TeacherForm({ initialData, onCancel }) {
           </RadioSelectItem>
         </RadioSelect>
         {teacherFormik.values.type == 'part-time' ? (
-          <MultiSelect
-            label="Preferred Days"
-            infoMessage="You can select more than one"
-            error={
-              teacherFormik.errors.preferredDays &&
-              teacherFormik.touched.preferredDays
-                ? teacherFormik.errors.preferredDays
-                : null
-            }
-          >
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('0')}
-              value={0}
-            >
-              <p>Monday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('1')}
-              value={1}
-            >
-              <p>Tuesday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('2')}
-              value={2}
-            >
-              <p>Wednesday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('3')}
-              value={3}
-            >
-              <p>Thursday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('4')}
-              value={4}
-            >
-              <p>Friday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('5')}
-              value={5}
-            >
-              <p>Saturday</p>
-            </MultiSelectItem>
-            <MultiSelectItem
-              name="preferredDays"
-              checked={teacherFormik.values.preferredDays.includes('6')}
-              value={6}
-            >
-              <p>Sunday</p>
-            </MultiSelectItem>
-          </MultiSelect>
+          <FieldArray name="preferredDayTimes">
+            {({ push, remove }) => (
+              <MultiSelect
+                label="Preferred Day Times"
+                infoMessage="You can select more than one"
+                name="preferredDayTimes"
+                // error={
+                //   teacherFormik.errors.preferredDayTimes &&
+                //   teacherFormik.touched.preferredDayTimes
+                //     ? teacherFormik.errors.preferredDayTimes
+                //     : null
+                // }
+              >
+                {daysOfWeek.map((day, index) => {
+                  const isChecked = teacherFormik.values.preferredDayTimes.some(
+                    (dayTime) => dayTime.day == index + 1
+                  );
+
+                  return (
+                    <MultiSelectItem
+                      key={day}
+                      name="preferredDayTimes"
+                      checked={isChecked}
+                      // value={index + 1}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          push({ day: index + 1, start: '', end: '' });
+                        } else {
+                          const selectionIndex =
+                            teacherFormik.values.preferredDayTimes.findIndex(
+                              (dayTime) => dayTime.day == index + 1
+                            );
+                          remove(selectionIndex);
+                        }
+                      }}
+                    >
+                      <div
+                        className={classNames(
+                          'flex w-full flex-col gap-2 rounded-md border p-3',
+                          {
+                            'border-gray-100 bg-gray-100': isChecked,
+                            'border-gray-200': !isChecked,
+                          }
+                        )}
+                      >
+                        <p>{day}</p>
+                        <div className="flex w-full gap-2">
+                          <InputField
+                            disabled={!isChecked}
+                            type="time"
+                            name={`preferredDayTimes[${teacherFormik.values.preferredDayTimes.findIndex(
+                              (dayTime) => dayTime.day == index + 1
+                            )}].start`}
+                            label="Time Start"
+                            value={
+                              teacherFormik.values.preferredDayTimes.find(
+                                (dayTime) => dayTime.day == index + 1
+                              )?.start || ''
+                            }
+                          />
+                          <InputField
+                            disabled={!isChecked}
+                            type="time"
+                            name={`preferredDayTimes[${teacherFormik.values.preferredDayTimes.findIndex(
+                              (dayTime) => dayTime.day == index + 1
+                            )}].end`}
+                            label="Time End"
+                            value={
+                              teacherFormik.values.preferredDayTimes.find(
+                                (dayTime) => dayTime.day == index + 1
+                              )?.end || ''
+                            }
+                          />
+                        </div>
+                      </div>
+                    </MultiSelectItem>
+                  );
+                })}
+              </MultiSelect>
+            )}
+          </FieldArray>
         ) : null}
         <div className="mb-1 flex gap-2">
           {onCancel && (

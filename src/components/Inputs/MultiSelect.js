@@ -1,4 +1,4 @@
-import { MdInfo } from "react-icons/md";
+import { MdInfo } from 'react-icons/md';
 
 export default function MultiSelect({
   label,

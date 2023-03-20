@@ -22,7 +22,7 @@ const schedulerData = {
               times: [
                 {
                   start: '7:00 AM',
-                  end: '9:00 AM',
+                  end: '10:00 AM',
                 },
               ],
             },
@@ -40,25 +40,25 @@ const schedulerData = {
           type: 'part-time',
           existingSchedules: [
             {
-              day: 0,
+              day: 1,
               times: [
                 {
                   start: '7:00 AM',
-                  end: '9:00 AM',
+                  end: '10:00 AM',
                 },
               ],
             },
           ],
           preferredDayTimes: [
             {
-              day: 0,
+              day: 1,
               time: {
                 start: '7:00 AM',
                 end: '3:00 PM',
               },
             },
             {
-              day: 1,
+              day: 2,
               time: {
                 start: '8:00 AM',
                 end: '6:00 PM',
@@ -86,7 +86,7 @@ const schedulerData = {
               times: [
                 {
                   start: '7:00 AM',
-                  end: '9:00 AM',
+                  end: '10:00 AM',
                 },
               ],
             },
@@ -108,7 +108,7 @@ const schedulerData = {
           type: 'part-time',
           existingSchedules: [
             {
-              day: 0,
+              day: 1,
               times: [
                 {
                   start: '7:00 AM',
@@ -119,14 +119,14 @@ const schedulerData = {
           ],
           preferredDayTimes: [
             {
-              day: 0,
+              day: 1,
               time: {
                 start: '7:00 AM',
                 end: '3:00 PM',
               },
             },
             {
-              day: 1,
+              day: 2,
               time: {
                 start: '8:00 AM',
                 end: '6:00 PM',
@@ -150,13 +150,18 @@ const rooms = [
           name: 'Object Oriented Programming',
           units: 3,
         },
+        course: {
+          code: 'BSCS',
+          year: 2,
+          section: 'A',
+        },
         teacher: {
           id: '11-1112',
           firstName: 'Jane',
           lastName: 'Doe',
           existingSchedules: [
             {
-              day: 4,
+              day: 5,
               times: [
                 {
                   start: '7:00 AM',
@@ -171,7 +176,7 @@ const rooms = [
         },
         dayTimes: [
           {
-            day: 5,
+            day: 7,
             times: [
               {
                 start: '8:00 AM',
