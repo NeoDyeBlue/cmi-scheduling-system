@@ -12,7 +12,7 @@ export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { docs, pageData, setPageIndex } = usePaginate({
     url: '/api/teachers',
-    limit: 10,
+    limit: 3,
   });
   return (
     <>

@@ -7,3 +7,4 @@ export { default as ImagePicker } from './ImagePicker';
 export { default as Scheduler } from './Scheduler';
 export { default as SchedulerSchedItem } from './SchedulerSchedItem';
 export { default as MultipleComboBoxExample } from './MultipleComboBoxExample';
+export { default as MultiComboBox } from './MultiComboBox';

@@ -13,7 +13,9 @@ export default function InputField({ label, infoMessage, ...props }) {
           '-mb-2': !label && props.type !== 'password',
         })}
       >
-        {label && <label className="font-display font-medium">{label}</label>}
+        {label && (
+          <label className="w-fit font-display font-medium">{label}</label>
+        )}
         {props.type == 'password' ? (
           <button
             type="button"

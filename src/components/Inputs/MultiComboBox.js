@@ -1,20 +1,24 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCombobox, useMultipleSelection } from 'downshift';
+import { MdInfo } from 'react-icons/md';
 import classNames from 'classnames';
 import { toast } from 'react-hot-toast';
+import { useField } from 'formik';
+import { ImageWithFallback, TeacherTypeBadge } from '../Misc';
 
 export default function MultiComboBox({
-  items,
-  placeholder,
-  label,
-  infoMessage,
-  name,
+  // items,
+  placeholder = '',
+  label = '',
+  infoMessage = '',
+  name = '',
   selectionType = 'default',
   searchUrl = '',
+  filter = {},
 }) {
   const [field, meta, helpers] = useField(name);
   const [inputValue, setInputValue] = useState('');
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState(meta.value);
   const [searchedItems, setSearchedItems] = useState([]);
 
   // fetcher on input change
@@ -22,10 +26,24 @@ export default function MultiComboBox({
     if (inputValue) {
       const controller = new AbortController();
       const signal = controller.signal;
-      fetch(`${searchUrl}?search=${inputValue}`, { signal })
+      fetch(
+        `${searchUrl}?${new URLSearchParams({
+          q: inputValue,
+          ...filter,
+        }).toString()}`,
+        { signal }
+      )
         .then((res) => res.json())
-        .then((data) => setSearchedItems([...data.docs]))
-        .catch((err) => toast.error('Something went wrong'));
+        .then((result) => {
+          if (result?.data && result?.data?.length) {
+            setSearchedItems([...result.data]);
+          }
+        })
+        .catch((err) => {
+          if (err.name !== 'AbortError') {
+            toast.error('Something went wrong');
+          }
+        });
 
       return () => {
         if (signal && controller.abort) {
@@ -34,6 +52,10 @@ export default function MultiComboBox({
       };
     }
   }, [inputValue, searchUrl]);
+
+  useEffect(() => {
+    helpers.setValue(selectedItems);
+  }, [selectedItems]);
 
   // useMultipleSelection
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
@@ -47,6 +69,7 @@ export default function MultiComboBox({
           case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
           case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem:
             setSelectedItems(newSelectedItems);
+            // helpers.setValue(newSelectedItems);
             break;
           default:
             break;
@@ -66,9 +89,9 @@ export default function MultiComboBox({
     selectedItem,
   } = useCombobox({
     items: searchedItems,
-    // itemToString(item) {
-    //   return item ? item.title : '';
-    // },
+    itemToString(item) {
+      return '';
+    },
     defaultHighlightedIndex: 0, // after selection, highlight the first item.
     selectedItem: null,
     stateReducer(state, actionAndChanges) {
@@ -96,7 +119,26 @@ export default function MultiComboBox({
         case useCombobox.stateChangeTypes.ItemClick:
         case useCombobox.stateChangeTypes.InputBlur:
           if (newSelectedItem) {
-            setSelectedItems([...selectedItems, newSelectedItem]);
+            if (selectionType == 'teacher') {
+              if (
+                !selectedItems.some(
+                  (item) => item.teacherId == newSelectedItem.teacherId
+                )
+              ) {
+                const { image, ...newSelected } = newSelectedItem;
+                setSelectedItems([...selectedItems, newSelected]);
+              } else {
+                toast.error('Teacher is already added');
+              }
+            }
+
+            if (selectionType == 'default') {
+              if (!selectedItems.some((code) => code == newSelectedItem.code)) {
+                setSelectedItems([...selectedItems, newSelectedItem.code]);
+              } else {
+                toast.error('Item is already added');
+              }
+            }
           }
           break;
 
@@ -110,17 +152,80 @@ export default function MultiComboBox({
     },
   });
 
+  //
+  function createTeacherSelectionItems(teachers) {
+    const teacherSelectionItems = teachers.map((teacher, index) => (
+      <li
+        className="flex cursor-pointer gap-3 overflow-hidden p-3 hover:bg-primary-400 hover:text-white"
+        key={`${teacher.teacherId}`}
+        {...getItemProps({ teacher, index })}
+      >
+        <ImageWithFallback
+          src={teacher.image}
+          alt="teacher image"
+          width={42}
+          height={42}
+          fallbackSrc="/images/teachers/default.jpg"
+          className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+        />
+        <div className="flex w-full flex-col overflow-hidden">
+          <p className="font-dsiplay text-ellipsis whitespace-nowrap font-medium">
+            {teacher.firstName} {teacher.lastName}
+          </p>
+          <TeacherTypeBadge isPartTime={teacher.type == 'part-time'} />
+        </div>
+      </li>
+    ));
+
+    return teacherSelectionItems;
+  }
+
+  function createDefaultSelectionItems(items) {
+    const selectionItems = items.map((item, index) => (
+      <li
+        className="flex cursor-pointer gap-3 overflow-hidden p-3 hover:bg-primary-400 hover:text-white"
+        key={`${item.code}`}
+        {...getItemProps({ item, index })}
+      >
+        <div className="flex w-full flex-col overflow-hidden">
+          <p className="font-dsiplay text-ellipsis whitespace-nowrap font-medium">
+            {item.code}
+          </p>
+          <p className="text-sm">{item.name}</p>
+        </div>
+      </li>
+    ));
+
+    return selectionItems;
+  }
+
   return (
     <div className="relative w-full">
-      <div className="flex flex-col gap-2" id={name} onBlur={field.onBlur}>
-        <label className="w-fit font-display font-medium" {...getLabelProps()}>
-          {label}
-        </label>
-        <div className="inline-flex flex-wrap items-center gap-2 bg-white p-1.5 shadow-sm">
+      <div className="flex flex-col gap-2">
+        {label && (
+          <label
+            className="w-fit font-display font-medium"
+            {...getLabelProps()}
+          >
+            {label}
+          </label>
+        )}
+        <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-ship-gray-200 p-4">
           {selectedItems.map((selectedItemForRender, index) => {
             return (
               <span
-                className="rounded-md bg-gray-100 px-1 focus:bg-red-400"
+                className={classNames(
+                  'rounded-md px-2 py-1 text-sm focus:bg-red-400 focus:text-white',
+                  {
+                    'bg-warning-100':
+                      selectionType == 'teacher' &&
+                      selectedItemForRender.type == 'part-time',
+                    'bg-success-100':
+                      selectionType == 'teacher' &&
+                      selectedItemForRender.type == 'full-time',
+                    'bg-gray-100': selectionType !== 'teacher',
+                  }
+                )}
                 key={`selected-item-${index}`}
                 {...getSelectedItemProps({
                   selectedItem: selectedItemForRender,
@@ -144,42 +249,41 @@ export default function MultiComboBox({
           })}
           <div className="flex grow gap-0.5">
             <input
-              placeholder="Best book ever"
+              placeholder={placeholder}
               className="w-full placeholder-ship-gray-300 focus:outline-none"
               {...getInputProps(getDropdownProps({ preventKeyAction: isOpen }))}
             />
-            <button
-              aria-label="toggle menu"
-              className="px-2"
-              type="button"
-              {...getToggleButtonProps()}
-            >
-              &#8595;
-            </button>
           </div>
         </div>
+        {infoMessage && (!meta.error || !meta.touched) && !isOpen && (
+          <p className="flex gap-1 text-sm text-ship-gray-400">
+            <span>
+              <MdInfo size={16} className="-mt-[2px]" />
+            </span>
+            {infoMessage}
+          </p>
+        )}
+        {meta.error && meta.touched && !isOpen && (
+          <p className="flex gap-1 text-sm text-danger-500">
+            {/* <span>
+            <Error size={16} className="-mt-[2px]" />
+          </span> */}
+            {meta.error}
+          </p>
+        )}
       </div>
       <ul
-        className={`w-inherit absolute mt-1 max-h-80 overflow-scroll bg-white p-0 shadow-md ${
-          !(isOpen && items.length) && 'hidden'
+        className={`absolute mt-1 max-h-[200px] w-full overflow-y-auto rounded-md bg-white p-0 shadow-md ${
+          !(isOpen && searchedItems.length) && 'hidden'
         }`}
         {...getMenuProps()}
       >
-        {isOpen &&
-          items.map((item, index) => (
-            <li
-              className={classNames(
-                { 'bg-blue-300': highlightedIndex === index },
-                { 'font-bold': selectedItem === item },
-                'flex flex-col py-2 px-3 shadow-sm'
-              )}
-              key={`${item.value}${index}`}
-              {...getItemProps({ item, index })}
-            >
-              <span>{item.title}</span>
-              <span className="text-sm text-gray-700">{item.author}</span>
-            </li>
-          ))}
+        {selectionType == 'teacher' && isOpen
+          ? createTeacherSelectionItems(searchedItems)
+          : null}
+        {selectionType !== 'teacher' && isOpen
+          ? createDefaultSelectionItems(searchedItems)
+          : null}
       </ul>
     </div>
   );
