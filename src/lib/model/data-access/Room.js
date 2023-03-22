@@ -42,6 +42,14 @@ class Room extends Model {
       throw error;
     }
   }
+  async getRooms(){
+    try{
+      const data  = await this.Room.find().select(["type", "code", 'name']).exec()
+      return data
+    }catch(error){
+      throw error
+    }
+  }
 }
 const room = new Room();
 export default room;

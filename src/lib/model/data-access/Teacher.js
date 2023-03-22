@@ -6,6 +6,15 @@ class Teacher extends Model {
   }
   async createTeacher(payload) {
     try {
+      // check if teacherId is used.
+      const isTeacher = await this.Teacher.find({
+        teacherId: payload.teacherId,
+      })
+        .select(['_id'])
+        .exec();
+      if (isTeacher.length) {
+        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
+      }
       const data = new this.Teacher(payload);
       await data.save();
       return data;
@@ -68,17 +77,6 @@ class Teacher extends Model {
 
   async getTeachersName({ q }) {
     try {
-      // const data = await this.Teacher.find({
-      //   $or: [
-      //     { firstName: { $regex: q, $options: 'i' } },
-      //     { lastName: { $regex: q, $options: 'i' } },
-      //   ],
-      // })
-      //   .select(['firstName', "LastName", "teacherId","type"])
-      //   .limit(10)
-      //   .exec();
-      //   console.log("data",data)
-
       const pipeline = [
         {
           $search: {
