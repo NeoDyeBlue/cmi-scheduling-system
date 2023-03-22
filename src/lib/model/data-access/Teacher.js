@@ -79,18 +79,21 @@ class Teacher extends Model {
     try {
       const pipeline = [
         {
-          $search: {
-            index: 'teacher',
-            text: {
-              query: q,
-              path: {
-                wildcard: '*',
-              },
-            },
+          $addFields: {
+            fullName: { $concat: ['$firstName', ' ', '$lastName'] },
+            lastNameFirst: { $concat: ['$lastName', ' ', '$firstName'] },
           },
         },
         {
-          $limit: 10,
+          $match: {
+            $or: [
+              { fullName: { $regex: q, $options: 'i' } },
+              { lastNameFirst: { $regex: q, $options: 'i' } },
+            ],
+          },
+        },
+        {
+          $limit: 25,
         },
         {
           $project: {
@@ -101,10 +104,22 @@ class Teacher extends Model {
           },
         },
       ];
+
       const data = await this.Teacher.aggregate(pipeline);
       return data;
     } catch (error) {
       console.log('errrorrrrrrrr', error);
+      throw error;
+    }
+  }
+  async deleteTeacher({ id }) {
+    try {
+      const data = await this.Teacher.findOneAndDelete({ _id: id }).exec();
+      if (data === null) {
+        throw errorThrower('ErrorId', 'Invalid id');
+      }
+      return data;
+    } catch (error) {
       throw error;
     }
   }

@@ -32,22 +32,52 @@ class Room extends Model {
         },
       ];
       const roomAggregation = this.Room.aggregate(pipeline);
-      const data = await this.Room.aggregatePaginate(
-        roomAggregation,
-        options
-      );
-      
+      const data = await this.Room.aggregatePaginate(roomAggregation, options);
+
       return data;
     } catch (error) {
       throw error;
     }
   }
-  async getRooms(){
-    try{
-      const data  = await this.Room.find().select(["type", "code", 'name']).exec()
-      return data
-    }catch(error){
-      throw error
+  async searchRooms({ q }) {
+    try {
+
+      // const data  = await this.Room.find().select(["type", "code", 'name']).exec()
+      const pipeline = [];
+      // match
+        pipeline.push({
+          $match: {
+            $or: [
+              { code: { $regex: q, $options: 'i' } },
+              { name: { $regex: q, $options: 'i' } },
+            ],
+          },
+        });
+      
+      // filter
+      pipeline.push({
+        $project: {
+          code: 1,
+          name: 1,
+        },
+      });
+      const data = await this.Room.aggregate(pipeline);
+      console.log('data', data);
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
+  async deleteRoom({ id }) {
+    try {
+      const data = await this.Room.findOneAndDelete({ _id: id }).exec();
+      if (data === null) {
+        throw errorThrower('ErrorId', 'Invalid id');
+      }
+      return data;
+    } catch (error) {
+      throw error;
     }
   }
 }

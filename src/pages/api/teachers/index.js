@@ -9,7 +9,7 @@ export const handler = async (req, res) => {
       image,
       firstName,
       category: 'teachers',
-      id: req.body.teacherId
+      id: req.body.teacherId,
     });
 
     if (filePath && !uploadError) {
@@ -35,6 +35,15 @@ export const handler = async (req, res) => {
       const { limit, page } = req.query;
 
       const data = await teacher.getTeacherPaginate({ limit, page });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
+  if (req.method === 'DELETE') {
+    try {
+      const { id } = req.query;
+      const data = await teacher.deleteTeacher({ id });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
