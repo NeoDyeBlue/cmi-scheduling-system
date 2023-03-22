@@ -90,6 +90,17 @@ class Course extends Model {
       throw error;
     }
   }
+  async deleteCourse({ id }) {
+    try {
+      const data = await this.Course.findOneAndDelete({ _id: id }).exec();
+      if (data === null) {
+        throw errorThrower('ErrorId', 'Invalid id');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const course = new Course();
 export default course;

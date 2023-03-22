@@ -30,5 +30,14 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  if (req.method === 'DELETE') {
+    try {
+      const { id } = req.query;
+      const data = await course.deleteCourse({ id });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
 };
 export default handler;
