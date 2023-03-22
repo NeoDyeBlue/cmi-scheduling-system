@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 const bcrypt = require('bcrypt');
 
-export default async function imageUploadLocal({ image, firstName }) {
+export default async function imageUploadLocal({ image, firstName, category }) {
   try {
     // remove the 'data:image'
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -11,17 +11,23 @@ export default async function imageUploadLocal({ image, firstName }) {
     // extract the file extension from the base64 string
     const ext = image.substring('data:image/'.length, image.indexOf(';base64'));
 
-    const directoryPath = path.join(process.cwd(), 'src', 'lib', 'upload', 'images');
-    const filePath = path.join(directoryPath, `${firstName}-${await generateRandomString()}.${ext}`);
+    const directoryPath = path.join(
+      process.cwd(),
+      'public',
+      'images',
+      category
+    );
+    const fileName = `${firstName}-${await generateRandomString()}.${ext}`;
+    const publicPath = path.join(directoryPath, fileName);
 
     // create the directory if it doesn't exist
-    if (!fs.existsSync(directoryPath)) {
-      fs.mkdirSync(directoryPath, { recursive: true });
-    }
+    // if (!fs.existsSync(directoryPath)) {
+    //   fs.mkdirSync(directoryPath, { recursive: true });
+    // }
 
     // write the binary data to file on disk
-    fs.writeFileSync(filePath, buffer);
-
+    fs.writeFileSync(publicPath, buffer);
+    const filePath = `/images/${category}/${fileName}`;
     return { filePath };
   } catch (error) {
     return { error };

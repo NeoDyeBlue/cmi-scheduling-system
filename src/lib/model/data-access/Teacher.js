@@ -48,7 +48,7 @@ class Teacher extends Model {
             lastName: '$lastName',
             image: '$image',
             type: '$type',
-            preferredDayTimes: '$preferredDays',
+            preferredDays: '$preferredDayTimes',
             assignedSubjects: '$assignedSubjects',
             schedules: [],
           },
@@ -65,7 +65,28 @@ class Teacher extends Model {
       throw error;
     }
   }
-  
+
+  async getTeachersName({ q }) {
+    console.log("q",q)
+    try {
+      const data = await this.Teacher.find({
+        $or: [
+          { firstName: { $regex: q, $options: 'i' } },
+          { lastName: { $regex: q, $options: 'i' } },
+        ],
+      })
+        .select(['firstName', "LastName", "teacherId","type"])
+        .limit(10)
+        .exec();
+        console.log("data",data)
+
+        return data;
+    
+    } catch (error) {
+      console.log("errrorrrrrrrr", error)
+      throw error;
+    }
+  }
 }
 const teacher = new Teacher();
 export default teacher;

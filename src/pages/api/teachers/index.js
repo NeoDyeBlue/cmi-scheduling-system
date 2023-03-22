@@ -8,8 +8,9 @@ export const handler = async (req, res) => {
     const { filePath, error: uploadError } = await imageUploadLocal({
       image,
       firstName,
+      category: 'teachers',
     });
-
+    
     if (filePath && !uploadError) {
       try {
         const data = await teacher.createTeacher({
@@ -39,11 +40,5 @@ export const handler = async (req, res) => {
     }
   }
 };
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb',
-    },
-  },
-};
+
 export default handler;

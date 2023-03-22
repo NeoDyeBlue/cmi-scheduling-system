@@ -13,4 +13,7 @@ const subject = new mongoose.Schema({
 
 subject.plugin(mongoosePaginate);
 subject.plugin(aggregatePaginate);
+subject.index({ code: 1, name: 1 });
 export default subject;
+
+

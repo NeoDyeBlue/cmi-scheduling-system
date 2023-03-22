@@ -22,6 +22,7 @@ const room = new mongoose.Schema({
 });
 room.plugin(mongoosePaginate);
 room.plugin(aggregatePaginate);
+room.index({name: 1, code: 1})
 
 export default room;
 

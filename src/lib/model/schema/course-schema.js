@@ -18,6 +18,7 @@ const course = new mongoose.Schema({
 });
 course.plugin(mongoosePaginate);
 course.plugin(aggregatePaginate);
+course.index({name: 1, code: 1})
 
 export default course;
 
