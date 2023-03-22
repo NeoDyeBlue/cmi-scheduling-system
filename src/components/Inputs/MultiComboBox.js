@@ -210,7 +210,7 @@ export default function MultiComboBox({
             {label}
           </label>
         )}
-        <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-ship-gray-200 p-4">
+        <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-ship-gray-200 bg-white p-4">
           {selectedItems.map((selectedItemForRender, index) => {
             return (
               <span
