@@ -41,10 +41,10 @@ class Room extends Model {
   }
   async searchRooms({ q }) {
     try {
-
       // const data  = await this.Room.find().select(["type", "code", 'name']).exec()
       const pipeline = [];
       // match
+      if (q) {
         pipeline.push({
           $match: {
             $or: [
@@ -53,7 +53,7 @@ class Room extends Model {
             ],
           },
         });
-      
+      }
       // filter
       pipeline.push({
         $project: {

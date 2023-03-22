@@ -49,6 +49,15 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  if (req.method === 'PATCH') {
+    try {
+      const { id, fields } = req.body;
+      const data = await teacher.updateTeacher({ id, fields });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
 };
 
 export default handler;

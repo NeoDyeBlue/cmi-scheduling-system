@@ -124,6 +124,25 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async updateTeacher({ fields, id }) {
+    try {
+      // construct update fields
+      const data = await this.Teacher.updateOne(
+        { _id: id },
+        {
+          $set: fields,
+        },
+        { returnOriginal: false }
+      ).exec();
+      if (data === null) {
+        throw errorThrower('UpdateError', 'Cannot find the teacher.');
+      }
+      return data;
+    } catch (error) {
+      console.log('error update teacher', error);
+      throw error;
+    }
+  }
 }
 const teacher = new Teacher();
 export default teacher;

@@ -48,6 +48,20 @@ class Subject extends Model {
       throw error;
     }
   }
+  async deleteSubject({ id }) {
+    try {
+      const data = await this.Subject.findOneAndDelete({ _id: id }).exec();
+      if (data === null) {
+        throw errorThrower('ErrorId', 'Invalid id');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateSubject ({any_field}){
+    //
+  }
 }
 
 const subject = new Subject();
