@@ -30,4 +30,6 @@ const teacher = new mongoose.Schema({
 });
 teacher.plugin(mongoosePaginate);
 teacher.plugin(aggregatePaginate);
+teacher.index({name:"teacher", firstName: 1, lastName: 1})
+
 export default teacher;
