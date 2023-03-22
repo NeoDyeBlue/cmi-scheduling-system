@@ -101,6 +101,7 @@ class Teacher extends Model {
             lastName: 1,
             type: 1,
             teacherId: 1,
+            image: 1,
           },
         },
       ];
