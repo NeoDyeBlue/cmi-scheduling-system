@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 const bcrypt = require('bcrypt');
 
-export default async function imageUploadLocal({ image, firstName, category }) {
+export default async function imageUploadLocal({ image, firstName, category, id }) {
   try {
     // remove the 'data:image'
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -17,7 +17,7 @@ export default async function imageUploadLocal({ image, firstName, category }) {
       'images',
       category
     );
-    const fileName = `${firstName}-${await generateRandomString()}.${ext}`;
+    const fileName = `${firstName}-${id}.${ext}`;
     const publicPath = path.join(directoryPath, fileName);
 
     // create the directory if it doesn't exist
@@ -35,8 +35,8 @@ export default async function imageUploadLocal({ image, firstName, category }) {
 }
 
 const generateRandomString = async () => {
-  const saltRounds = 10;
-  const randomString = Math.random().toString(16).substring(2, 8);
+  const saltRounds = 5;
+  const randomString = Math.random().toString(8).substring(0, 3);
   const salt = await bcrypt.genSalt(saltRounds);
   const hash = await bcrypt.hash(randomString, salt);
   return hash;
