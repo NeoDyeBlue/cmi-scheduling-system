@@ -9,8 +9,9 @@ export const handler = async (req, res) => {
       image,
       firstName,
       category: 'teachers',
+      id: req.body.teacherId
     });
-    
+
     if (filePath && !uploadError) {
       try {
         const data = await teacher.createTeacher({
