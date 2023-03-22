@@ -1,6 +1,7 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
+import { ImageWithFallback } from '../Misc';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
 import { TeacherTypeBadge } from '../Misc';
@@ -98,7 +99,8 @@ export default function TeacherTable({ data }) {
     []
   );
 
-  function createDays(days) {
+  function createDays(preferredDayTimes) {
+    console.log(preferredDayTimes);
     const daysOfWeek = [
       'Monday',
       'Tuesday',
@@ -109,20 +111,20 @@ export default function TeacherTable({ data }) {
       'Sunday',
     ];
     let dayBadges;
-    if (days && days.length) {
-      dayBadges = days.map((day, index) => (
+    if (preferredDayTimes && preferredDayTimes.length) {
+      dayBadges = preferredDayTimes.map((dayTime, index) => (
         <span
           key={index}
           className="rounded-full border border-info-600 bg-info-100 px-2 py-[0.1rem] text-xs font-medium text-info-600"
         >
-          {daysOfWeek[Number(day)]}
+          {daysOfWeek[dayTime.day - 1]}
         </span>
       ));
     }
 
     return (
       <div className="flex min-w-[300px] flex-wrap gap-2">
-        {days.length ? (
+        {preferredDayTimes.length ? (
           dayBadges
         ) : (
           <span className="rounded-full border border-info-600 bg-info-100 px-2 py-[0.1rem] text-xs font-medium text-info-600">
@@ -191,11 +193,19 @@ export default function TeacherTable({ data }) {
                       })}
                     >
                       {cell.column.Header == 'Image' && (
-                        <Image
+                        // <Image
+                        //   src={cell.value}
+                        //   alt="teacher image"
+                        //   width={42}
+                        //   height={42}
+                        //   className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+                        // />
+                        <ImageWithFallback
                           src={cell.value}
                           alt="teacher image"
                           width={42}
                           height={42}
+                          fallbackSrc="/images/teachers/default.jpg"
                           className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
                         />
                       )}

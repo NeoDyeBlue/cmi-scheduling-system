@@ -1,5 +1,5 @@
 import { FormikProvider, Form, useFormik } from 'formik';
-import { InputField } from '../Inputs';
+import { InputField, MultipleComboBoxExample } from '../Inputs';
 import { Button } from '../Buttons';
 import { subjectSchema } from '@/lib/validators/subject-validator';
 import { toast } from 'react-hot-toast';
@@ -53,6 +53,7 @@ export default function RoomForm({ initialData, onCancel }) {
           placeholder="e.g. Applications Development"
         />
         <InputField type="number" name="units" label="Units" />
+        <MultipleComboBoxExample />
         <div className="mb-1 flex gap-2">
           {onCancel && (
             <Button fullWidth type="button" onClick={onCancel} secondary>
