@@ -5,6 +5,7 @@ export const subjectSchema = yup.object().shape({
   name: yup.string().required('Required'),
   units: yup.number().min(1).max(4).required('Required'),
   semester: yup.number().min(1).max(2).required('Required'),
+  type: yup.string().oneOf(['college', 'shs']).required('Required'),
   teachers: yup
     .array()
     .nullable()
