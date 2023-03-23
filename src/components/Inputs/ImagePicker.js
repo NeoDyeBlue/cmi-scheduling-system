@@ -14,7 +14,9 @@ export default function ImagePicker({ label, infoMessage, ...props }) {
     maxFileSize: 5,
   });
   useEffect(() => {
-    helpers.setValue(filesContent[0]?.content);
+    if (filesContent[0]?.content) {
+      helpers.setValue(filesContent[0]?.content);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesContent]);
 

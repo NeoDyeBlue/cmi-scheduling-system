@@ -23,7 +23,17 @@ export default function ScheduleTable({
       current = addMinutes(current, interval);
     }
 
-    return times;
+    const pairedTimes = times.reduce(
+      (accumulator, currentItem, currentIndex) => {
+        if (currentIndex !== times.length - 1) {
+          return [...accumulator, [currentItem, times[currentIndex + 1]]];
+        }
+        return accumulator;
+      },
+      []
+    );
+
+    return pairedTimes;
   }, [startTime, endTime, interval]);
 
   const columns = useMemo(
@@ -167,8 +177,12 @@ export default function ScheduleTable({
     useTable({ columns, data: newData });
 
   function createScheduleCell(slot, cell, cellIndex) {
-    const timeStartIndex = timeData.indexOf(slot.time.start);
-    const timeEndIndex = timeData.indexOf(slot.time.end);
+    const timeStartIndex = timeData.findIndex(
+      (timePairs) => timePairs[0] == slot.time.start
+    );
+    const timeEndIndex = timeData.findIndex(
+      (timePairs) => timePairs[1] == slot.time.end
+    );
 
     return (
       <td
@@ -264,13 +278,15 @@ export default function ScheduleTable({
               let slot =
                 cell.value.length &&
                 cell.value.find(
-                  (slot) => slot.time.start == timeData[rowIndex]
+                  (slot) => slot.time.start == timeData[rowIndex][0]
                 );
 
               let rowSpanToIndex = 0;
 
               if (slot) {
-                const timeEndIndex = timeData.indexOf(slot.time.end);
+                const timeEndIndex = timeData.findIndex(
+                  (timePairs) => timePairs[1] == slot.time.end
+                );
 
                 rowSpanToIndex = timeEndIndex + 1;
 
@@ -295,14 +311,20 @@ export default function ScheduleTable({
                       {...cell.getCellProps()}
                       className={`border border-gray-200 px-4 py-3 text-center text-xs`}
                     >
-                      {cell.render('Cell')}
+                      <div
+                        className={classNames(
+                          'flex items-center justify-center gap-1 overflow-hidden px-3 text-center text-xs capitalize leading-none'
+                        )}
+                      >
+                        <p>{cell.value[0]}</p> - <p>{cell.value[1]}</p>
+                      </div>
                     </td>
                   );
                 } else {
                   const slot =
                     cell.value.length &&
                     cell.value.find(
-                      (slot) => slot.time.start == timeData[rowIndex]
+                      (slot) => slot.time.start == timeData[rowIndex][0]
                     );
                   if (slot) {
                     return createScheduleCell(slot, cell, cellIndex, rowIndex);

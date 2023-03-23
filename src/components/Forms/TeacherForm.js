@@ -16,15 +16,18 @@ export default function TeacherForm({ initialData, onCancel }) {
   const teacherFormik = useFormik({
     initialValues: {
       teacherId: initialData?.teacher?.teacherId || '',
-      image: initialData?.image?.url || null,
+      image: initialData?.image || '',
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
       type: initialData?.type || 'part-time',
-      preferredDayTimes: initialData?.preferredDayTimes || [],
+      preferredDayTimes: initialData?.preferredDays.length
+        ? initialData?.preferredDays
+        : [],
     },
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
   });
+  console.log(initialData.image);
   const daysOfWeek = [
     'Monday',
     'Tuesday',
@@ -37,7 +40,7 @@ export default function TeacherForm({ initialData, onCancel }) {
   async function handleSubmit(values) {
     try {
       const res = await fetch('/api/teachers', {
-        method: 'POST',
+        method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
           ...values,
           preferredDayTimes:
@@ -48,7 +51,7 @@ export default function TeacherForm({ initialData, onCancel }) {
 
       const result = await res.json();
       if (result && result.success) {
-        toast.success('Teacher added');
+        toast.success(initialData ? 'Teacher updated' : 'Teacher Added');
       }
       console.log(result);
     } catch (error) {
@@ -114,6 +117,8 @@ export default function TeacherForm({ initialData, onCancel }) {
                   const isChecked = teacherFormik.values.preferredDayTimes.some(
                     (dayTime) => dayTime.day == index + 1
                   );
+
+                  console.log(isChecked);
 
                   return (
                     <MultiSelectItem
