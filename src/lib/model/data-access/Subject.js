@@ -29,11 +29,21 @@ class Subject extends Model {
       const options = { ...(page && limit ? { page, limit } : {}) };
       const pipeline = [
         {
+          $lookup: {
+            from: 'teachers',
+            localField: 'assignedTeachers.teacher',
+            foreignField: '_id',
+            pipeline: [],
+            as: 'teachers',
+          },
+        },
+        {
           $project: {
             code: '$code',
             name: '$name',
             units: '$units',
             schedules: [],
+            assignedTeachers: '$teachers',
           },
         },
       ];
@@ -59,7 +69,7 @@ class Subject extends Model {
       throw error;
     }
   }
-  async updateSubject ({any_field}){
+  async updateSubject({ any_field }) {
     //
   }
 }

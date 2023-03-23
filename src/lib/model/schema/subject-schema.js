@@ -6,8 +6,8 @@ const subject = new mongoose.Schema({
   code: { type: String, unique: true },
   name: { type: String, required: true },
   units: { type: Number, required: true },
-  type: { type: [String], enum: ['SHS', 'College'] },
-  sem: { type: [Number], required: true, enum: [1, 2] },
+  type: { type: String, enum: ['SHS', 'College'] },
+  semester: { type: String, required: true, enum: ['1', '1'] },
   assignedTeachers: [
     new mongoose.Schema({
       teacher: { type: mongoose.Types.ObjectId, ref: 'teacher' },
