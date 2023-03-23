@@ -30,7 +30,10 @@ export default function RoomForm({ initialData, onCancel }) {
     try {
       const res = await fetch('/api/subjects', {
         method: initialData ? 'PATCH' : 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          ...(initialData ? { _id: initialData?._id } : {}),
+        }),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();

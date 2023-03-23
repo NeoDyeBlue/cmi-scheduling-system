@@ -16,16 +16,18 @@ export default function CourseForm({ initialData, onCancel }) {
       code: initialData?.code || '',
       name: initialData?.name || '',
       type: initialData?.type || 'college',
-      yearSections: initialData?.yearSections || [
-        {
-          year: 1,
-          sectionCount: 1,
-          semesterSubjects: [
-            { semester: '1', subjects: [] },
-            { semester: '2', subjects: [] },
+      yearSections: initialData?.yearSections?.length
+        ? initialData?.yearSections
+        : [
+            {
+              year: 1,
+              sectionCount: 1,
+              semesterSubjects: [
+                { semester: '1', subjects: [] },
+                { semester: '2', subjects: [] },
+              ],
+            },
           ],
-        },
-      ],
     },
     onSubmit: handleSubmit,
     validationSchema: courseSchema,
@@ -35,7 +37,10 @@ export default function CourseForm({ initialData, onCancel }) {
     try {
       const res = await fetch('/api/courses', {
         method: 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          ...(initialData ? { _id: initialData?._id } : {}),
+        }),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();
