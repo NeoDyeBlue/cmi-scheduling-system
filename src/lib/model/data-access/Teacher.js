@@ -124,11 +124,37 @@ class Teacher extends Model {
       throw error;
     }
   }
-  async isTeacherExists({ id }) {
+  async isTeacherExists({ id, teacherId }) {
     try {
       const data = await this.Teacher.find({ _id: id }).exec();
       if (!data.length) {
         throw errorThrower('NotExists', 'Teacher is not exists.');
+      }
+      // check if teacherId is already used.
+      const isTeacher = await this.Teacher.find({
+        teacherId: teacherId,
+      })
+        .select(['_id'])
+        .exec();
+      if (isTeacher.length) {
+        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async isTeacherIdUsedOnUpdate({ teacherId }) {
+    try {
+      // check if teacherId is already used.
+      const data = await this.Teacher.find({
+        teacherId: teacherId,
+      })
+        .select(['_id', 'teacherId'])
+        .exec();
+      console.log('data[0]._id !== teacherId', data[0]?.teacherId, teacherId);
+      if (data.length && data[0]?.teacherId !== teacherId) {
+        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
       }
       return data;
     } catch (error) {

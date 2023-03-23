@@ -16,7 +16,7 @@ class Course extends Model {
       await data.save();
       return data;
     } catch (error) {
-      console.log('errrrrrrrrror', error)
+      console.log('errrrrrrrrror', error);
       throw error;
     }
   }
@@ -54,37 +54,13 @@ class Course extends Model {
         {
           $unwind: '$yearSections',
         },
-        {
-          $group: {
-            _id: {
-              code: '$code',
-              year: '$yearSections.year',
-            },
-            name: { $first: '$name' },
-            sectionCount: {
-              $sum: { $size: '$yearSections.sections.section' },
-            },
-          },
-        },
-        {
-          $group: {
-            _id: '$_id.code',
-            code: { $first: '$_id.code' },
-            name: { $first: '$name' },
-            yearSections: {
-              $push: {
-                year: '$_id.year',
-                sectionCount: '$sectionCount',
-              },
-            },
-          },
-        },
       ];
       const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
         courseAggregate,
         options
       );
+      console.log('data', JSON.stringify(data));
       return data;
     } catch (error) {
       console.log('error', error);

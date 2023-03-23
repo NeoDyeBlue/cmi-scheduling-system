@@ -22,7 +22,7 @@ export default async function imageUploadLocal({
       'images',
       category
     );
-    const fileName = `${firstName}-${id}.${ext}`;
+    const fileName = `${id}.${ext}`;
     const publicPath = path.join(directoryPath, fileName);
 
     // create the directory if it doesn't exist
@@ -41,13 +41,7 @@ export default async function imageUploadLocal({
 
 export async function deleteImageLocal({ image, category }) {
   try {
-    const directoryPath = path.join(
-      process.cwd(),
-      'public',
-      'images',
-      category
-    );
-    console.log("directoryPath, image",directoryPath, image)
+    const directoryPath = path.join(process.cwd(), 'public');
     const publicPath = path.join(directoryPath, image);
     if (fs.existsSync(publicPath)) {
       fs.unlinkSync(publicPath);

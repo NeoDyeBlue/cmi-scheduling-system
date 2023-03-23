@@ -1,15 +1,16 @@
 import teacher from '@/lib/model/data-access/Teacher';
 import imageUploadLocal, { deleteImageLocal } from '@/utils/image.upload.local';
 import { successResponse, errorResponse } from '@/utils/response.utils';
-
+import mongoose from 'mongoose';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     const { image, firstName, ...payload } = req.body;
+    const _id = new mongoose.Types.ObjectId();
     const { filePath, error: uploadError } = await imageUploadLocal({
       image,
       firstName,
       category: 'teachers',
-      id: req.body.teacherId,
+      id: _id,
     });
 
     if (filePath && !uploadError) {
@@ -18,6 +19,7 @@ export const handler = async (req, res) => {
           image: filePath,
           firstName: firstName,
           ...payload,
+          _id,
         });
         return successResponse(req, res, data);
       } catch (error) {
@@ -49,39 +51,50 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  // update teacher
   if (req.method === 'PATCH') {
     try {
       const { image, _id: id, firstName, ...payload } = req.body;
       console.log('payload', payload);
       // checks if teacher's exists.
-      const isTeacher = await teacher.isTeacherExists({ id });
-      console.log('isTeacher', isTeacher);
-      // delete image
-      await deleteImageLocal({
-        image: isTeacher[0].image,
-        category: 'teachers',
+      const isTeacher = await teacher.isTeacherExists({
+        id,
       });
-      //upload
-      const { filePath, error: uploadError } = await imageUploadLocal({
-        image,
-        firstName,
-        category: 'teachers',
-        id: payload.teacherId,
-      });
-      if (uploadError) {
-        return errorResponse(
-          req,
-          res,
-          'Image upload error.',
-          400,
-          'UploadError'
-        );
+      // is teacherId used.
+      await teacher.isTeacherIdUsedOnUpdate({ teacherId: payload.teacherId });
+
+      console.log('image', image);
+      console.log("typeof image !== 'string'", typeof image !== 'string');
+      let filePath = undefined;
+      if (typeof image !== 'string') {
+        // delete image
+        await deleteImageLocal({
+          image: isTeacher[0].image,
+          category: 'teachers',
+        });
+        //upload
+        const { filePath: fPath, error: uploadError } = await imageUploadLocal({
+          image,
+          firstName,
+          category: 'teachers',
+          id: isTeacher[0]._id.toString(),
+        });
+        filePath = fPath;
+        if (uploadError) {
+          return errorResponse(
+            req,
+            res,
+            'Image upload error.',
+            400,
+            'UploadError'
+          );
+        }
       }
 
       const fields = {
         ...payload,
         firstName: firstName,
-        image: filePath,
+        image: filePath !== undefined ? filePath : undefined,
       };
       const data = await teacher.updateTeacher({ id, fields });
       return successResponse(req, res, data);
