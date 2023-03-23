@@ -62,9 +62,6 @@ export const handler = async (req, res) => {
       });
       // is teacherId used.
       await teacher.isTeacherIdUsedOnUpdate({ teacherId: payload.teacherId });
-
-      console.log('image', image);
-      console.log("typeof image !== 'string'", typeof image !== 'string');
       let filePath = undefined;
       if (typeof image !== 'string') {
         // delete image
