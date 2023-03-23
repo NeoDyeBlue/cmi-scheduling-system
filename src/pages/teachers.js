@@ -45,7 +45,7 @@ export default function Teachers() {
         </div>
         <div className="flex flex-col gap-4">
           <div className="overflow-x-auto">
-            <TeacherTable data={docs} onAfterEditSubmit={() => mutate()} />
+            <TeacherTable data={docs} mutate={() => mutate()} />
           </div>
           <ReactPaginate
             breakLabel="..."

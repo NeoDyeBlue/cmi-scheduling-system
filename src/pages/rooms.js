@@ -43,7 +43,7 @@ export default function Rooms() {
         </div>
         <div className="flex flex-col gap-4">
           <div className="overflow-x-auto">
-            <RoomTable data={docs} onAfterEditSubmit={() => mutate()} />
+            <RoomTable data={docs} mutate={() => mutate()} />
           </div>
           <ReactPaginate
             breakLabel="..."

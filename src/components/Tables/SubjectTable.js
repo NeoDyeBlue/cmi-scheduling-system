@@ -6,13 +6,18 @@ import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
-import { Modal } from '../Modals';
+import { Modal, Confirmation } from '../Modals';
 import { SubjectForm } from '../Forms';
+import { PopupLoader } from '../Loaders';
+import { toast } from 'react-hot-toast';
 
-export default function SubjectTable({ data, onAfterEditSubmit = () => {} }) {
+export default function SubjectTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [toEditData, setToEditData] = useState(null);
+  const [toDeleteId, setToDeleteId] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const subjects = useMemo(() => data, [data]);
 
   const columns = useMemo(
@@ -52,6 +57,10 @@ export default function SubjectTable({ data, onAfterEditSubmit = () => {} }) {
               buttonColor={theme.colors.primary[400]}
               toolTipId="delete"
               toolTipContent="Delete"
+              onClick={() => {
+                setToDeleteId(cell.row.original._id);
+                setIsConfirmationOpen(true);
+              }}
             />
             <ActionButton
               icon={<MdDownload size={16} className="text-white" />}
@@ -76,8 +85,42 @@ export default function SubjectTable({ data, onAfterEditSubmit = () => {} }) {
     visibleColumns,
   } = useTable({ columns, data: subjects });
 
+  async function deleteItem() {
+    try {
+      setIsDeleting(true);
+      setIsConfirmationOpen(false);
+      const res = await fetch(`/api/subjects?id=${toDeleteId}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+
+      if (result?.success) {
+        toast.success('Subject deleted');
+        mutate();
+      } else if (!result?.success) {
+        toast.error('Delete failed');
+      }
+      setToDeleteId('');
+      setIsDeleting(false);
+    } catch (error) {
+      setIsDeleting(false);
+      setToDeleteId('');
+      toast.error('Delete failed');
+    }
+  }
+
   return (
     <>
+      <PopupLoader isOpen={isDeleting} message="Deleting subject" />
+      <Confirmation
+        isOpen={isConfirmationOpen}
+        label="Delete Subject?"
+        message="Deleting this subject will also remove its schedules."
+        onCancel={() => {
+          setIsConfirmationOpen(false);
+        }}
+        onConfirm={deleteItem}
+      />
       <Modal
         label="Edit Subject"
         isOpen={isModalOpen}
@@ -88,7 +131,7 @@ export default function SubjectTable({ data, onAfterEditSubmit = () => {} }) {
           onCancel={() => setIsModalOpen(false)}
           onAfterSubmit={() => {
             setIsModalOpen(false);
-            onAfterEditSubmit();
+            mutate();
           }}
         />
       </Modal>

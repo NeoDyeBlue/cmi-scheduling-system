@@ -17,12 +17,17 @@ import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 import { TeacherForm } from '../Forms';
-import { Modal } from '../Modals';
+import { Modal, Confirmation } from '../Modals';
+import { PopupLoader } from '../Loaders';
+import { toast } from 'react-hot-toast';
 
-export default function TeacherTable({ data, onAfterEditSubmit = () => {} }) {
+export default function TeacherTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [toEditTeacherData, setToEditTeacherData] = useState(null);
+  const [toDeleteId, setToDeleteId] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const teachers = useMemo(() => data, [data]);
 
   const columns = useMemo(
@@ -93,6 +98,10 @@ export default function TeacherTable({ data, onAfterEditSubmit = () => {} }) {
                 buttonColor={theme.colors.primary[400]}
                 toolTipId="delete"
                 toolTipContent="Delete"
+                onClick={() => {
+                  setToDeleteId(cell.row.original._id);
+                  setIsConfirmationOpen(true);
+                }}
               />
               <ActionButton
                 icon={<MdDownload size={16} className="text-white" />}
@@ -153,8 +162,42 @@ export default function TeacherTable({ data, onAfterEditSubmit = () => {} }) {
     visibleColumns,
   } = useTable({ columns, data: teachers }, useExpanded);
 
+  async function deleteItem() {
+    try {
+      setIsDeleting(true);
+      setIsConfirmationOpen(false);
+      const res = await fetch(`/api/teachers?id=${toDeleteId}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+
+      if (result?.success) {
+        toast.success('Teacher deleted');
+        mutate();
+      } else if (!result?.success) {
+        toast.error('Delete failed');
+      }
+      setToDeleteId('');
+      setIsDeleting(false);
+    } catch (error) {
+      setIsDeleting(false);
+      setToDeleteId('');
+      toast.error('Delete failed');
+    }
+  }
+
   return (
     <>
+      <PopupLoader isOpen={isDeleting} message="Deleting teacher" />
+      <Confirmation
+        isOpen={isConfirmationOpen}
+        label="Delete Teacher?"
+        message="Deleting the teacher will also remove their scheduled subjects."
+        onCancel={() => {
+          setIsConfirmationOpen(false);
+        }}
+        onConfirm={deleteItem}
+      />
       <Modal
         label="Edit Teacher"
         isOpen={isModalOpen}
@@ -165,7 +208,7 @@ export default function TeacherTable({ data, onAfterEditSubmit = () => {} }) {
           onCancel={() => setIsModalOpen(false)}
           onAfterSubmit={() => {
             setIsModalOpen(false);
-            onAfterEditSubmit();
+            mutate();
           }}
         />
       </Modal>

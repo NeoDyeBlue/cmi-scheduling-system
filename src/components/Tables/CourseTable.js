@@ -9,14 +9,19 @@ import classNames from 'classnames';
 import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
-import { Modal } from '../Modals';
+import { Modal, Confirmation } from '../Modals';
 import { CourseForm } from '../Forms';
+import { PopupLoader } from '../Loaders';
+import { toast } from 'react-hot-toast';
 
 export default function CourseTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toEditTeacherData, setToEditTeacherData] = useState(null);
+  const [toDeleteId, setToDeleteId] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: '/api/courses',
     limit: 10,
@@ -57,7 +62,7 @@ export default function CourseTable({ type }) {
               toolTipId="edit"
               toolTipContent="Edit"
               onClick={() => {
-                setToEditTeacherData(data);
+                setToEditTeacherData(cell.row.original);
                 setIsModalOpen(true);
               }}
             />
@@ -66,6 +71,10 @@ export default function CourseTable({ type }) {
               buttonColor={theme.colors.primary[400]}
               toolTipId="delete"
               toolTipContent="Delete"
+              onClick={() => {
+                setToDeleteId(cell.row.original._id);
+                setIsConfirmationOpen(true);
+              }}
             />
           </div>
         ),
@@ -89,8 +98,42 @@ export default function CourseTable({ type }) {
   //   mutate();
   // }, [activePageIndex]);
 
+  async function deleteItem() {
+    try {
+      setIsDeleting(true);
+      setIsConfirmationOpen(false);
+      const res = await fetch(`/api/courses?id=${toDeleteId}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+
+      if (result?.success) {
+        toast.success('Course deleted');
+        mutate();
+      } else if (!result?.success) {
+        toast.error('Delete failed');
+      }
+      setToDeleteId('');
+      setIsDeleting(false);
+    } catch (error) {
+      setIsDeleting(false);
+      setToDeleteId('');
+      toast.error('Delete failed');
+    }
+  }
+
   return (
     <>
+      <PopupLoader isOpen={isDeleting} message="Deleting course" />
+      <Confirmation
+        isOpen={isConfirmationOpen}
+        label="Delete Course?"
+        message="Deleting this course will affect the schedules."
+        onCancel={() => {
+          setIsConfirmationOpen(false);
+        }}
+        onConfirm={deleteItem}
+      />
       <Modal
         label="Edit Course"
         isOpen={isModalOpen}
