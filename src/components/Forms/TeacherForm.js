@@ -31,7 +31,6 @@ export default function TeacherForm({
     onSubmit: handleSubmit,
     validationSchema: teacherSchema,
   });
-  console.log(initialData.image);
   const daysOfWeek = [
     'Monday',
     'Tuesday',
