@@ -38,7 +38,9 @@ export default function Rooms() {
           />
         </Modal>
         <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder="Search Rooms" />
+          <div className="w-full max-w-[350px]">
+            <SearchForm placeholder="Search rooms" />
+          </div>
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>
         <div className="flex flex-col gap-4">

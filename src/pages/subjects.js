@@ -37,7 +37,9 @@ export default function Subjects() {
           />
         </Modal>
         <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder="Search Subjects" />
+          <div className="w-full max-w-[350px]">
+            <SearchForm placeholder="Search subjects" />
+          </div>
           <CreateButton
             onClick={() => setIsModalOpen(true)}
             text="New Subject"

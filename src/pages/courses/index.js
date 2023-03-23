@@ -43,7 +43,9 @@ export default function Courses() {
           />
         </Modal>
         <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder={`Search ${activeTab} courses`} />
+          <div className="w-full max-w-[350px]">
+            <SearchForm placeholder={`Search ${activeTab} courses`} />
+          </div>
           <CreateButton
             onClick={() => setIsModalOpen(true)}
             text="New Course"
