@@ -1,5 +1,5 @@
 import { useTable } from 'react-table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ActionButton } from '../Buttons';
 import { MdDelete, MdEdit } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
@@ -9,11 +9,14 @@ import classNames from 'classnames';
 import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
+import { Modal } from '../Modals';
+import { CourseForm } from '../Forms';
 
 export default function CourseTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toEditTeacherData, setToEditTeacherData] = useState(null);
   const { docs, pageData, setPageIndex } = usePaginate({
     url: '/api/courses',
     limit: 10,
@@ -43,7 +46,7 @@ export default function CourseTable({ type }) {
       {
         Header: () => null,
         id: 'actions',
-        Cell: () => (
+        Cell: ({ cell }) => (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
@@ -53,6 +56,10 @@ export default function CourseTable({ type }) {
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
+              onClick={() => {
+                setToEditTeacherData(data);
+                setIsModalOpen(true);
+              }}
             />
             <ActionButton
               icon={<MdDelete size={16} className="text-white" />}
@@ -83,66 +90,77 @@ export default function CourseTable({ type }) {
   // }, [activePageIndex]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <table {...getTableProps()} className="w-full">
-        <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-          {headerGroups.map((headerGroup, index) => (
-            <tr
-              key={index}
-              {...headerGroup.getHeaderGroupProps()}
-              className="border-b border-gray-300"
-            >
-              {headerGroup.headers.map((column, index) => (
-                <th
-                  key={index}
-                  {...column.getHeaderProps()}
-                  className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
-                >
-                  {column.render('Header')}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, index) => {
-            prepareRow(row);
-            return (
-              <React.Fragment key={index}>
-                <tr
-                  key={index}
-                  {...row.getRowProps()}
-                  onClick={() =>
-                    router.push(
-                      `/courses/${row.allCells[0].value.toLowerCase()}`
-                    )
-                  }
-                  // {...row.getToggleRowExpandedProps({ title: '' })}
-                  className={classNames(
-                    'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
-                    {
-                      'bg-primary-900 text-white hover:bg-primary-900':
-                        row.isExpanded,
+    <>
+      <Modal
+        label="Edit Course"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      >
+        <CourseForm
+          initialData={toEditTeacherData}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      </Modal>
+      <div className="flex flex-col gap-4">
+        <table {...getTableProps()} className="w-full">
+          <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+            {headerGroups.map((headerGroup, index) => (
+              <tr
+                key={index}
+                {...headerGroup.getHeaderGroupProps()}
+                className="border-b border-gray-300"
+              >
+                {headerGroup.headers.map((column, index) => (
+                  <th
+                    key={index}
+                    {...column.getHeaderProps()}
+                    className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                  >
+                    {column.render('Header')}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, index) => {
+              prepareRow(row);
+              return (
+                <React.Fragment key={index}>
+                  <tr
+                    key={index}
+                    {...row.getRowProps()}
+                    onClick={() =>
+                      router.push(
+                        `/courses/${row.allCells[0].value.toLowerCase()}`
+                      )
                     }
-                  )}
-                >
-                  {row.cells.map((cell, index) => {
-                    return (
-                      <td
-                        key={index}
-                        {...cell.getCellProps()}
-                        className={classNames('p-4', {
-                          'whitespace-nowrap font-semibold uppercase':
-                            index == 0,
-                          'min-w-[300px]': index == 1,
-                        })}
-                      >
-                        {cell.render('Cell')}
-                      </td>
-                    );
-                  })}
-                </tr>
-                {/* {row.isExpanded ? (
+                    // {...row.getToggleRowExpandedProps({ title: '' })}
+                    className={classNames(
+                      'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
+                      {
+                        'bg-primary-900 text-white hover:bg-primary-900':
+                          row.isExpanded,
+                      }
+                    )}
+                  >
+                    {row.cells.map((cell, index) => {
+                      return (
+                        <td
+                          key={index}
+                          {...cell.getCellProps()}
+                          className={classNames('p-4', {
+                            'whitespace-nowrap font-semibold uppercase':
+                              index == 0,
+                            'min-w-[300px]': index == 1,
+                          })}
+                        >
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {/* {row.isExpanded ? (
                 <tr>
                   <td colSpan={visibleColumns.length}>
                     <div className="overflow-auto">
@@ -151,27 +169,28 @@ export default function CourseTable({ type }) {
                   </td>
                 </tr>
               ) : null} */}
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
-      <ReactPaginate
-        breakLabel="..."
-        nextLabel="next >"
-        onPageChange={({ selected }) => setPageIndex(selected + 1)}
-        pageRangeDisplayed={5}
-        pageCount={Math.ceil(pageData?.totalPages) || 0}
-        previousLabel="< prev"
-        renderOnZeroPageCount={null}
-        containerClassName="paginate-container"
-        previousLinkClassName="paginate-button"
-        nextLinkClassName="paginate-button"
-        pageLinkClassName="paginate-link"
-        activeLinkClassName="paginate-link-active"
-        breakLinkClassName="paginate-break"
-        disabledLinkClassName="paginate-link-disabled"
-      />
-    </div>
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel="next >"
+          onPageChange={({ selected }) => setPageIndex(selected + 1)}
+          pageRangeDisplayed={5}
+          pageCount={Math.ceil(pageData?.totalPages) || 0}
+          previousLabel="< prev"
+          renderOnZeroPageCount={null}
+          containerClassName="paginate-container"
+          previousLinkClassName="paginate-button"
+          nextLinkClassName="paginate-button"
+          pageLinkClassName="paginate-link"
+          activeLinkClassName="paginate-link-active"
+          breakLinkClassName="paginate-break"
+          disabledLinkClassName="paginate-link-disabled"
+        />
+      </div>
+    </>
   );
 }

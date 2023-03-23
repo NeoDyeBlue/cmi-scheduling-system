@@ -46,17 +46,17 @@ export default function CourseForm({ initialData, onCancel }) {
       const result = await res.json();
       if (result?.success) {
         console.log(result);
-        toast.success('Course Added');
+        toast.success(`Course ${initialData ? 'updated' : 'added'}`);
       } else if (!result?.success && result?.error) {
         if (result?.error == 'CourseCodeError') {
           courseFormik.setFieldError('code', result?.errorMessage);
         }
       } else {
-        toast.error("Can't add course");
+        toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Can't add course");
+      toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
     }
   }
   return (
