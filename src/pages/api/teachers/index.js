@@ -45,7 +45,16 @@ export const handler = async (req, res) => {
   if (req.method === 'DELETE') {
     try {
       const { id } = req.query;
+
       const data = await teacher.deleteTeacher({ id });
+      // delete image if teacher is deleted
+      if (data.length) {
+        await deleteImageLocal({
+          image: data.image,
+          category: 'teachers',
+        });
+      }
+      console.log('deleted-----------', data);
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
@@ -61,9 +70,12 @@ export const handler = async (req, res) => {
         id,
       });
       // is teacherId used.
-      await teacher.isTeacherIdUsedOnUpdate({ teacherId: payload.teacherId });
+      await teacher.isTeacherIdUsedOnUpdate({
+        teacherId: payload.teacherId,
+        id,
+      });
       let filePath = undefined;
-      if (typeof image !== 'string') {
+      if (image.length > 200 && isTeacher) {
         // delete image
         await deleteImageLocal({
           image: isTeacher[0].image,
@@ -77,6 +89,7 @@ export const handler = async (req, res) => {
           id: isTeacher[0]._id.toString(),
         });
         filePath = fPath;
+        console.log('filePath', filePath);
         if (uploadError) {
           return errorResponse(
             req,
@@ -93,7 +106,11 @@ export const handler = async (req, res) => {
         firstName: firstName,
         image: filePath !== undefined ? filePath : undefined,
       };
-      const data = await teacher.updateTeacher({ id, fields });
+      const data = await teacher.updateTeacher({
+        id,
+        fields,
+        teacherId: payload.teacherId,
+      });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
