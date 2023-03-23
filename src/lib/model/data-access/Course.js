@@ -63,6 +63,7 @@ class Course extends Model {
               $size: '$yearSections',
             },
             yearSections: 1,
+            type: 1,
           },
         },
       ];
