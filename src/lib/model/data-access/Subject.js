@@ -70,7 +70,7 @@ class Subject extends Model {
     }
   }
   async updateSubject({ any_field }) {
-    //
+    // simple changes from backend branch. 3/23/23
   }
   async searchSubjects({ q, semester, type }) {
     try {
