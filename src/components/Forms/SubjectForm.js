@@ -18,33 +18,33 @@ export default function RoomForm({ initialData, onCancel }) {
       units: initialData?.units || 1,
       teachers: initialData?.teachers || [],
       semester: initialData?.semester || 1,
+      type: initialData?.type || 'college',
     },
     onSubmit: handleSubmit,
     validationSchema: subjectSchema,
   });
 
   async function handleSubmit(values) {
-    console.log(values);
-    // try {
-    //   const res = await fetch('/api/subjects', {
-    //     method: 'POST',
-    //     body: JSON.stringify(values),
-    //     headers: { 'Content-Type': 'application/json' },
-    //   });
-    //   const result = await res.json();
-    //   if (result?.success) {
-    //     toast.success('Subject Added');
-    //   } else if (!result?.success && result?.error) {
-    //     if (result?.error == 'SubjectCodeError') {
-    //       subjectFormik.setFieldError('code', result?.errorMessage);
-    //     }
-    //   } else {
-    //     toast.error("Can't add subject");
-    //   }
-    // } catch (error) {
-    //   console.log(error);
-    //   toast.error("Can't add subject");
-    // }
+    try {
+      const res = await fetch('/api/subjects', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        toast.success('Subject Added');
+      } else if (!result?.success && result?.error) {
+        if (result?.error == 'SubjectCodeError') {
+          subjectFormik.setFieldError('code', result?.errorMessage);
+        }
+      } else {
+        toast.error("Can't add subject");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Can't add subject");
+    }
   }
   return (
     <FormikProvider value={subjectFormik}>
@@ -62,6 +62,29 @@ export default function RoomForm({ initialData, onCancel }) {
           placeholder="e.g. Applications Development"
         />
         <InputField type="number" name="units" label="Units" />
+        <RadioSelect
+          label="Offered in"
+          error={
+            subjectFormik.errors.type && subjectFormik.touched.type
+              ? subjectFormik.errors.type
+              : null
+          }
+        >
+          <RadioSelectItem
+            name="type"
+            value="college"
+            checked={subjectFormik.values.type == 'college'}
+          >
+            College
+          </RadioSelectItem>
+          <RadioSelectItem
+            name="type"
+            value="shs"
+            checked={subjectFormik.values.type == 'shs'}
+          >
+            Senior High
+          </RadioSelectItem>
+        </RadioSelect>
         <RadioSelect
           label="Semester"
           error={

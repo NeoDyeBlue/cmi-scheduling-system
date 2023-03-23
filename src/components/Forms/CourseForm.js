@@ -101,7 +101,7 @@ export default function CourseForm({ initialData, onCancel }) {
             {({ insert, remove, push }) => (
               <div className="flex flex-col gap-5">
                 {courseFormik.values.yearSections.map((input, index) => (
-                  <div key={index} className="flex items-start gap-4">
+                  <div key={index} className="flex items-center gap-4">
                     <div
                       className="flex  flex-col items-center justify-center rounded-lg bg-primary-100 p-2 
                             text-center font-medium leading-none text-primary-700"
@@ -158,7 +158,7 @@ export default function CourseForm({ initialData, onCancel }) {
                       </Tabs>
                     </div>
 
-                    <div className="flex w-[25px] flex-col gap-1 self-end">
+                    <div className="flex w-[25px] flex-col gap-1 self-center">
                       <>
                         {index != 0 &&
                         index == courseFormik.values.yearSections.length - 1 ? (
