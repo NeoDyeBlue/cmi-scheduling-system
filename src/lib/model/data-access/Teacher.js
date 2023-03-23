@@ -1,5 +1,6 @@
 import Model from '..';
 import errorThrower from '@/utils/error.util';
+import mongoose from 'mongoose';
 class Teacher extends Model {
   constructor() {
     super();
@@ -144,16 +145,14 @@ class Teacher extends Model {
       throw error;
     }
   }
-  async isTeacherIdUsedOnUpdate({ teacherId }) {
+  async isTeacherIdUsedOnUpdate({ teacherId, id }) {
     try {
-      // check if teacherId is already used.
+      // fetch all the same teacherId but not the id of same document.
       const data = await this.Teacher.find({
+        _id: { $ne: id },
         teacherId: teacherId,
-      })
-        .select(['_id', 'teacherId'])
-        .exec();
-      console.log('data[0]._id !== teacherId', data[0]?.teacherId, teacherId);
-      if (data.length && data[0]?.teacherId !== teacherId) {
+      }).exec();
+      if (data.length) {
         throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
       }
       return data;
@@ -161,9 +160,10 @@ class Teacher extends Model {
       throw error;
     }
   }
-  async updateTeacher({ fields, id }) {
+  async updateTeacher({ fields, id, teacherId }) {
     try {
       // construct update fields
+
       const data = await this.Teacher.updateOne(
         { _id: id },
         {
@@ -176,7 +176,7 @@ class Teacher extends Model {
       }
       return data;
     } catch (error) {
-      console.log('error update teacher', error);
+      // console.log('error update teacher', error);
       throw error;
     }
   }

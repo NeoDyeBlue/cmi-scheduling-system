@@ -51,8 +51,18 @@ class Course extends Model {
             type: type,
           },
         },
+
         {
-          $unwind: '$yearSections',
+          $project: {
+            code: 1,
+            name: 1,
+            sections: {
+              $sum: '$yearSections.sectionCount',
+            },
+            years: {
+              $size: '$yearSections',
+            },
+          },
         },
       ];
       const courseAggregate = this.Course.aggregate(pipeline);

@@ -43,6 +43,7 @@ export async function deleteImageLocal({ image, category }) {
   try {
     const directoryPath = path.join(process.cwd(), 'public');
     const publicPath = path.join(directoryPath, image);
+    console.log('isImageExists', fs.existsSync(publicPath));
     if (fs.existsSync(publicPath)) {
       fs.unlinkSync(publicPath);
     }
