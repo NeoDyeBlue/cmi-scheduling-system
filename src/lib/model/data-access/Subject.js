@@ -72,37 +72,6 @@ class Subject extends Model {
   async updateSubject({ any_field }) {
     //
   }
-  async searchSubjects({ q, semester, type }) {
-    try {
-      const pipeline = [];
-      pipeline.push({
-        $match: {
-          $or: [
-            { code: { $regex: q, $options: 'i' } },
-            { name: { $regex: q, $options: 'i' } },
-          ],
-        },
-      });
-      if (semester) {
-        pipeline.push({
-          $match: {
-            semester: semester,
-          },
-        });
-      }
-      if (type) {
-        pipeline.push({
-          $match: {
-            type: type,
-          },
-        });
-      }
-      const data = await this.Subject.aggregate(pipeline);
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
 }
 
 const subject = new Subject();

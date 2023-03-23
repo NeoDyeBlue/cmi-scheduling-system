@@ -37,9 +37,9 @@ export default function RoomForm({ initialData, onCancel }) {
       } else if (!result?.success && result?.error) {
         if (result?.error == 'SubjectCodeError') {
           subjectFormik.setFieldError('code', result?.errorMessage);
+        } else {
+          toast.error("Can't add subject");
         }
-      } else {
-        toast.error("Can't add subject");
       }
     } catch (error) {
       console.log(error);
