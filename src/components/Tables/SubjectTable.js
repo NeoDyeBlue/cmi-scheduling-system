@@ -1,13 +1,7 @@
 import { useTable } from 'react-table';
 import { useMemo, useState } from 'react';
 import { ActionButton } from '../Buttons';
-import {
-  MdDelete,
-  MdEdit,
-  MdArrowDropDown,
-  MdArrowRight,
-  MdDownload,
-} from 'react-icons/md';
+import { MdDelete, MdEdit, MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
