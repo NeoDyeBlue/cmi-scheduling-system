@@ -43,8 +43,10 @@ export default function Subjects() {
             text="New Subject"
           />
         </div>
-        <div className="flex flex-col gap-4 overflow-x-auto">
-          <SubjectTable data={docs} onAfterEditSubmit={() => mutate()} />
+        <div className="flex flex-col gap-4">
+          <div className="overflow-x-auto">
+            <SubjectTable data={docs} onAfterEditSubmit={() => mutate()} />
+          </div>
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"

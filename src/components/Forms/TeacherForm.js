@@ -11,12 +11,15 @@ import { Button } from '../Buttons';
 import classNames from 'classnames';
 import { teacherSchema } from '@/lib/validators/teacher-validator';
 import { toast } from 'react-hot-toast';
+import { PopupLoader } from '../Loaders';
+import { useState } from 'react';
 
 export default function TeacherForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   const teacherFormik = useFormik({
     initialValues: {
       teacherId: initialData?.teacherId || '',
@@ -42,6 +45,7 @@ export default function TeacherForm({
 
   async function handleSubmit(values) {
     try {
+      setIsLoading(true);
       const res = await fetch('/api/teachers', {
         method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
@@ -58,14 +62,20 @@ export default function TeacherForm({
         toast.success(initialData ? 'Teacher updated' : 'Teacher Added');
         onAfterSubmit();
       }
-      console.log(result);
+
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
       toast.error('Something went wrong');
+      setIsLoading(false);
     }
   }
   return (
     <FormikProvider value={teacherFormik}>
+      <PopupLoader
+        message={`${initialData ? 'Updating' : 'Adding'} teacher`}
+        isOpen={isLoading}
+      />
       <Form className="flex flex-col gap-6">
         <ImagePicker
           name="image"

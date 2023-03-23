@@ -21,7 +21,7 @@ export default function SidebarItem({ outlinedIcon, filledIcon, link, name }) {
         className={classNames(
           'flex items-center gap-4 overflow-hidden rounded-lg font-display',
           {
-            'bg-primary-100 font-semibold text-primary-900':
+            'bg-primary-100 font-semibold text-primary-900 hover:bg-primary-100':
               currentRoute == link || parentPath == link,
             'hover:bg-gray-100': currentRoute !== link || parentPath !== link,
           }

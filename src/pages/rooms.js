@@ -41,8 +41,10 @@ export default function Rooms() {
           <SearchForm placeholder="Search Rooms" />
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>
-        <div className="flex flex-col gap-4 overflow-x-auto">
-          <RoomTable data={docs} onAfterEditSubmit={() => mutate()} />
+        <div className="flex flex-col gap-4">
+          <div className="overflow-x-auto">
+            <RoomTable data={docs} onAfterEditSubmit={() => mutate()} />
+          </div>
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"
