@@ -16,7 +16,9 @@ export default function RoomForm({ initialData, onCancel }) {
       code: initialData?.code || '',
       name: initialData?.name || '',
       units: initialData?.units || 1,
-      teachers: initialData?.teachers || [],
+      teachers: initialData?.assignedTeachers?.length
+        ? initialData?.assignedTeachers
+        : [],
       semester: initialData?.semester || 1,
       type: initialData?.type || 'college',
     },
@@ -27,23 +29,23 @@ export default function RoomForm({ initialData, onCancel }) {
   async function handleSubmit(values) {
     try {
       const res = await fetch('/api/subjects', {
-        method: 'POST',
+        method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify(values),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();
       if (result?.success) {
-        toast.success('Subject Added');
+        toast.success(initialData ? 'Subject updated' : 'Subject added');
       } else if (!result?.success && result?.error) {
         if (result?.error == 'SubjectCodeError') {
           subjectFormik.setFieldError('code', result?.errorMessage);
         } else {
-          toast.error("Can't add subject");
+          toast.error(`Can't ${initialData ? 'update' : 'add'} subject`);
         }
       }
     } catch (error) {
       console.log(error);
-      toast.error("Can't add subject");
+      toast.error(`Can't ${initialData ? 'update' : 'add'} subject`);
     }
   }
   return (
