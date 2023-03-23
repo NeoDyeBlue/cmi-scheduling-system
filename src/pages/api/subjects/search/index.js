@@ -8,7 +8,7 @@ export const handler = async (req, res) => {
       const data = await subject.searchSubjects({ q, semester, type });
       return successResponse(req, res, data);
     } catch (error) {
-      return errorResponse(req, res, 'Something went wrong', 400, error);
+      return errorResponse(req, res, error.message, 400, error);
     }
   }
 };
