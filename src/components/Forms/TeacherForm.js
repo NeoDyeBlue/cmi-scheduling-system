@@ -61,6 +61,8 @@ export default function TeacherForm({
       if (result && result.success) {
         toast.success(initialData ? 'Teacher updated' : 'Teacher Added');
         onAfterSubmit();
+      } else if (!result.success && result?.error?.name == 'TeacherIdError') {
+        teacherFormik.setFieldError('teacherId', 'ID is already in use');
       }
 
       setIsLoading(false);
