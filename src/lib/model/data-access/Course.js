@@ -16,6 +16,7 @@ class Course extends Model {
       await data.save();
       return data;
     } catch (error) {
+      console.log('errrrrrrrrror', error)
       throw error;
     }
   }
