@@ -111,6 +111,7 @@ export default function Scheduler({
     [timeData, headers.length]
   );
 
+  //elements
   const headerColumns = headers.map((item) => (
     <div
       key={item.i}
@@ -133,7 +134,6 @@ export default function Scheduler({
     </div>
   ));
 
-  //elements
   const scheduleCells = layout
     .filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
