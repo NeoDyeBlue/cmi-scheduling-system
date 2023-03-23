@@ -35,7 +35,12 @@ export default function Courses() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         >
-          <CourseForm onCancel={() => setIsModalOpen(false)} />
+          <CourseForm
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+            }}
+          />
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder={`Search ${activeTab} courses`} />

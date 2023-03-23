@@ -11,7 +11,7 @@ import ReactPaginate from 'react-paginate';
 
 export default function Rooms() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { docs, pageData, setPageIndex } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: '/api/rooms',
     limit: 10,
   });
@@ -29,14 +29,20 @@ export default function Rooms() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         >
-          <RoomForm onCancel={() => setIsModalOpen(false)} />
+          <RoomForm
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              mutate();
+            }}
+          />
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder="Search Rooms" />
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>
         <div className="flex flex-col gap-4 overflow-x-auto">
-          <RoomTable data={docs} />
+          <RoomTable data={docs} onAfterEditSubmit={() => mutate()} />
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"

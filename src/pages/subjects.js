@@ -10,7 +10,7 @@ import ReactPaginate from 'react-paginate';
 
 export default function Subjects() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { docs, pageData, setPageIndex } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: '/api/subjects',
     limit: 10,
   });
@@ -28,7 +28,13 @@ export default function Subjects() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         >
-          <SubjectForm onCancel={() => setIsModalOpen(false)} />
+          <SubjectForm
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              mutate();
+            }}
+          />
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder="Search Subjects" />
@@ -38,7 +44,7 @@ export default function Subjects() {
           />
         </div>
         <div className="flex flex-col gap-4 overflow-x-auto">
-          <SubjectTable data={docs} />
+          <SubjectTable data={docs} onAfterEditSubmit={() => mutate()} />
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"

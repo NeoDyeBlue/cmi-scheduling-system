@@ -9,7 +9,11 @@ import { courseSchema } from '@/lib/validators/course-validator';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { toast } from 'react-hot-toast';
 
-export default function CourseForm({ initialData, onCancel }) {
+export default function CourseForm({
+  initialData,
+  onCancel,
+  onAfterSubmit = () => {},
+}) {
   const { theme } = resolveConfig(tailwindConfig);
   const courseFormik = useFormik({
     initialValues: {
@@ -47,6 +51,7 @@ export default function CourseForm({ initialData, onCancel }) {
       if (result?.success) {
         console.log(result);
         toast.success(`Course ${initialData ? 'updated' : 'added'}`);
+        onAfterSubmit();
       } else if (!result?.success && result?.error) {
         if (result?.error == 'CourseCodeError') {
           courseFormik.setFieldError('code', result?.errorMessage);

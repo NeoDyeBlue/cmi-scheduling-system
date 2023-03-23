@@ -12,10 +12,14 @@ import classNames from 'classnames';
 import { teacherSchema } from '@/lib/validators/teacher-validator';
 import { toast } from 'react-hot-toast';
 
-export default function TeacherForm({ initialData, onCancel }) {
+export default function TeacherForm({
+  initialData,
+  onCancel,
+  onAfterSubmit = () => {},
+}) {
   const teacherFormik = useFormik({
     initialValues: {
-      teacherId: initialData?.teacher?.teacherId || '',
+      teacherId: initialData?.teacherId || '',
       image: initialData?.image || '',
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
@@ -53,6 +57,7 @@ export default function TeacherForm({ initialData, onCancel }) {
       const result = await res.json();
       if (result && result.success) {
         toast.success(initialData ? 'Teacher updated' : 'Teacher Added');
+        onAfterSubmit();
       }
       console.log(result);
     } catch (error) {

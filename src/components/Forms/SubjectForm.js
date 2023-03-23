@@ -10,7 +10,11 @@ import { Button } from '../Buttons';
 import { subjectSchema } from '@/lib/validators/subject-validator';
 import { toast } from 'react-hot-toast';
 
-export default function RoomForm({ initialData, onCancel }) {
+export default function SubjectForm({
+  initialData,
+  onCancel,
+  onAfterSubmit = () => {},
+}) {
   const subjectFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
@@ -39,6 +43,7 @@ export default function RoomForm({ initialData, onCancel }) {
       const result = await res.json();
       if (result?.success) {
         toast.success(initialData ? 'Subject updated' : 'Subject added');
+        onAfterSubmit();
       } else if (!result?.success && result?.error) {
         if (result?.error == 'SubjectCodeError') {
           subjectFormik.setFieldError('code', result?.errorMessage);

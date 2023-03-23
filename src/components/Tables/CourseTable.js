@@ -17,7 +17,7 @@ export default function CourseTable({ type }) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toEditTeacherData, setToEditTeacherData] = useState(null);
-  const { docs, pageData, setPageIndex } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: '/api/courses',
     limit: 10,
     query: {
@@ -99,6 +99,10 @@ export default function CourseTable({ type }) {
         <CourseForm
           initialData={toEditTeacherData}
           onCancel={() => setIsModalOpen(false)}
+          onAfterSubmit={() => {
+            setIsModalOpen(false);
+            mutate();
+          }}
         />
       </Modal>
       <div className="flex flex-col gap-4">

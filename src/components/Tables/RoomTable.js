@@ -16,7 +16,7 @@ import classNames from 'classnames';
 import { Modal } from '../Modals';
 import { RoomForm } from '../Forms';
 
-export default function RoomTable({ data }) {
+export default function RoomTable({ data, onAfterEditSubmit = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toEditData, setToEditData] = useState(null);
@@ -106,6 +106,10 @@ export default function RoomTable({ data }) {
         <RoomForm
           initialData={toEditData}
           onCancel={() => setIsModalOpen(false)}
+          onAfterSubmit={() => {
+            setIsModalOpen(false);
+            onAfterEditSubmit();
+          }}
         />
       </Modal>
       <div className="flex flex-col gap-2">

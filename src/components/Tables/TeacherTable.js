@@ -19,7 +19,7 @@ import classNames from 'classnames';
 import { TeacherForm } from '../Forms';
 import { Modal } from '../Modals';
 
-export default function TeacherTable({ data }) {
+export default function TeacherTable({ data, onAfterEditSubmit = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toEditTeacherData, setToEditTeacherData] = useState(null);
@@ -163,6 +163,10 @@ export default function TeacherTable({ data }) {
         <TeacherForm
           initialData={toEditTeacherData}
           onCancel={() => setIsModalOpen(false)}
+          onAfterSubmit={() => {
+            setIsModalOpen(false);
+            onAfterEditSubmit();
+          }}
         />
       </Modal>
       <table {...getTableProps()} className="w-full">

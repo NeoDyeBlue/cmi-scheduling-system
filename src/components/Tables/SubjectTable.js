@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import { Modal } from '../Modals';
 import { SubjectForm } from '../Forms';
 
-export default function SubjectTable({ data }) {
+export default function SubjectTable({ data, onAfterEditSubmit = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toEditData, setToEditData] = useState(null);
@@ -86,6 +86,10 @@ export default function SubjectTable({ data }) {
         <SubjectForm
           initialData={toEditData}
           onCancel={() => setIsModalOpen(false)}
+          onAfterSubmit={() => {
+            setIsModalOpen(false);
+            onAfterEditSubmit();
+          }}
         />
       </Modal>
       <table {...getTableProps()} className="w-full">

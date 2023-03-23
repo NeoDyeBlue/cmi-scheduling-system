@@ -4,7 +4,11 @@ import { Button } from '../Buttons';
 import { roomSchema } from '@/lib/validators/room-validator';
 import { toast } from 'react-hot-toast';
 
-export default function RoomForm({ initialData, onCancel }) {
+export default function RoomForm({
+  initialData,
+  onCancel,
+  onAfterSubmit = () => {},
+}) {
   const roomFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
@@ -27,6 +31,7 @@ export default function RoomForm({ initialData, onCancel }) {
       const result = await res.json();
       if (result?.success) {
         toast.success(`Room ${initialData ? 'updated' : 'added'}`);
+        onAfterSubmit();
       } else if (!result?.success && result?.error) {
         if (result?.error == 'RoomCodeError') {
           roomFormik.setFieldError('code', result?.errorMessage);

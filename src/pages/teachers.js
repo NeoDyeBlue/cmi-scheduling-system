@@ -10,7 +10,7 @@ import ReactPaginate from 'react-paginate';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { docs, pageData, setPageIndex } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: '/api/teachers',
     limit: 3,
   });
@@ -28,7 +28,13 @@ export default function Teachers() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         >
-          <TeacherForm onCancel={() => setIsModalOpen(false)} />
+          <TeacherForm
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              mutate();
+            }}
+          />
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <SearchForm placeholder="Search Teachers" />
@@ -38,7 +44,7 @@ export default function Teachers() {
           />
         </div>
         <div className="flex flex-col gap-4 overflow-x-auto">
-          <TeacherTable data={docs} />
+          <TeacherTable data={docs} onAfterEditSubmit={() => mutate()} />
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"
