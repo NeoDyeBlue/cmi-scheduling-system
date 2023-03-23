@@ -32,31 +32,28 @@ export default function CourseForm({ initialData, onCancel }) {
   });
 
   async function handleSubmit(values) {
-    console.log(values);
-    // try {
-    //   const res = await fetch('/api/courses', {
-    //     method: 'POST',
-    //     body: JSON.stringify(values),
-    //     headers: { 'Content-Type': 'application/json' },
-    //   });
-    //   const result = await res.json();
-    //   if (result?.success) {
-    //     console.log(result);
-    //     toast.success('Course Added');
-    //   } else if (!result?.success && result?.error) {
-    //     if (result?.error == 'CourseCodeError') {
-    //       courseFormik.setFieldError('code', result?.errorMessage);
-    //     }
-    //   } else {
-    //     toast.error("Can't add course");
-    //   }
-    // } catch (error) {
-    //   console.log(error);
-    //   toast.error("Can't add course");
-    // }
+    try {
+      const res = await fetch('/api/courses', {
+        method: 'POST',
+        body: JSON.stringify(values),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        console.log(result);
+        toast.success('Course Added');
+      } else if (!result?.success && result?.error) {
+        if (result?.error == 'CourseCodeError') {
+          courseFormik.setFieldError('code', result?.errorMessage);
+        }
+      } else {
+        toast.error("Can't add course");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Can't add course");
+    }
   }
-
-  console.log(courseFormik.errors);
   return (
     <FormikProvider value={courseFormik}>
       <Form className="flex flex-col gap-6">
@@ -175,8 +172,9 @@ export default function CourseForm({ initialData, onCancel }) {
                             />
                           ) : null}
                           {courseFormik.values.yearSections.length <= 1 ||
-                          index ==
-                            courseFormik.values.yearSections.length - 1 ? (
+                          (index ==
+                            courseFormik.values.yearSections.length - 1 &&
+                            courseFormik.values.yearSections.length < 6) ? (
                             <ActionButton
                               onClick={() =>
                                 push({
