@@ -1,5 +1,5 @@
 import teacher from '@/lib/model/data-access/Teacher';
-import imageUploadLocal from '@/utils/image.upload.local';
+import imageUploadLocal, { deleteImageLocal } from '@/utils/image.upload.local';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 
 export const handler = async (req, res) => {
@@ -51,7 +51,38 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'PATCH') {
     try {
-      const { id, fields } = req.body;
+      const { image, _id: id, firstName, ...payload } = req.body;
+      console.log('payload', payload);
+      // checks if teacher's exists.
+      const isTeacher = await teacher.isTeacherExists({ id });
+      console.log('isTeacher', isTeacher);
+      // delete image
+      await deleteImageLocal({
+        image: isTeacher[0].image,
+        category: 'teachers',
+      });
+      //upload
+      const { filePath, error: uploadError } = await imageUploadLocal({
+        image,
+        firstName,
+        category: 'teachers',
+        id: payload.teacherId,
+      });
+      if (uploadError) {
+        return errorResponse(
+          req,
+          res,
+          'Image upload error.',
+          400,
+          'UploadError'
+        );
+      }
+
+      const fields = {
+        ...payload,
+        firstName: firstName,
+        image: filePath,
+      };
       const data = await teacher.updateTeacher({ id, fields });
       return successResponse(req, res, data);
     } catch (error) {

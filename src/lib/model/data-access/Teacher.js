@@ -124,6 +124,17 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async isTeacherExists({ id }) {
+    try {
+      const data = await this.Teacher.find({ _id: id }).exec();
+      if (!data.length) {
+        throw errorThrower('NotExists', 'Teacher is not exists.');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async updateTeacher({ fields, id }) {
     try {
       // construct update fields

@@ -7,7 +7,7 @@ const subject = new mongoose.Schema({
   name: { type: String, required: true },
   units: { type: Number, required: true },
   type: { type: String, enum: ['shs', 'college'] },
-  semester: { type: String, required: true, enum: ['1', '1'] },
+  semester: { type: String, required: true, enum: ['1', '2'] },
   assignedTeachers: [
     new mongoose.Schema({
       teacher: { type: mongoose.Types.ObjectId, ref: 'teacher' },

@@ -11,6 +11,7 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     const payload = req.body;
+    console.log("payload",JSON.stringify(payload))
     try {
       const data = await course.createCourse(payload);
       return successResponse(req, res, data);

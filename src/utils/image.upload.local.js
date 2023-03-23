@@ -2,7 +2,12 @@ import fs from 'fs';
 import path from 'path';
 const bcrypt = require('bcrypt');
 
-export default async function imageUploadLocal({ image, firstName, category, id }) {
+export default async function imageUploadLocal({
+  image,
+  firstName,
+  category,
+  id,
+}) {
   try {
     // remove the 'data:image'
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
@@ -34,10 +39,21 @@ export default async function imageUploadLocal({ image, firstName, category, id 
   }
 }
 
-const generateRandomString = async () => {
-  const saltRounds = 5;
-  const randomString = Math.random().toString(8).substring(0, 3);
-  const salt = await bcrypt.genSalt(saltRounds);
-  const hash = await bcrypt.hash(randomString, salt);
-  return hash;
-};
+export async function deleteImageLocal({ image, category }) {
+  try {
+    const directoryPath = path.join(
+      process.cwd(),
+      'public',
+      'images',
+      category
+    );
+    console.log("directoryPath, image",directoryPath, image)
+    const publicPath = path.join(directoryPath, image);
+    if (fs.existsSync(publicPath)) {
+      fs.unlinkSync(publicPath);
+    }
+  } catch (error) {
+    // console.log('error', error);
+    throw error;
+  }
+}
