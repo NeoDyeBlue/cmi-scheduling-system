@@ -43,6 +43,7 @@ export default function TeacherForm({ initialData, onCancel }) {
         method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
           ...values,
+          ...(initialData ? { _id: initialData?._id } : {}),
           preferredDayTimes:
             values.type == 'part-time' ? values.preferredDayTimes : [],
         }),

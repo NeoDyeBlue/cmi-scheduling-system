@@ -1,21 +1,18 @@
 import { useTable } from 'react-table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ActionButton } from '../Buttons';
-import {
-  MdDelete,
-  MdEdit,
-  MdArrowDropDown,
-  MdArrowRight,
-  MdDownload,
-} from 'react-icons/md';
+import { MdDelete, MdEdit, MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
+import { Modal } from '../Modals';
+import { SubjectForm } from '../Forms';
 
 export default function SubjectTable({ data }) {
   const { theme } = resolveConfig(tailwindConfig);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [toEditData, setToEditData] = useState(null);
   const subjects = useMemo(() => data, [data]);
 
   const columns = useMemo(
@@ -35,7 +32,7 @@ export default function SubjectTable({ data }) {
       {
         Header: () => null,
         id: 'actions',
-        Cell: () => (
+        Cell: ({ cell }) => (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
@@ -45,6 +42,10 @@ export default function SubjectTable({ data }) {
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
+              onClick={() => {
+                setToEditData(cell.row.original);
+                setIsModalOpen(true);
+              }}
             />
             <ActionButton
               icon={<MdDelete size={16} className="text-white" />}
@@ -76,56 +77,68 @@ export default function SubjectTable({ data }) {
   } = useTable({ columns, data: subjects });
 
   return (
-    <table {...getTableProps()} className="w-full">
-      <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-        {headerGroups.map((headerGroup, index) => (
-          <tr
-            key={index}
-            {...headerGroup.getHeaderGroupProps()}
-            className="border-b border-gray-300"
-          >
-            {headerGroup.headers.map((column, index) => (
-              <th
-                key={index}
-                {...column.getHeaderProps()}
-                className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
-              >
-                {column.render('Header')}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, index) => {
-          prepareRow(row);
-          return (
-            <React.Fragment key={index}>
-              <tr
-                key={index}
-                {...row.getRowProps()}
-                className={classNames(
-                  'border-y border-gray-200 transition-colors'
-                )}
-              >
-                {row.cells.map((cell, index) => {
-                  return (
-                    <td
-                      key={index}
-                      {...cell.getCellProps()}
-                      className={classNames('p-4', {
-                        'font-semibold uppercase': index == 1,
-                      })}
-                    >
-                      {cell.render('Cell')}
-                    </td>
-                  );
-                })}
-              </tr>
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+    <>
+      <Modal
+        label="Edit Subject"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      >
+        <SubjectForm
+          initialData={toEditData}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      </Modal>
+      <table {...getTableProps()} className="w-full">
+        <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+          {headerGroups.map((headerGroup, index) => (
+            <tr
+              key={index}
+              {...headerGroup.getHeaderGroupProps()}
+              className="border-b border-gray-300"
+            >
+              {headerGroup.headers.map((column, index) => (
+                <th
+                  key={index}
+                  {...column.getHeaderProps()}
+                  className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                >
+                  {column.render('Header')}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows.map((row, index) => {
+            prepareRow(row);
+            return (
+              <React.Fragment key={index}>
+                <tr
+                  key={index}
+                  {...row.getRowProps()}
+                  className={classNames(
+                    'border-y border-gray-200 transition-colors'
+                  )}
+                >
+                  {row.cells.map((cell, index) => {
+                    return (
+                      <td
+                        key={index}
+                        {...cell.getCellProps()}
+                        className={classNames('p-4', {
+                          'font-semibold uppercase': index == 1,
+                        })}
+                      >
+                        {cell.render('Cell')}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </React.Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </>
   );
 }

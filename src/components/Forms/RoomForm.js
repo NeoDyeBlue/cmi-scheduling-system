@@ -17,23 +17,26 @@ export default function RoomForm({ initialData, onCancel }) {
   async function handleSubmit(values) {
     try {
       const res = await fetch('/api/rooms', {
-        method: 'POST',
-        body: JSON.stringify(values),
+        method: initialData ? 'PATCH' : 'POST',
+        body: JSON.stringify({
+          ...values,
+          ...(initialData ? { _id: initialData?._id } : {}),
+        }),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();
       if (result?.success) {
-        toast.success('Room Added');
+        toast.success(`Room ${initialData ? 'updated' : 'added'}`);
       } else if (!result?.success && result?.error) {
         if (result?.error == 'RoomCodeError') {
           roomFormik.setFieldError('code', result?.errorMessage);
         }
       } else {
-        toast.error("Can't add room");
+        toast.error(`Can't ${initialData ? 'update' : 'add'} room`);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Can't add room");
+      toast.error(`Can't ${initialData ? 'update' : 'add'} room`);
     }
   }
   return (
