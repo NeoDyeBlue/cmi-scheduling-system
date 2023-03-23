@@ -133,8 +133,13 @@ export default function MultiComboBox({
             }
 
             if (selectionType == 'default') {
-              if (!selectedItems.some((code) => code == newSelectedItem.code)) {
-                setSelectedItems([...selectedItems, newSelectedItem.code]);
+              if (
+                !selectedItems.some((item) => item.code == newSelectedItem.code)
+              ) {
+                setSelectedItems([
+                  ...selectedItems,
+                  { _id: newSelectedItem._id, code: newSelectedItem.code },
+                ]);
               } else {
                 toast.error('Item is already added');
               }
@@ -223,7 +228,7 @@ export default function MultiComboBox({
                     'bg-success-100':
                       selectionType == 'teacher' &&
                       selectedItemForRender.type == 'full-time',
-                    'bg-gray-100': selectionType !== 'teacher',
+                    'bg-primary-200': selectionType !== 'teacher',
                   }
                 )}
                 key={`selected-item-${index}`}

@@ -21,14 +21,14 @@ export default function CourseForm({ initialData, onCancel }) {
           year: 1,
           sectionCount: 1,
           semesterSubjects: [
-            { semester: 1, subjects: [] },
-            { semester: 2, subjects: [] },
+            { semester: '1', subjects: [] },
+            { semester: '2', subjects: [] },
           ],
         },
       ],
     },
     onSubmit: handleSubmit,
-    // validationSchema: courseSchema,
+    validationSchema: courseSchema,
   });
 
   async function handleSubmit(values) {
@@ -55,6 +55,8 @@ export default function CourseForm({ initialData, onCancel }) {
     //   toast.error("Can't add course");
     // }
   }
+
+  console.log(courseFormik.errors);
   return (
     <FormikProvider value={courseFormik}>
       <Form className="flex flex-col gap-6">
@@ -97,102 +99,115 @@ export default function CourseForm({ initialData, onCancel }) {
           <p className="font-display font-medium">
             Year, Sections Count, and Subjects
           </p>
-          <FieldArray name="yearSections">
-            {({ insert, remove, push }) => (
-              <div className="flex flex-col gap-5">
-                {courseFormik.values.yearSections.map((input, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div
-                      className="flex  flex-col items-center justify-center rounded-lg bg-primary-100 p-2 
+          <div className="flex flex-col gap-2">
+            <FieldArray name="yearSections">
+              {({ insert, remove, push }) => (
+                <div className="flex flex-col gap-5">
+                  {courseFormik.values.yearSections.map((input, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div
+                        className="flex  flex-col items-center justify-center rounded-lg bg-primary-100 p-2 
                             text-center font-medium leading-none text-primary-700"
-                    >
-                      <p className="text-xs">Year</p>
-                      <p>{index + 1}</p>
-                    </div>
-                    <div className="flex w-full flex-col gap-2 rounded-md bg-gray-100 p-2">
-                      <InputField
-                        // label="Section count"
-                        name={`yearSections[${index}].sectionCount`}
-                        min={1}
-                        key={index}
-                        type="number"
-                        placeholder="sections count"
-                      />
-                      <Tabs>
-                        <TabList className="scrollbar-hide mb-2 flex w-full gap-2 overflow-x-auto">
-                          <Tab
-                            selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
-                            className="tab-sm"
-                          >
-                            1st sem
-                          </Tab>
-                          <Tab
-                            selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
-                            className="tab-sm"
-                          >
-                            2nd sem
-                          </Tab>
-                        </TabList>
-                        <TabPanel>
-                          <MultiComboBox
-                            placeholder="Enter subject code or name"
-                            name={`yearSections[${index}].semesterSubjects[0].subjects`}
-                            searchUrl="/api/subjects/search"
-                            // label="Subjects"
-                            filter={{
-                              semester: 1,
-                            }}
-                          />
-                        </TabPanel>
-                        <TabPanel>
-                          <MultiComboBox
-                            placeholder="Enter subject code or name"
-                            name={`yearSections[${index}].semesterSubjects[1].subjects`}
-                            searchUrl="/api/subjects/search"
-                            // label="Subjects"
-                            filter={{
-                              semester: 2,
-                            }}
-                          />
-                        </TabPanel>
-                      </Tabs>
-                    </div>
+                      >
+                        <p className="text-xs">Year</p>
+                        <p>{index + 1}</p>
+                      </div>
+                      <div className="flex w-full flex-col gap-2 rounded-md bg-gray-100 p-2">
+                        <InputField
+                          // label="Section count"
+                          name={`yearSections[${index}].sectionCount`}
+                          min={1}
+                          key={index}
+                          type="number"
+                          placeholder="sections count"
+                        />
+                        <Tabs>
+                          <TabList className="scrollbar-hide mb-2 flex w-full gap-2 overflow-x-auto">
+                            <Tab
+                              selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
+                              className="tab-sm"
+                            >
+                              1st sem
+                            </Tab>
+                            <Tab
+                              selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
+                              className="tab-sm"
+                            >
+                              2nd sem
+                            </Tab>
+                          </TabList>
+                          <TabPanel>
+                            <MultiComboBox
+                              placeholder="Enter subject code or name"
+                              name={`yearSections[${index}].semesterSubjects[0].subjects`}
+                              searchUrl="/api/subjects/search"
+                              // label="Subjects"
+                              filter={{
+                                semester: 1,
+                              }}
+                            />
+                          </TabPanel>
+                          <TabPanel>
+                            <MultiComboBox
+                              placeholder="Enter subject code or name"
+                              name={`yearSections[${index}].semesterSubjects[1].subjects`}
+                              searchUrl="/api/subjects/search"
+                              // label="Subjects"
+                              filter={{
+                                semester: 1,
+                              }}
+                            />
+                          </TabPanel>
+                        </Tabs>
+                      </div>
 
-                    <div className="flex w-[25px] flex-col gap-1 self-center">
-                      <>
-                        {index != 0 &&
-                        index == courseFormik.values.yearSections.length - 1 ? (
-                          <ActionButton
-                            onClick={() => remove(index)}
-                            icon={<MdRemove size={16} className="text-white" />}
-                            buttonColor={theme.colors.primary[400]}
-                          />
-                        ) : null}
-                        {courseFormik.values.yearSections.length <= 1 ||
-                        index == courseFormik.values.yearSections.length - 1 ? (
-                          <ActionButton
-                            onClick={() =>
-                              push({
-                                year:
-                                  courseFormik.values.yearSections.length + 1,
-                                sectionCount: 1,
-                                semesterSubjects: [
-                                  { semester: 1, subjects: [] },
-                                  { semester: 2, subjects: [] },
-                                ],
-                              })
-                            }
-                            icon={<MdAdd size={16} className="text-white" />}
-                            buttonColor={theme.colors.primary[400]}
-                          />
-                        ) : null}
-                      </>
+                      <div className="flex w-[25px] flex-col gap-1 self-center">
+                        <>
+                          {index != 0 &&
+                          index ==
+                            courseFormik.values.yearSections.length - 1 ? (
+                            <ActionButton
+                              onClick={() => remove(index)}
+                              icon={
+                                <MdRemove size={16} className="text-white" />
+                              }
+                              buttonColor={theme.colors.primary[400]}
+                            />
+                          ) : null}
+                          {courseFormik.values.yearSections.length <= 1 ||
+                          index ==
+                            courseFormik.values.yearSections.length - 1 ? (
+                            <ActionButton
+                              onClick={() =>
+                                push({
+                                  year:
+                                    courseFormik.values.yearSections.length + 1,
+                                  sectionCount: 1,
+                                  semesterSubjects: [
+                                    { semester: 1, subjects: [] },
+                                    { semester: 2, subjects: [] },
+                                  ],
+                                })
+                              }
+                              icon={<MdAdd size={16} className="text-white" />}
+                              buttonColor={theme.colors.primary[400]}
+                            />
+                          ) : null}
+                        </>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </FieldArray>
+                  ))}
+                </div>
+              )}
+            </FieldArray>
+            {courseFormik.errors.yearSections &&
+              courseFormik.errors.yearSections &&
+              typeof courseFormik.errors.yearSections == 'string' && (
+                <p className="flex gap-1 text-sm text-danger-500">
+                  {courseFormik.errors.yearSections}
+                </p>
+              )}
+          </div>
         </div>
         <div className="mb-1 flex gap-2">
           {onCancel && (
