@@ -16,7 +16,7 @@ class Course extends Model {
       await data.save();
       return data;
     } catch (error) {
-      console.log('errrrrrrrrror', error);
+      console.log('[CREATE COURSE]', error);
       throw error;
     }
   }
@@ -84,6 +84,38 @@ class Course extends Model {
       const data = await this.Course.findOneAndDelete({ _id: id }).exec();
       if (data === null) {
         throw errorThrower('ErrorId', 'Invalid id');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async isCourseCodeUsed({ id, code }) {
+    try {
+      const data = await this.Course.find({
+        _id: { $ne: id },
+        code: code,
+      }).exec();
+      if (data.length) {
+        throw errorThrower('CourseCodeError', 'Course code should be unique.');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateCourse({ id, fields }) {
+    try {
+      await this.isCourseCodeUsed({ id, code: fields.code });
+      const data = await this.Course.updateOne(
+        {
+          _id: id,
+        },
+        { $set: fields },
+        { returnOriginal: false }
+      ).exec();
+      if (data === null) {
+        throw errorThrower('UpdateError', 'Cannot find the course.');
       }
       return data;
     } catch (error) {

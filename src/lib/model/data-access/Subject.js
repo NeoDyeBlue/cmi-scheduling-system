@@ -69,9 +69,7 @@ class Subject extends Model {
       throw error;
     }
   }
-  async updateSubject({ any_field }) {
-    // simple changes from backend branch. 3/23/23
-  }
+
   async searchSubjects({ q, semester, type }) {
     try {
       const pipeline = [];
@@ -98,6 +96,42 @@ class Subject extends Model {
         });
       }
       const data = await this.Subject.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async isSubjectCodeUsed({ id, code }) {
+    try {
+      const data = await this.Subject.find({
+        _id: { $ne: id },
+        code: code,
+      }).exec();
+      if (data.length) {
+        throw errorThrower(
+          'SubjectCodeError',
+          'Subject code should be unique.'
+        );
+      }
+      return data;
+    } catch (error) {
+      return error;
+    }
+  }
+  async updateSubject({ id, fields }) {
+    try {
+      await this.isSubjectCodeUsed({ id, code: fields.code });
+
+      const data = await this.Subject.updateOne(
+        {
+          _id: id,
+        },
+        { $set: fields },
+        { returnOriginal: false }
+      ).exec();
+      if (data === null) {
+        throw errorThrower('UpdateError', 'Cannot find the subject.');
+      }
       return data;
     } catch (error) {
       throw error;
