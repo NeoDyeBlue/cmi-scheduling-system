@@ -854,7 +854,7 @@ export default function Scheduler({
 
   return (
     <ResponsiveGridLayout
-      className="grid-lines w-full border-r border-b border-gray-200"
+      className="grid-lines h-full w-full"
       layout={layout}
       cols={headerColumns.length}
       rowHeight={40}

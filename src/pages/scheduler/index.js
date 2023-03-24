@@ -199,5 +199,5 @@ export default function Schedules() {
 }
 
 Schedules.getLayout = function getLayout(page) {
-  return <MainLayout name="Schedules">{page}</MainLayout>;
+  return <MainLayout name="Scheduler">{page}</MainLayout>;
 };

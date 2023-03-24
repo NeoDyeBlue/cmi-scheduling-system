@@ -44,7 +44,7 @@ export default function CourseForm({
     try {
       setIsLoading(true);
       const res = await fetch('/api/courses', {
-        method: 'POST',
+        method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
           ...values,
           ...(initialData ? { _id: initialData?._id } : {}),

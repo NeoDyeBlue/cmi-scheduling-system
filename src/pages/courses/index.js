@@ -65,14 +65,10 @@ export default function Courses() {
           </TabList>
 
           <TabPanel>
-            <div className="overflow-x-auto">
-              <CourseTable data={collegeCourses} type="college" />
-            </div>
+            <CourseTable data={collegeCourses} type="college" />
           </TabPanel>
           <TabPanel>
-            <div className="overflow-x-auto">
-              <CourseTable type="shs" />
-            </div>
+            <CourseTable type="shs" />
           </TabPanel>
         </Tabs>
       </div>

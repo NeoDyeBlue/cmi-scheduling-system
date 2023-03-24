@@ -67,6 +67,18 @@ body,
   .paginate-link-disabled {
     @apply cursor-default text-ship-gray-300 hover:bg-white hover:text-ship-gray-300;
   }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-[8px] pr-1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply my-1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300;
+  }
 }
 
 .grid-lines {
