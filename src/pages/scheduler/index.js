@@ -172,25 +172,6 @@ export default function Schedules() {
             <ul className="flex h-fit min-w-[200px] flex-col gap-3">
               {draggableSchedules.flat()}
             </ul>
-            {/* <Tabs className="flex flex-col gap-3">
-              <TabList className="scrollbar-hide flex w-full gap-2 overflow-y-auto">
-                <Tab selectedClassName="tab-active" className="tab">
-                  Course
-                </Tab>
-                <Tab selectedClassName="tab-active" className="tab">
-                  Room
-                </Tab>
-              </TabList>
-              <TabPanel>
-                <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-                  {draggableSchedules.flat()}
-                </ul>
-              </TabPanel>
-              <TabPanel>
-                <ul className="flex h-fit min-w-[200px] flex-col gap-3">
-                </ul>
-              </TabPanel>
-            </Tabs> */}
           </div>
         </div>
       </div>

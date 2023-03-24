@@ -1,9 +1,10 @@
-import { MdClose } from "react-icons/md";
-import ReactModal from "react-modal";
-import { useRef } from "react";
+import { MdClose } from 'react-icons/md';
+import ReactModal from 'react-modal';
+import { useRef } from 'react';
+import { SquareButton } from '../Buttons';
 
 export default function Modal({ onClose, isOpen, label, children }) {
-  ReactModal.setAppElement("#__next");
+  ReactModal.setAppElement('#__next');
   const modalRef = useRef();
   return (
     <ReactModal
@@ -22,9 +23,7 @@ export default function Modal({ onClose, isOpen, label, children }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-shrink-0 items-center justify-between">
             <h1 className="font-display text-2xl font-semibold">{label}</h1>
-            <button onClick={onClose}>
-              <MdClose size={24} />
-            </button>
+            <SquareButton icon={<MdClose size={24} />} onClick={onClose} />
           </div>
           {children}
         </div>

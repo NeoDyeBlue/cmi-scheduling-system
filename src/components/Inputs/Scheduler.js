@@ -274,7 +274,9 @@ export default function Scheduler({
     const subjSchedIds = subjectsData.map((data) => data.id);
     const subjSchedItems = layout.filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      return (
+        subjSchedIds.includes(`${subjectCode}~${teacherId}`) && !item.static
+      );
     });
 
     //remove subjSchedIds that has no layout item
@@ -609,8 +611,6 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
-
-      console.log(inSchedulerTimes);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
