@@ -37,14 +37,18 @@ export default function Subjects() {
           />
         </Modal>
         <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder="Search Subjects" />
+          <div className="w-full max-w-[350px]">
+            <SearchForm placeholder="Search subjects" />
+          </div>
           <CreateButton
             onClick={() => setIsModalOpen(true)}
             text="New Subject"
           />
         </div>
-        <div className="flex flex-col gap-4 overflow-x-auto">
-          <SubjectTable data={docs} onAfterEditSubmit={() => mutate()} />
+        <div className="flex flex-col gap-4">
+          <div className="overflow-x-auto">
+            <SubjectTable data={docs} mutate={() => mutate()} />
+          </div>
           <ReactPaginate
             breakLabel="..."
             nextLabel="next >"

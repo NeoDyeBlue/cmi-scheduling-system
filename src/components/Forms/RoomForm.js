@@ -3,12 +3,15 @@ import { InputField } from '../Inputs';
 import { Button } from '../Buttons';
 import { roomSchema } from '@/lib/validators/room-validator';
 import { toast } from 'react-hot-toast';
+import { useState } from 'react';
+import { PopupLoader } from '../Loaders';
 
 export default function RoomForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   const roomFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
@@ -20,6 +23,7 @@ export default function RoomForm({
 
   async function handleSubmit(values) {
     try {
+      setIsLoading(true);
       const res = await fetch('/api/rooms', {
         method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
@@ -39,13 +43,19 @@ export default function RoomForm({
       } else {
         toast.error(`Can't ${initialData ? 'update' : 'add'} room`);
       }
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
       toast.error(`Can't ${initialData ? 'update' : 'add'} room`);
     }
   }
   return (
     <FormikProvider value={roomFormik}>
+      <PopupLoader
+        message={`${initialData ? 'Updating' : 'Adding'} room`}
+        isOpen={isLoading}
+      />
       <Form className="flex flex-col gap-6">
         <InputField
           type="text"

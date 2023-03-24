@@ -9,12 +9,15 @@ import {
 import { Button } from '../Buttons';
 import { subjectSchema } from '@/lib/validators/subject-validator';
 import { toast } from 'react-hot-toast';
+import { useState } from 'react';
+import { PopupLoader } from '../Loaders';
 
 export default function SubjectForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   const subjectFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
@@ -32,6 +35,7 @@ export default function SubjectForm({
 
   async function handleSubmit(values) {
     try {
+      setIsLoading(true);
       const res = await fetch('/api/subjects', {
         method: initialData ? 'PATCH' : 'POST',
         body: JSON.stringify({
@@ -51,13 +55,19 @@ export default function SubjectForm({
           toast.error(`Can't ${initialData ? 'update' : 'add'} subject`);
         }
       }
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
       toast.error(`Can't ${initialData ? 'update' : 'add'} subject`);
     }
   }
   return (
     <FormikProvider value={subjectFormik}>
+      <PopupLoader
+        message={`${initialData ? 'Updating' : 'Adding'} subject`}
+        isOpen={isLoading}
+      />
       <Form className="flex flex-col gap-6">
         <InputField
           type="text"

@@ -8,12 +8,15 @@ import { MdAdd, MdRemove } from 'react-icons/md';
 import { courseSchema } from '@/lib/validators/course-validator';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { toast } from 'react-hot-toast';
+import { useState } from 'react';
+import { PopupLoader } from '../Loaders';
 
 export default function CourseForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
 }) {
+  const [isLoading, setIsLoading] = useState(false);
   const { theme } = resolveConfig(tailwindConfig);
   const courseFormik = useFormik({
     initialValues: {
@@ -39,6 +42,7 @@ export default function CourseForm({
 
   async function handleSubmit(values) {
     try {
+      setIsLoading(true);
       const res = await fetch('/api/courses', {
         method: 'POST',
         body: JSON.stringify({
@@ -59,13 +63,19 @@ export default function CourseForm({
       } else {
         toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
       }
+      setIsLoading(false);
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
       toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
     }
   }
   return (
     <FormikProvider value={courseFormik}>
+      <PopupLoader
+        message={`${initialData ? 'Updating' : 'Adding'} course`}
+        isOpen={isLoading}
+      />
       <Form className="flex flex-col gap-6">
         <InputField
           type="text"
