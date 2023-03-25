@@ -11,7 +11,7 @@ export default function SearchForm({ placeholder, onSearch }) {
 
   return (
     <FormikProvider value={searchFormik}>
-      <Form className="flex w-full items-center overflow-hidden rounded-lg border border-ship-gray-200">
+      <Form className="flex w-full items-center overflow-hidden rounded-lg border border-ship-gray-200 bg-white">
         <input
           name="search"
           //   value={searchFormik.search}

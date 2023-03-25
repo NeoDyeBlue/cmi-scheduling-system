@@ -9,7 +9,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { schedulerData } from '@/lib/test_data/scheduler';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import { RoomSelector, Modal } from '@/components/Modals';
 import { Scrollbars } from 'react-custom-scrollbars-2';
@@ -17,22 +17,41 @@ import { SquareButton, Button } from '@/components/Buttons';
 import { Confirmation } from '@/components/Modals';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { shallow } from 'zustand/shallow';
 
 export default function Schedule() {
   const router = useRouter();
   const {
-    setCourseSubjects,
+    subjectsData,
+    subjectScheds,
     courseSubjects,
     selectedRooms,
+    roomsSubjSchedsLayouts,
+    setCourseSubjects,
     setSubjectsData,
-    subjectsData,
     setCourse,
-    subjectScheds,
     setSubjectScheds,
     setSelectedRooms,
-    roomsSubjSchedsLayouts,
     setAllRoomSubjSchedsLayout,
-  } = useSchedulerStore();
+  } = useSchedulerStore(
+    useCallback(
+      (state) => ({
+        subjectsData: state.subjectsData,
+        subjectScheds: state.subjectScheds,
+        courseSubjects: state.courseSubjects,
+        selectedRooms: state.selectedRooms,
+        roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
+        setCourseSubjects: state.setCourseSubjects,
+        setSubjectsData: state.setSubjectsData,
+        setCourse: state.setCourse,
+        setSubjectScheds: state.setSubjectScheds,
+        setSelectedRooms: state.setSelectedRooms,
+        setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+      }),
+      []
+    ),
+    shallow
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
@@ -149,6 +168,8 @@ export default function Schedule() {
     console.log(subjectScheds);
   }
 
+  function onConfirmReset() {}
+
   return (
     <>
       <Confirmation
@@ -180,9 +201,15 @@ export default function Schedule() {
             <MdAccessTimeFilled size={24} />
           </Link>
           <div>
-            <p className="text-sm">Creating schedules for:</p>
+            <p className="text-sm">
+              Creating{' '}
+              {schedulerData.semester == '1' ? '1st semester' : '2nd semester'}{' '}
+              schedules for:
+            </p>
             <h1 className="font-display text-xl font-semibold">
-              Bachelor of Science in Computer Science 1A
+              {schedulerData.course.code}: {schedulerData.course.name}{' '}
+              {schedulerData.course.year}
+              {schedulerData.course.section}
             </h1>
           </div>
           <div className="ml-auto flex gap-2">
