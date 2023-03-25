@@ -77,7 +77,9 @@ export default function CourseSchedulerYearSecTable({
                   )}
                   onClick={() =>
                     router.push(
-                      `/scheduler/schedule?course=${courseCode}&semester=${semester}&year=${row.original.year}&section=${row.original.section}`
+                      `/scheduler/schedule/${courseCode.toLowerCase()}?semester=${semester}&year=${
+                        row.original.year
+                      }&section=${row.original.section}`
                     )
                   }
                 >
@@ -103,7 +105,7 @@ export default function CourseSchedulerYearSecTable({
                                     cell.value == 'incomplete',
                                 },
                                 {
-                                  'bg-warning-100 text-danger-600':
+                                  'bg-danger-100 text-danger-600':
                                     cell.value == 'unscheduled',
                                 }
                               )}
