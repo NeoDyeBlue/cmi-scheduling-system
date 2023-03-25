@@ -57,13 +57,12 @@ class Course extends Model {
           $project: {
             code: 1,
             name: 1,
-            sections: {
-              $sum: '$yearSections.sectionCount',
-            },
             years: {
+              $max: '$yearSections.year',
+            },
+            sections: {
               $size: '$yearSections',
             },
-            yearSections: 1,
             type: 1,
           },
         },
@@ -198,13 +197,17 @@ class Course extends Model {
             subjects: { $first: '$yearSections.subjects' },
           },
         },
+        // check if the course-year-section is completed,
+        // means all subjects are already scheduled by day to total of time.
         {
           $addFields: {
             course: '$_id',
             semester: semester,
             subjects: '$subjects',
+            completed: false,
           },
         },
+
         {
           $project: {
             _id: 0,
