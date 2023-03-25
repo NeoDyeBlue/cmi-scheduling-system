@@ -123,7 +123,7 @@ class Course extends Model {
     }
   }
 
-  async getPopulatedCourses({ id, semester, year, section }) {
+  async getCourseSubjectTeachers({ course, semester, year, section }) {
     try {
       // look up for subjects
       // lookup for teachers
@@ -135,7 +135,7 @@ class Course extends Model {
 
         {
           $match: {
-            _id: mongoose.Types.ObjectId(id),
+            code: course,
             'yearSections.semesterSubjects.semester': semester,
           },
         },

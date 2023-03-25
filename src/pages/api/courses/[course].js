@@ -5,9 +5,9 @@ export const handler = async (req, res) => {
   const { p } = req.query;
   if (req.method === 'GET' && p === 'draggable') {
     try {
-      const { id, semester, year, section, course } = req.query;
-      const data = await Course.getPopulatedCourses({
-        id,
+      const {  semester, year, section, course } = req.query;
+      const data = await Course.getCourseSubjectTeachers({
+        course :course.toUpperCase(),
         semester,
         year,
         section,
@@ -21,7 +21,7 @@ export const handler = async (req, res) => {
   if (req.method === 'GET' && p === 'status') {
     try {
       const { type } = req.query;
-      const data = await course.getCoursesStatus({ type });
+      const data = await Course.getCoursesStatus({ type });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error);
