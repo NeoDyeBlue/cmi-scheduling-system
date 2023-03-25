@@ -4,12 +4,10 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { useState } from 'react';
 import { CourseSchedulerTable } from '@/components/Tables';
 import { SearchForm } from '@/components/Forms';
-import { courses } from '@/lib/test_data/scheduler';
 
 export default function Schedules() {
   const tabs = ['college', 'SHS'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <Head>
@@ -19,25 +17,23 @@ export default function Schedules() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
-        <div className="flex items-center justify-between gap-4 rounded-md bg-gray-50 p-3">
-          <p>Select a course, year, and section for scheduling</p>
-          <div className="w-full max-w-[350px]">
-            <SearchForm placeholder={`Search ${activeTab} courses`} />
-          </div>
-        </div>
         <Tabs
-          className="flex flex-col gap-4"
+          className="flex flex-col"
           onSelect={(index) => setActiveTab(tabs[index])}
         >
-          <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto">
-            <Tab selectedClassName="tab-active" className="tab">
-              College
-            </Tab>
-            <Tab selectedClassName="tab-active" className="tab">
-              Senior High
-            </Tab>
-          </TabList>
-
+          <div className="mb-4 flex items-center gap-4">
+            <TabList className="scrollbar-hide flex w-fit gap-2 overflow-x-auto">
+              <Tab selectedClassName="tab-active" className="tab">
+                College
+              </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                Senior High
+              </Tab>
+            </TabList>
+            <div className="ml-auto w-full max-w-[350px]">
+              <SearchForm placeholder={`Search ${activeTab} courses`} />
+            </div>
+          </div>
           <TabPanel>
             <CourseSchedulerTable type="college" />
           </TabPanel>

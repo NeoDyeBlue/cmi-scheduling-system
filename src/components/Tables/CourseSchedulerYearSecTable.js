@@ -2,6 +2,7 @@ import { useTable } from 'react-table';
 import { useMemo } from 'react';
 import React from 'react';
 import classNames from 'classnames';
+import { useRouter } from 'next/router';
 
 export default function CourseSchedulerYearSecTable({
   data,
@@ -9,7 +10,7 @@ export default function CourseSchedulerYearSecTable({
   semester,
 }) {
   const subjects = useMemo(() => data, [data]);
-
+  const router = useRouter();
   const columns = useMemo(
     () => [
       {
@@ -55,7 +56,7 @@ export default function CourseSchedulerYearSecTable({
                 <th
                   key={index}
                   {...column.getHeaderProps()}
-                  className="bg-white px-4 py-3 text-center"
+                  className="px-4 py-2 text-center"
                 >
                   {column.render('Header')}
                 </th>
@@ -72,15 +73,21 @@ export default function CourseSchedulerYearSecTable({
                   key={index}
                   {...row.getRowProps()}
                   className={classNames(
-                    'cursor-pointer transition-colors odd:bg-gray-50 hover:bg-gray-50'
+                    'group cursor-pointer transition-colors hover:bg-gray-50'
                   )}
+                  onClick={() =>
+                    router.push(
+                      `/scheduler/schedule?course=${courseCode}&semester=${semester}&year=${row.original.year}&section=${row.original.section}`
+                    )
+                  }
                 >
                   {row.cells.map((cell, index) => {
                     return (
                       <td
                         key={index}
                         {...cell.getCellProps()}
-                        className="border-collapse p-4 text-center first:rounded-l-lg last:rounded-r-lg"
+                        className="border-collapse border-y border-gray-200 p-4 text-center
+                        first:rounded-l-lg first:border-l last:rounded-r-lg last:border-r"
                       >
                         {cell.column.Header == 'Status' ? (
                           <div className="flex w-full justify-center">
