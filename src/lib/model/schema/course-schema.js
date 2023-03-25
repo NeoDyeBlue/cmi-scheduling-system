@@ -22,29 +22,31 @@ const course = new mongoose.Schema({
   code: { type: String, required: true, unique: true },
   type: { type: String },
   yearSections: [
-    new mongoose.Schema({
-      sectionCount: { type: Number, required: true },
-      year: { type: Number, required: true },
-      semesterSubjects: [
-        new mongoose.Schema({
-          semester: { type: String, required: true },
-          subjects: [
-            new mongoose.Schema({
-              _id: {
-                type: mongoose.Types.ObjectId,
-                ref: 'subject',
-                required: true,
-              },
-              code: {
-                type: String,
-                ref: 'subject',
-                required: true,
-              },
-            }),
-          ],
-        }),
-      ],
-    }),
+    new mongoose.Schema(
+      new mongoose.Schema({
+        year: { type: Number, required: true },
+        section: { type: String },
+        semesterSubjects: [
+          new mongoose.Schema({
+            semester: { type: String, required: true },
+            subjects: [
+              new mongoose.Schema({
+                _id: {
+                  type: mongoose.Types.ObjectId,
+                  ref: 'subject',
+                  required: true,
+                },
+                code: {
+                  type: String,
+                  ref: 'subject',
+                  required: true,
+                },
+              }),
+            ],
+          }),
+        ],
+      })
+    ),
   ],
 });
 course.plugin(mongoosePaginate);

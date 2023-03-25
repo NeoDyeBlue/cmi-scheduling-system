@@ -6,16 +6,33 @@
  */
 
 import course from '@/lib/model/data-access/Course';
+import generateChar from '@/utils/generate.char.util';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
-    const payload = req.body;
-    console.log('payload', JSON.stringify(payload));
     try {
+      const payload = req.body;
+      const sectionNames = generateChar(20);
+      const sections = [];
+      for (let yearIndex in payload.yearSections) {
+        for (
+          let secIndex = 0;
+          secIndex < payload.yearSections[yearIndex].sectionCount;
+          secIndex++
+        ) {
+          sections.push({
+            ...payload.yearSections[yearIndex],
+            section: sectionNames[secIndex],
+          });
+        }
+      }
+      payload.yearSections = sections;
+      console.log('payload', JSON.stringify(payload));
       const data = await course.createCourse(payload);
       return successResponse(req, res, data);
     } catch (error) {
+      console.log('error', error);
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
@@ -49,5 +66,6 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  
 };
 export default handler;
