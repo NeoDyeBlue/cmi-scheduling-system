@@ -68,8 +68,8 @@ export default function Sidebar() {
         <SidebarItem
           outlinedIcon={<MdOutlineAccessTime size={24} />}
           filledIcon={<MdAccessTimeFilled size={24} />}
-          link="/schedules"
-          name="Schedules"
+          link="/scheduler"
+          name="Scheduler"
         />
         <SidebarItem
           outlinedIcon={<MdOutlineGroups size={24} />}

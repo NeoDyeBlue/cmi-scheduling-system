@@ -5,6 +5,7 @@ import useSchedulerStore from '@/stores/useSchedulerStore';
 import { MdRemove } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
+import { shallow } from 'zustand/shallow';
 
 /**
  * @todo fix grid responsiveness
@@ -33,16 +34,32 @@ export default function Scheduler({
 
   //stores
   const {
+    course,
+    courseSubjects,
     draggingSubject,
-    setSubjectScheds,
     subjectScheds,
     subjectsData,
-    setRoomSubjSchedsLayout,
     roomsSubjSchedsLayouts,
+    setSubjectScheds,
+    setRoomSubjSchedsLayout,
     setAllRoomSubjSchedsLayout,
-    courseSubjects,
-    course,
-  } = useSchedulerStore();
+  } = useSchedulerStore(
+    useCallback(
+      (state) => ({
+        course: state.course,
+        courseSubjects: state.courseSubjects,
+        draggingSubject: state.draggingSubject,
+        subjectScheds: state.subjectScheds,
+        subjectsData: state.subjectsData,
+        roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
+        setSubjectScheds: state.setSubjectScheds,
+        setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
+        setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+      }),
+      []
+    ),
+    shallow
+  );
 
   // memos
   const timeData = useMemo(() => {
@@ -142,7 +159,6 @@ export default function Scheduler({
       );
     })
     .map((schedule) => {
-      // <SchedulerSchedItem key={schedule.i} data={schedule.data} />
       const data = subjectsData.find((subject) => {
         const { subjectCode, teacherId } = parseSubjSchedId(schedule.i);
         return subject.id == `${subjectCode}~${teacherId}`;
@@ -610,8 +626,6 @@ export default function Scheduler({
         .map((dayTimes) => dayTimes.times)
         .flat();
 
-      console.log(inSchedulerTimes);
-
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
           (dayTimes) => dayTimes.day == x
@@ -764,61 +778,67 @@ export default function Scheduler({
   }
 
   function onDrop(newLayout, layoutItem, _event) {
-    const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
-    if (layoutItem.x !== 0 && layoutItem.x !== 8) {
-      const nanoId = nanoid(10);
-      const layoutItemId = `${data.code}~${data.teacher.id}~${nanoId}`;
+    try {
+      const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
+      if (layoutItem.x !== 0 && layoutItem.x !== 8) {
+        const nanoId = nanoid(10);
+        const layoutItemId = `${data.code}~${data.teacher.id}~${nanoId}`;
 
-      const mergedItemsLayout = mergeYAdjacentSubjScheds(
-        layout,
-        {
-          ...layoutItem,
-          i: layoutItemId,
-        },
-        true
-      );
+        const mergedItemsLayout = mergeYAdjacentSubjScheds(
+          layout,
+          {
+            ...layoutItem,
+            i: layoutItemId,
+          },
+          true
+        );
 
-      updateSubjSchedsMaxH(mergedItemsLayout, layoutItemId);
+        updateSubjSchedsMaxH(mergedItemsLayout, layoutItemId);
+      }
+    } catch (error) {
+      return;
     }
   }
 
   function onDropDragOver() {
     //set item dragging item maxH and minH
-    const { totalRowSpanCount, itemCount } = layout
-      .filter((item) => {
-        const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-        return subjectsData.some(
-          (data) => data.id == `${subjectCode}~${teacherId}`
+    if (draggingSubject) {
+      const { totalRowSpanCount, itemCount } = layout
+        .filter((item) => {
+          const { subjectCode, teacherId } = parseSubjSchedId(item.i);
+          return subjectsData.some(
+            (data) => data.id == `${subjectCode}~${teacherId}`
+          );
+        })
+        .reduce(
+          (accumulator, currentItem) => {
+            const subjCode = currentItem.i.split('~')[0];
+            if (subjCode == draggingSubject.code) {
+              return {
+                totalRowSpanCount: (accumulator.totalRowSpanCount +=
+                  currentItem.h),
+                itemCount: (accumulator.itemCount += 1),
+              };
+            } else {
+              return accumulator;
+            }
+          },
+          { totalRowSpanCount: 0, itemCount: 0 }
         );
-      })
-      .reduce(
-        (accumulator, currentItem) => {
-          const subjCode = currentItem.i.split('~')[0];
-          if (subjCode == draggingSubject.code) {
-            return {
-              totalRowSpanCount: (accumulator.totalRowSpanCount +=
-                currentItem.h),
-              itemCount: (accumulator.itemCount += 1),
-            };
-          } else {
-            return accumulator;
-          }
-        },
-        { totalRowSpanCount: 0, itemCount: 0 }
-      );
-    const unitsMaxSpan = draggingSubject.units * 2;
-    const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
+      const unitsMaxSpan = draggingSubject.units * 2;
+      const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
 
-    return {
-      w: 1,
-      minH: 1,
-      maxH,
-    };
+      return {
+        w: 1,
+        minH: 1,
+        maxH,
+      };
+    }
   }
 
   function onDragStart(newLayout, layoutItem) {
-    setIsDragging(true);
-    if (!isDraggingFromOutside) {
+    if (!isDraggingFromOutside && layoutItem.i !== '__dropping-elem__') {
+      setIsDragging(true);
       const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
@@ -854,7 +874,7 @@ export default function Scheduler({
 
   return (
     <ResponsiveGridLayout
-      className="grid-lines w-full border-r border-b border-gray-200"
+      className="grid-lines h-full w-full"
       layout={layout}
       cols={headerColumns.length}
       rowHeight={40}
@@ -872,6 +892,7 @@ export default function Scheduler({
       onDragStop={onDragStop}
       onResizeStart={onResizeStart}
       onResizeStop={onResizeStop}
+      // measureBeforeMount={true}
     >
       {headerColumns}
       {scheduleCells}

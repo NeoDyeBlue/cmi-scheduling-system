@@ -195,4 +195,73 @@ const rooms = [
   },
 ];
 
-export { schedulerData, rooms };
+const courses = [
+  {
+    code: 'BSCS',
+    name: 'Bachelor of Science in Computer Science',
+    schedCompletionStatus: {
+      firstSem: {
+        isCompleted: true,
+        perYearSec: [
+          {
+            year: 1,
+            section: 'A',
+            status: 'completed',
+          },
+          {
+            year: 1,
+            section: 'B',
+            status: 'incomplete',
+          },
+          {
+            year: 2,
+            section: 'A',
+            status: 'unscheduled',
+          },
+          {
+            year: 3,
+            section: 'A',
+            status: 'unscheduled',
+          },
+          {
+            year: 4,
+            section: 'A',
+            status: 'unscheduled',
+          },
+        ],
+      },
+      secondSem: {
+        isCompleted: false,
+        perYearSec: [
+          {
+            year: 1,
+            section: 'A',
+            status: 'completed',
+          },
+          {
+            year: 1,
+            section: 'B',
+            status: 'incomplete',
+          },
+          {
+            year: 2,
+            section: 'A',
+            status: 'unscheduled',
+          },
+          {
+            year: 3,
+            section: 'A',
+            status: 'unscheduled',
+          },
+          {
+            year: 4,
+            section: 'A',
+            status: 'unscheduled',
+          },
+        ],
+      },
+    },
+  },
+];
+
+export { schedulerData, rooms, courses };
