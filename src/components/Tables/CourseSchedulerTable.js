@@ -123,7 +123,7 @@ export default function CourseTable({ type }) {
                       className={classNames(
                         'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
                         {
-                          'bg-primary-900 text-white hover:bg-primary-900':
+                          'border border-primary-200 bg-primary-50 hover:bg-primary-50':
                             row.isExpanded,
                         }
                       )}
@@ -177,22 +177,27 @@ export default function CourseTable({ type }) {
                     {row.isExpanded ? (
                       <tr>
                         <td colSpan={visibleColumns.length}>
-                          <div className="flex w-full flex-col py-2">
+                          <div className="flex w-full flex-col border-x border-gray-200 p-4">
                             <Tabs className="flex flex-col">
-                              <TabList className="scrollbar-hide mb-2 flex w-full gap-2 overflow-x-auto">
-                                <Tab
-                                  selectedClassName="tab-active"
-                                  className="tab-sm"
-                                >
-                                  1st sem
-                                </Tab>
-                                <Tab
-                                  selectedClassName="tab-active"
-                                  className="tab-sm"
-                                >
-                                  2nd sem
-                                </Tab>
-                              </TabList>
+                              <div className="flex flex-col gap-2">
+                                <p className="w-fit whitespace-nowrap text-sm leading-none text-ship-gray-500">
+                                  Select semester:
+                                </p>
+                                <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto">
+                                  <Tab
+                                    selectedClassName="tab-active"
+                                    className="tab-sm"
+                                  >
+                                    1st sem
+                                  </Tab>
+                                  <Tab
+                                    selectedClassName="tab-active"
+                                    className="tab-sm"
+                                  >
+                                    2nd sem
+                                  </Tab>
+                                </TabList>
+                              </div>
 
                               <TabPanel>
                                 <CourseSchedulerYearSecTable
