@@ -123,7 +123,7 @@ class Course extends Model {
     }
   }
 
-  async getPopulatedCourses({ id, semester }) {
+  async getPopulatedCourses({ id, semester, year, section }) {
     try {
       // look up for subjects
       // lookup for teachers
@@ -208,13 +208,31 @@ class Course extends Model {
             completed: false,
           },
         },
-
+        {
+          $match: {
+            'course.section': section,
+          },
+        },
         {
           $project: {
             _id: 0,
           },
         },
       ];
+      if (year) {
+        pipeline.push({
+          $match: {
+            'course.year': parseInt(year),
+          },
+        });
+      }
+      if (section) {
+        pipeline.push({
+          $match: {
+            'course.section': section,
+          },
+        });
+      }
       const data = await this.Course.aggregate(pipeline);
       return data;
     } catch (error) {
