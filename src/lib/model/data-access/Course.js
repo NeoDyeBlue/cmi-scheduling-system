@@ -123,7 +123,7 @@ class Course extends Model {
     }
   }
 
-  async getPopulatedCourses({ id, semester }) {
+  async getPopulatedCourses({ id, semester, year, section }) {
     try {
       // look up for subjects
       // lookup for teachers
@@ -167,6 +167,7 @@ class Course extends Model {
                         lastName: 1,
                         image: 1,
                         type: 1,
+                        preferredDayTimes: 1,
                       },
                     },
                     {
@@ -207,12 +208,87 @@ class Course extends Model {
             completed: false,
           },
         },
-
+        {
+          $match: {
+            'course.section': section,
+          },
+        },
         {
           $project: {
             _id: 0,
           },
         },
+      ];
+      if (year) {
+        pipeline.push({
+          $match: {
+            'course.year': parseInt(year),
+          },
+        });
+      }
+      if (section) {
+        pipeline.push({
+          $match: {
+            'course.section': section,
+          },
+        });
+      }
+      const data = await this.Course.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getCoursesStatus({ type }) {
+    try {
+      const pipeline = [
+        // get all college course
+        // group by code, name,
+        // seperate firstsem, seconde sem
+        // get status of course-year-section
+        //
+        {
+          $match: {
+            type: type,
+          },
+        },
+        { $unwind: '$yearSections' },
+        { $unwind: '$yearSections.semesterSubjects' },
+        {
+          $group: {
+            _id: {
+              code: '$code',
+              name: '$name',
+              year: '$yearSections.year',
+              section: '$yearSections.section',
+            },
+            yearSections: {
+              $first: '$yearSections',
+            },
+          },
+        },
+
+        // {
+        //   $addFields: {
+        //     schedCompletionStatus: {
+        //       firstSem: {
+        //         isCompleted: false,
+        //         perYearSec: [{}],
+        //       },
+        //       secondSem: {
+        //         isCompleted: false,
+        //         perYearSec: [{}],
+        //       },
+        //     },
+        //   },
+        // },
+        // {
+        //   $project: {
+        //     code: 1,
+        //     name: 1,
+        //     schedCompletionStatus: 1,
+        //   },
+        // },
       ];
       const data = await this.Course.aggregate(pipeline);
       return data;
