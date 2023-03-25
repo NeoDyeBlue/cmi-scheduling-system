@@ -31,6 +31,16 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  if (req.method === 'PATCH') {
+    try {
+      const { _id: id, ...fields } = req.body;
+      console.log('req.body;', req.body);
+      const data = await room.updateRoom({ id, fields });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
 };
 
 export default handler;

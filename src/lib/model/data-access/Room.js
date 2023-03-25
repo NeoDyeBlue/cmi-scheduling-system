@@ -80,6 +80,40 @@ class Room extends Model {
       throw error;
     }
   }
+  async isRoomCodeUsed({ id, code }) {
+    try {
+      const data = await this.Room.find({
+        _id: { $ne: id },
+        code: code,
+      }).exec();
+      if (data.length) {
+        throw errorThrower('RoomCodeError', 'Room code should be unique.');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateRoom({ id, fields }) {
+    try {
+      // if room code is already used.
+      await this.isRoomCodeUsed({ id, code: fields.code });
+      //update
+      const data = await this.Room.updateOne(
+        {
+          _id: id,
+        },
+        { $set: fields },
+        { returnOriginal: false }
+      );
+      if (data === null) {
+        throw errorThrower('UpdateError', 'Cannot find the room.');
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const room = new Room();
 export default room;
