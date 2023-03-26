@@ -191,6 +191,21 @@ class Room extends Model {
                         lastName: 1,
                       },
                     },
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $project: {
+                              existingSchedules: '$schedules',
+                            },
+                          },
+                        ],
+                        as: 'existingSchedules',
+                      },
+                    },
                   ],
                   as: 'teacher',
                 },
@@ -199,7 +214,7 @@ class Room extends Model {
               {
                 $project: {
                   yearSec: 1,
-                  existingSchedules: '$schedules',
+                  dayTimes: '$schedules',
                   teacher: {
                     $arrayElemAt: ['$teacher', 0],
                   },
@@ -216,6 +231,7 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
+                  dayTimes: 1,
                   course: {
                     code: '$course.code',
                     name: '$course.name',
