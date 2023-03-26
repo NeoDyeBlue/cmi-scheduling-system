@@ -16,9 +16,10 @@ import { SquareButton, Button } from '@/components/Buttons';
 import { Confirmation } from '@/components/Modals';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
-import { FullPageLoader } from '@/components/Loaders';
+import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import useSWRImmutable from 'swr/immutable';
 import _ from 'lodash';
+import { toast } from 'react-hot-toast';
 
 export default function Schedule() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function Schedule() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [formData, setFormData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
@@ -129,6 +131,8 @@ export default function Schedule() {
     () => setFormData({ course, subjectScheds }),
     [course, subjectScheds]
   );
+
+  console.log(schedulerData);
 
   if (!schedulerData || isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
@@ -209,17 +213,31 @@ export default function Schedule() {
     }
   }
 
-  function submitChanges() {
-    console.log({ ...formData, semester: schedulerData?.semester });
+  async function submitChanges() {
+    try {
+      setIsSubmitting(true);
+      const res = await fetch('/api/schedules', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...formData,
+          semester: schedulerData?.semester,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        toast.success('Schedules saved');
+      } else if (!result.success) {
+        toast.error("Can't save schedules");
+      }
+      setIsSubmitting(false);
+    } catch (error) {
+      setIsSubmitting(false);
+      toast.error("Can't save schedules");
+    }
   }
 
   function onConfirmReset() {
-    console.log(
-      roomsSubjSchedsLayouts.map((roomLayout) => ({
-        roomCode: roomLayout.roomCode,
-        layout: roomLayout.layout.filter((item) => item.static),
-      }))
-    );
     setAllRoomSubjSchedsLayout(
       roomsSubjSchedsLayouts.map((roomLayout) => ({
         roomCode: roomLayout.roomCode,
@@ -231,6 +249,7 @@ export default function Schedule() {
 
   return (
     <>
+      <PopupLoader isOpen={isSubmitting} message="Saving schedules..." />
       <Confirmation
         isOpen={isResetConfirmOpen}
         onCancel={() => setIsResetConfirmOpen(false)}
