@@ -150,6 +150,7 @@ class Course extends Model {
             pipeline: [
               {
                 $project: {
+                  _id: 1,
                   code: 1,
                   name: 1,
                   units: 1,
@@ -165,7 +166,7 @@ class Course extends Model {
                     {
                       $project: {
                         _id: 1,
-                        id: '$teacherId',
+                        teacherId: '$teacherId',
                         firstName: 1,
                         lastName: 1,
                         image: 1,
