@@ -194,6 +194,7 @@ class Course extends Model {
         {
           $group: {
             _id: {
+              _id: '$_id',
               code: '$code',
               name: '$name',
               year: '$yearSections.year',

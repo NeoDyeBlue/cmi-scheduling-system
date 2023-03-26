@@ -1,4 +1,4 @@
-// sample schema.
+
 import mongoosePaginate from 'mongoose-paginate-v2';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose from 'mongoose';
@@ -9,14 +9,22 @@ const schedule = new mongoose.Schema(
     subject: { type: mongoose.Types.ObjectId, ref: 'Subject', required: true },
     course: { type: mongoose.Types.ObjectId, ref: 'Course', required: true },
     semester: { type: String },
-    day: { type: Number },
-    time: {
-      start: { type: String },
-      end: { type: String },
+    yearSec: {
+      year: { type: String },
+      section: { type: String },
     },
+
+    day: { type: Number },
+    times: [
+      {
+        start: { type: String },
+        end: { type: String },
+      },
+    ],
   },
   { timestamp: true }
 );
+
 schedule.plugin(mongoosePaginate);
 schedule.plugin(aggregatePaginate);
 
