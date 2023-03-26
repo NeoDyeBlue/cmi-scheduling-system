@@ -71,7 +71,7 @@ export default function RoomSelector({ onSelectClose }) {
       const result = await res.json();
 
       if (result?.success) {
-        setSelectedRooms([...selectedRooms, result?.data]);
+        setSelectedRooms([...selectedRooms, result?.data[0]]);
         onSelectClose();
       } else {
         toast.error("Can't get room schedules");
