@@ -234,7 +234,7 @@ class Course extends Model {
         });
       }
       const data = await this.Course.aggregate(pipeline);
-      return data;
+      return data[0];
     } catch (error) {
       throw error;
     }
@@ -252,9 +252,6 @@ class Course extends Model {
           $match: {
             type: type,
           },
-        },
-        {
-          $sort: { name: 1, code: 1 },
         },
         { $unwind: '$yearSections' },
         { $unwind: '$yearSections.semesterSubjects' },
@@ -321,142 +318,9 @@ class Course extends Model {
             },
           },
         },
-        // {
-        //   $project: {
-        //     schedCompletionStatus: {
-        //       $cond: {
-        //         if: { $eq: ['$_id.semester', '1'] },
-        //         then: {
-        //           firstSem: {
-        //             perYearSec: {
-        //               $filter: {
-        //                 input: '$courseYearSecSem',
-        //                 as: 'course',
-        //                 cond: { $eq: ['$$course.semester', '1'] },
-        //               },
-        //             },
-        //           },
-        //           secondSem: null,
-        //         },
-        //         else: {
-        //           firstSem: null,
-        //           secondSem: {
-        //             perYearSec: {
-        //               $filter: {
-        //                 input: '$courseYearSecSem',
-        //                 as: 'course',
-        //                 cond: { $eq: ['$$course.semester', '2'] },
-        //               },
-        //             },
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
-        // courseYearSecSem: {
-        //   $push: {
-        //     year: '$yearSections.year',
-        //     section: '$yearSections.section',
-        //     code: '$code',
-        //     name: '$name',
-        //     status: 'unscheduled', // should be dynamic.
-        //     semester: '$yearSections.semesterSubjects.semester',
-        //   },
-        // },
-        //  concat array
-        // {
-        //   $project: {
-        //     schedCompletionStatus: {
-        //       $cond: {
-        //         if: { $eq: ['$_id.semester', '1'] },
-        //         then: {
-        //           firstSem: {
-        //             isCompleted: false,
-
-        //           },
-        //         },
-        //         else: {
-        //           secondSem: {
-        //             isCompleted: false,
-
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
-        // {
-        //   $project: {
-        //     schedCompletionStatus: {
-        //       $cond: {
-        //         if: { $eq: ['$_id.semester', '1'] },
-        //         then: {
-        //           firstSem: {
-        //             isCompleted: false,
-        //             perYearSec: {
-        //               $filter: {
-        //                 input: '$courseYearSecSem',
-        //                 as: 'course',
-        //                 cond: { $eq: ['$$course.semester', '1'] },
-        //               },
-        //             },
-        //           },
-        //           secondSem: null,
-        //         },
-        //         else: {
-        //           firstSem: null,
-        //           secondSem: {
-        //             isCompleted: false,
-        //             perYearSec: {
-        //               $filter: {
-        //                 input: '$courseYearSecSem',
-        //                 as: 'course',
-        //                 cond: { $eq: ['$$course.semester', '2'] },
-        //               },
-        //             },
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
-        // perYearSec: {
-        //   $push: {
-        //     $cond: {
-        //       if: { $eq: ['$yearSections.semesterSubjects.semester', '1'] },
-        //       then: {
-        //         year: '$yearSections.year',
-        //         section: '$yearSections.section',
-        //         status: 'unscheduled',
-        //         semester: '$yearSections.semesterSubjects.semester',
-        //       },
-        //       else: [],
-        //     },
-        //   },
-        // },
-
-        // {
-        //   $project: {
-        //     code: "$_id.code",
-        //     name: "$_id.name",
-        //     schedCompletionStatus : {
-
-        //     }
-        //   }
-        // }
-        // {
-        //   $addFields : {
-        //     schedCompletionStatus : {
-        //       firstSem: {
-        //         isCompleted: false,
-        //         perYearSec: [
-        //         ]
-        //       }
-
-        //     }
-        //   }
-        // }
+        {
+          $sort: { name: 1, code: 1 },
+        },
       ];
       const courseAggregation = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
@@ -464,6 +328,45 @@ class Course extends Model {
         options
       );
       return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async searchCourse({ q, limit }) {
+    try {
+      const pipeline = [
+        {
+          $addFields: {
+            codeToName: { $concat: ['$code', ' ', '$name'] },
+            nameToCode: { $concat: ['$name', ' ', '$code'] },
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { codeToName: { $regex: q, $options: 'i' } },
+              { nameToCode: { $regex: q, $options: 'i' } },
+            ],
+          },
+        },
+        {
+          $project: {
+            code: 1,
+            name: 1,
+            years: {
+              $max: '$yearSections.year',
+            },
+            sections: {
+              $size: '$yearSections',
+            },
+            type: 1,
+          },
+        },
+        {
+          $limit: parseInt(limit),
+        },
+      ];
+      const data = await this.Course.aggregate(pipeline);
       return data;
     } catch (error) {
       throw error;
