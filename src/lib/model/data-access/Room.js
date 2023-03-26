@@ -126,6 +126,7 @@ class Room extends Model {
         },
         {
           $project: {
+            _id: 1,
             code: 1,
             name: 1,
             schedules: [],
