@@ -37,6 +37,7 @@ export default function Schedule() {
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
+    reset,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -53,6 +54,7 @@ export default function Schedule() {
         setSubjectScheds: state.setSubjectScheds,
         setSelectedRooms: state.setSelectedRooms,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+        reset: state.reset,
       }),
       []
     ),
@@ -60,6 +62,8 @@ export default function Schedule() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
   const {
     data: result,
@@ -75,7 +79,7 @@ export default function Schedule() {
   );
 
   const schedulerData = useMemo(
-    () => (result?.data ? result.data : null),
+    () => (result?.data[0] ? result.data[0] : null),
     [result]
   );
 
@@ -122,6 +126,11 @@ export default function Schedule() {
     }
   }, [selectedRooms]);
 
+  useEffect(
+    () => setFormData({ course, subjectScheds }),
+    [course, subjectScheds]
+  );
+
   if (!schedulerData || isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
   }
@@ -139,7 +148,7 @@ export default function Schedule() {
   const selectedRoomTabs = selectedRooms.map((room, index) => (
     <Tab
       key={`${room.code}-${index}`}
-      className="tab group relative"
+      className="tab group relative uppercase"
       selectedClassName="tab-active"
     >
       <button
@@ -149,7 +158,7 @@ export default function Schedule() {
         }}
         className="absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
               justify-center rounded-full border border-gray-200 bg-white text-center 
-              text-ship-gray-900 group-hover:flex"
+               text-ship-gray-900 group-hover:flex"
       >
         <MdClose size={16} />
       </button>
@@ -191,28 +200,53 @@ export default function Schedule() {
   }
 
   function checkForChanges() {
-    router.push('/scheduler');
+    const hasChanges = _.isEqual(formData, oldSchedsData);
+    if (!hasChanges && oldSchedsData) {
+      setIsCancelConfirmOpen(true);
+    } else {
+      router.push('/scheduler');
+      reset();
+    }
   }
 
   function submitChanges() {
-    const formData = {
-      course,
-      subjectScheds,
-    };
-
-    console.log(formData, oldSchedsData);
-    console.log(_.isEqual(formData, oldSchedsData));
+    console.log({ ...formData, semester });
   }
 
-  function onConfirmReset() {}
+  function onConfirmReset() {
+    console.log(
+      roomsSubjSchedsLayouts.map((roomLayout) => ({
+        roomCode: roomLayout.roomCode,
+        layout: roomLayout.layout.filter((item) => item.static),
+      }))
+    );
+    setAllRoomSubjSchedsLayout(
+      roomsSubjSchedsLayouts.map((roomLayout) => ({
+        roomCode: roomLayout.roomCode,
+        layout: roomLayout.layout.filter((item) => item.static),
+      }))
+    );
+    setSubjectScheds([]);
+  }
 
   return (
     <>
       <Confirmation
         isOpen={isResetConfirmOpen}
         onCancel={() => setIsResetConfirmOpen(false)}
+        onConfirm={onConfirmReset}
         label="Reset Subject Schedules?"
         message="This will remove all placed subject schedules from every rooms."
+      />
+      <Confirmation
+        isOpen={isCancelConfirmOpen}
+        onCancel={() => setIsCancelConfirmOpen(false)}
+        onConfirm={() => {
+          router.push('/scheduler');
+          reset();
+        }}
+        label="Discard Changes?"
+        message="Are you sure to not save your changes before leaving?"
       />
       <Head>
         <title>Schedule | CMI - Scheduler</title>
@@ -229,13 +263,14 @@ export default function Schedule() {
       </Modal>
       <div className="relative grid h-screen grid-cols-1 grid-rows-[auto_1fr] overflow-hidden">
         <div className="flex items-center gap-4 border-b border-gray-300 p-4">
-          <Link
+          <button
+            onClick={checkForChanges}
             href="/scheduler"
             className="flex items-center justify-center rounded-lg bg-gradient-to-br
              from-primary-600 to-primary-900 p-2 text-white hover:shadow-md"
           >
             <MdAccessTimeFilled size={24} />
-          </Link>
+          </button>
           <div>
             <p className="text-sm">
               Creating{' '}
@@ -243,8 +278,8 @@ export default function Schedule() {
               schedules for:
             </p>
             <h1 className="font-display text-xl font-semibold">
-              {schedulerData?.course.code}: {schedulerData?.course.name}{' '}
-              {schedulerData?.course.year}
+              {schedulerData?.course.code.toUpperCase()}:{' '}
+              {schedulerData?.course.name} {schedulerData?.course.year}
               {schedulerData?.course.section}
             </h1>
           </div>
@@ -252,7 +287,11 @@ export default function Schedule() {
             <Button secondary small onClick={checkForChanges}>
               Cancel
             </Button>
-            <Button small onClick={submitChanges}>
+            <Button
+              small
+              onClick={submitChanges}
+              disabled={!(!_.isEqual(formData, oldSchedsData) && oldSchedsData)}
+            >
               Done
             </Button>
           </div>

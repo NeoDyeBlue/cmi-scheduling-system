@@ -59,7 +59,7 @@ export default function RoomSelector({ onSelectClose }) {
       className="group flex cursor-pointer flex-col justify-center gap-1 rounded-md border
       border-gray-200 p-4 hover:border-primary-400 hover:bg-primary-400 hover:text-white"
     >
-      <p className="font-display font-semibold">{room.code}</p>
+      <p className="font-display font-semibold uppercase">{room.code}</p>
       <p className="text-ship-gray-500 group-hover:text-white">{room.name}</p>
     </li>
   ));

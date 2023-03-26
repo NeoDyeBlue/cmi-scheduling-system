@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const useSchedulerStore = create((set, get) => ({
+const initialState = {
   course: null,
   courseSubjects: [],
   subjectsData: [],
@@ -9,6 +9,10 @@ const useSchedulerStore = create((set, get) => ({
   subjectScheds: [],
   roomsSubjSchedsLayouts: [],
   oldSchedsData: null,
+};
+
+const useSchedulerStore = create((set, get) => ({
+  ...initialState,
   setCourse: (payload) =>
     set(() => ({
       course: payload,
@@ -50,6 +54,9 @@ const useSchedulerStore = create((set, get) => ({
     set(() => ({
       oldSchedsData: payload,
     }));
+  },
+  reset: () => {
+    set(initialState);
   },
 }));
 
