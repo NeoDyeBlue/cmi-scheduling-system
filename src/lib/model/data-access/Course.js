@@ -164,6 +164,7 @@ class Course extends Model {
                   pipeline: [
                     {
                       $project: {
+                        _id: 1,
                         id: '$teacherId',
                         firstName: 1,
                         lastName: 1,
