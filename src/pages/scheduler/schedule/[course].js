@@ -14,7 +14,6 @@ import { RoomSelector, Modal } from '@/components/Modals';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 import { SquareButton, Button } from '@/components/Buttons';
 import { Confirmation } from '@/components/Modals';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader } from '@/components/Loaders';
@@ -90,7 +89,7 @@ export default function Schedule() {
       const courseSubjectsData = [];
       schedulerData?.subjects?.forEach((subject) => {
         subject?.assignedTeachers?.forEach((teacher) => {
-          const dataId = `${subject.code}~${teacher.id}`;
+          const dataId = `${subject.code}~${teacher.teacherId}`;
           const { teachers, ...newData } = subject;
           courseSubjectsData.push({
             id: dataId,
@@ -98,6 +97,7 @@ export default function Schedule() {
           });
         });
       });
+      console.log(courseSubjectsData);
       setSubjectsData(courseSubjectsData);
     }
   }, [setCourseSubjects, setSubjectsData, setCourse, result]);
@@ -113,7 +113,7 @@ export default function Schedule() {
             !roomSubjectsData.some((data) => data.id == dataId)
           ) {
             roomSubjectsData.push({
-              id: `${schedule.subject.code}~${schedule.teacher.id}`,
+              id: `${schedule.subject.code}~${schedule.teacherId}`,
               data: {
                 ...schedule.subject,
                 teacher: schedule.teacher,

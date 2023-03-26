@@ -21,8 +21,10 @@ export default function DraggableSchedule({ data }) {
   const { setDraggingSubject, subjectScheds } = useSchedulerStore();
 
   useEffect(() => {
-    const subject = subjectScheds.find((subj) => subj.subjectCode == data.code);
-    const isTheTeacher = subject?.teacherId == data.teacher.id;
+    const subject = subjectScheds.find(
+      (subj) => subj.subject.code == data.code
+    );
+    const isTheTeacher = subject?.teacher.teacherId == data.teacher.teacherId;
 
     if (subject && !isTheTeacher) {
       setIsDraggable(false);

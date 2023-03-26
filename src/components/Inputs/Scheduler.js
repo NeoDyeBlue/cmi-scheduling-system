@@ -266,7 +266,7 @@ export default function Scheduler({
                 timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
               roomSubjectsLayout.push({
                 i: `${subjSchedule.subject.code}~${
-                  subjSchedule.teacher.id
+                  subjSchedule.teacherId
                 }~${nanoid(10)}`,
                 x: dayTime.day,
                 w: 1,
@@ -342,6 +342,10 @@ export default function Scheduler({
       const subjSchedLayoutItems = subjSchedItems.filter(
         (item) => item.i.split('~')[0] == code
       );
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${code}~${teacher}`
+      );
+      console.log(subjectData);
       //set the subject's times and days
       const schedules = subjSchedLayoutItems.map((layout) => ({
         day: layout.x,
@@ -370,12 +374,17 @@ export default function Scheduler({
       }
       //add to the sched array
       newRoomSubjectScheds.push({
-        subjectCode: code,
-        teacherId: teacher,
+        subject: {
+          _id: subjectData.data._id,
+          code: subjectData.data.code,
+        },
+        teacher: {
+          _id: subjectData.data.teacher._id,
+          teacherId: subjectData.data.teacher.teacherId,
+        },
         schedules: [...groupedByDay],
       });
     });
-    // problem with setting this cause removing a sched wont update this
 
     let newScheds = [];
 
@@ -383,8 +392,8 @@ export default function Scheduler({
       subjectScheds.forEach((subjSched) => {
         const newSubjSched = newRoomSubjectScheds.find(
           (newRoomSubjSched) =>
-            subjSched.subjectCode == newRoomSubjSched.subjectCode &&
-            subjSched.teacherId == newRoomSubjSched.teacherId
+            subjSched.subject.code == newRoomSubjSched.subject.code &&
+            subjSched.teacher.teacherId == newRoomSubjSched.teacher.teacherId
         );
 
         //check if new sched exists then update the new room scheds
@@ -419,8 +428,8 @@ export default function Scheduler({
         (sched) =>
           !newScheds.some(
             (newSched) =>
-              sched.subjectCode == newSched.subjectCode &&
-              sched.teacherId == newSched.teacherId
+              sched.subject.code == newSched.subject.code &&
+              sched.teacher.teacherId == newSched.teacher.teacherId
           )
       ),
     ];
@@ -815,7 +824,7 @@ export default function Scheduler({
       const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const nanoId = nanoid(10);
-        const layoutItemId = `${data.code}~${data.teacher.id}~${nanoId}`;
+        const layoutItemId = `${data.code}~${data.teacher.teacherId}~${nanoId}`;
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
