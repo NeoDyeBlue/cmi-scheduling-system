@@ -14,7 +14,10 @@ const schedule = new mongoose.Schema(
     schedules: [
       new mongoose.Schema({
         day: { type: Number },
-        room: { type: mongoose.Types.ObjectId, ref: 'Room', required: true },
+        room: {
+          _id: { type: mongoose.Types.ObjectId, ref: 'Room', required: true },
+          code: { type: String },
+        },
         times: [
           {
             start: { type: String },

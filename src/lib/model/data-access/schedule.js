@@ -12,6 +12,7 @@ class Schedule extends Model {
         return {
           updateOne: {
             filter: {
+              teacher: schedule.teacher,
               subject: schedule.subject,
               course: schedule.course,
               semester: schedule.semester,

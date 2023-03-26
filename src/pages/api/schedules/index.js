@@ -7,6 +7,7 @@ export const handler = async (req, res) => {
       const courseSubjectScheds = req.body;
       const schedules = [];
       for (let courseScheds of courseSubjectScheds.subjectScheds) {
+        console.log("teacher: courseScheds.teacher._id,",courseScheds.teacher._id,)
         const scheds = {
           teacher: courseScheds.teacher._id,
           subject: courseScheds.subject._id,

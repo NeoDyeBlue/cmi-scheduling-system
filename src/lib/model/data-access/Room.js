@@ -119,9 +119,113 @@ class Room extends Model {
   async getRoomSchedules({ roomCode }) {
     try {
       const pipeline = [
+        // get specific room
         {
           $match: {
             code: roomCode,
+          },
+        },
+        // get all schedules that scheduled to this room.
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: 'code',
+            foreignField: 'schedules.room.code',
+            pipeline: [
+              {
+                $project: {
+                  teacher: 1,
+                  course: 1,
+                  subject: 1,
+                  yearSec: 1,
+                  schedules: 1,
+                },
+              },
+              // populate subject
+              {
+                $lookup: {
+                  from: 'subjects',
+                  localField: 'subject',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                        units: 1,
+                      },
+                    },
+                  ],
+                  as: 'subject',
+                },
+              },
+              // populate course
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                      },
+                    },
+                  ],
+                  as: 'courseCodeName',
+                },
+              },
+              // // populate course teacher
+              {
+                $lookup: {
+                  from: 'teachers',
+                  localField: 'teacher',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        _id: 1,
+                        teacherId: 1,
+                        firstName: 1,
+                        lastName: 1,
+                      },
+                    },
+                  ],
+                  as: 'teacher',
+                },
+              },
+              // to get first index of courseCodeName, subject
+              {
+                $project: {
+                  yearSec: 1,
+                  existingSchedules: '$schedules',
+                  teacher: {
+                    $arrayElemAt: ['$teacher', 0],
+                  },
+                  subject: {
+                    $arrayElemAt: ['$subject', 0],
+                  },
+                  course: {
+                    $arrayElemAt: ['$courseCodeName', 0],
+                  },
+                },
+              },
+              {
+                $project: {
+                  subject: 1,
+                  teacher: 1,
+                  existingSchedules: 1,
+                  course: {
+                    code: '$course.code',
+                    name: '$course.name',
+                    year: '$yearSec.year',
+                    section: '$yearSec.section',
+                  },
+                },
+              },
+            ],
+            as: 'schedules',
           },
         },
         {
@@ -129,7 +233,7 @@ class Room extends Model {
             _id: 1,
             code: 1,
             name: 1,
-            schedules: [],
+            schedules: 1,
           },
         },
       ];

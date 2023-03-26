@@ -178,7 +178,14 @@ class Course extends Model {
                       $lookup: {
                         from: 'schedules',
                         localField: '_id',
-                        foreignField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $project: {
+                              existingSchedules: '$schedules',
+                            },
+                          },
+                        ],
                         as: 'existingSchedules',
                       },
                     },
