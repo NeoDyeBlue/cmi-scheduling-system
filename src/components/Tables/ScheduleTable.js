@@ -5,6 +5,7 @@ import Image from 'next/image';
 import classNames from 'classnames';
 
 export default function ScheduleTable({
+  id,
   data,
   startTime,
   endTime,
@@ -238,6 +239,7 @@ export default function ScheduleTable({
 
   return (
     <table
+      id={id}
       {...getTableProps()}
       className="w-full border border-gray-200 lg:table-fixed"
     >

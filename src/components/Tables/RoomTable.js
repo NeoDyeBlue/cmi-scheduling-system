@@ -17,6 +17,7 @@ import { Modal, Confirmation } from '../Modals';
 import { RoomForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
+import exportTableToPdf from '@/utils/table-to-pdf';
 
 export default function RoomTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -87,6 +88,12 @@ export default function RoomTable({ data, mutate = () => {} }) {
               buttonColor={theme.colors.primary[400]}
               toolTipId="export"
               toolTipContent="Export"
+              onClick={() => {
+                exportTableToPdf({
+                  filename: `${cell.row.original.code}`,
+                  tableId: `${cell.row.original.code}`,
+                });
+              }}
             />
           </div>
         ),
@@ -212,6 +219,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
                       <td colSpan={visibleColumns.length}>
                         <div className="overflow-auto">
                           <ScheduleTable
+                            id={row.original.code}
                             data={row.original.schedules}
                             startTime="7:00 AM"
                             endTime="6:00 PM"

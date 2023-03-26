@@ -137,6 +137,61 @@ const schedulerData = {
       ],
     },
   ],
+  rooms: [
+    {
+      code: 'CB206',
+      name: 'Computer Laboratory 206',
+      schedules: [
+        {
+          subject: {
+            code: 'APPSDEV',
+            name: 'Applications Development',
+            units: 3,
+          },
+          course: {
+            code: 'BSCS',
+            year: 2,
+            section: 'A',
+          },
+          teacher: {
+            id: '11-1112',
+            firstName: 'Jane',
+            lastName: 'Doe',
+            existingSchedules: [
+              {
+                day: 5,
+                times: [
+                  {
+                    start: '7:00 AM',
+                    end: '10:00 AM',
+                  },
+                ],
+              },
+            ],
+            image:
+              'https://res.cloudinary.com/dppgyhery/image/upload/v1631456014/samples/people/boy-snow-hoodie.jpg',
+            type: 'full-time',
+          },
+          dayTimes: [
+            {
+              day: 7,
+              times: [
+                {
+                  start: '8:00 AM',
+                  end: '11:00 AM',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: 'CB205',
+      name: 'Computer Laboratory 205',
+      schedules: [],
+    },
+  ],
 };
 
 const rooms = [
