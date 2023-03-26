@@ -135,7 +135,7 @@ class Course extends Model {
 
         {
           $match: {
-            code: courseCode,
+            code: { $regex: courseCode, $options: 'i' },
             'yearSections.semesterSubjects.semester': semester,
           },
         },
@@ -234,7 +234,7 @@ class Course extends Model {
         });
       }
       const data = await this.Course.aggregate(pipeline);
-      return data[0];
+      return data;
     } catch (error) {
       throw error;
     }

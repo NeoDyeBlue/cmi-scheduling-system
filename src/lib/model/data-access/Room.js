@@ -131,7 +131,7 @@ class Room extends Model {
         },
       ];
       const data = await this.Room.aggregate(pipeline);
-      return data;
+      return data[0];
     } catch (error) {
       console.log('error', error);
       throw error;
