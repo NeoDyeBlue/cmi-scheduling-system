@@ -8,7 +8,9 @@ class Subject extends Model {
 
   async createSubject(payload) {
     try {
-      const isSubject = await this.Subject.findOne({ code: payload.code })
+      const isSubject = await this.Subject.findOne({
+        code: payload.code.toLowerCase(),
+      })
         .select(['code'])
         .exec();
       if (isSubject) {
@@ -105,7 +107,7 @@ class Subject extends Model {
     try {
       const data = await this.Subject.find({
         _id: { $ne: id },
-        code: code,
+        code: code.toLowerCase(),
       }).exec();
       if (data.length) {
         throw errorThrower(

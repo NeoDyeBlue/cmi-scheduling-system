@@ -6,7 +6,9 @@ export const handler = async (req, res) => {
   if (req.method === 'GET' && p === 'scheduler') {
     try {
       const { code } = req.query;
-      const data = await Room.getRoomSchedules({ roomCode: code });
+      const data = await Room.getRoomSchedules({
+        roomCode: code.toLowerCase(),
+      });
 
       return successResponse(req, res, data);
     } catch (error) {

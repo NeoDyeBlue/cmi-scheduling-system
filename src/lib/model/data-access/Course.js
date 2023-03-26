@@ -7,7 +7,9 @@ class Course extends Model {
   }
   async createCourse(payload) {
     try {
-      const isCourse = await this.Course.findOne({ code: payload.code })
+      const isCourse = await this.Course.findOne({
+        code: payload.code.toLowerCase(),
+      })
         .select(['code'])
         .exec();
       if (isCourse) {
@@ -94,7 +96,7 @@ class Course extends Model {
     try {
       const data = await this.Course.find({
         _id: { $ne: id },
-        code: code,
+        code: code.toLowerCase(),
       }).exec();
       if (data.length) {
         throw errorThrower('CourseCodeError', 'Course code should be unique.');
@@ -135,7 +137,7 @@ class Course extends Model {
 
         {
           $match: {
-            code: { $regex: courseCode, $options: 'i' },
+            code: courseCode,
             'yearSections.semesterSubjects.semester': semester,
           },
         },

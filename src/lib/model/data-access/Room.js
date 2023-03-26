@@ -6,7 +6,9 @@ class Room extends Model {
   }
   async createRoom(payload) {
     try {
-      const isRoom = await this.Room.findOne({ code: payload.code })
+      const isRoom = await this.Room.findOne({
+        code: payload.code.toLowerCase(),
+      })
         .select(['code'])
         .exec();
       if (isRoom) {
@@ -84,7 +86,7 @@ class Room extends Model {
     try {
       const data = await this.Room.find({
         _id: { $ne: id },
-        code: code,
+        code: code.toLowerCase(),
       }).exec();
       if (data.length) {
         throw errorThrower('RoomCodeError', 'Room code should be unique.');
@@ -119,7 +121,7 @@ class Room extends Model {
       const pipeline = [
         {
           $match: {
-            code: { $regex: new RegExp(roomCode, 'i') },
+            code: roomCode,
           },
         },
         {
@@ -131,7 +133,7 @@ class Room extends Model {
         },
       ];
       const data = await this.Room.aggregate(pipeline);
-      return data[0];
+      return data;
     } catch (error) {
       console.log('error', error);
       throw error;

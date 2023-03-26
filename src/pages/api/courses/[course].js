@@ -7,7 +7,7 @@ export const handler = async (req, res) => {
     try {
       const { semester, year, section, course: courseCode } = req.query;
       const data = await Course.getCourseSubjectTeachers({
-        courseCode: courseCode.toUpperCase(),
+        courseCode: courseCode.toLowerCase(),
         semester,
         year,
         section,

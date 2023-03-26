@@ -3,7 +3,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const room = new mongoose.Schema({
-  code: { type: String, unique: true, lowercase: true },
+  code: { type: String, unique: true, lowercase: true, trim: true },
   name: { type: String, unique: true },
   type: {
     type: [String],
