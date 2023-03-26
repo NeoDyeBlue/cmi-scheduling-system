@@ -10,9 +10,11 @@ import ReactPaginate from 'react-paginate';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, mutate } = usePaginate({
-    url: '/api/teachers',
+    url: `/api/teachers${searchValue ? '/search' : ''}`,
     limit: 3,
+    query: { ...(searchValue ? { q: searchValue } : {}) },
   });
   return (
     <>
@@ -38,7 +40,10 @@ export default function Teachers() {
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <div className="w-full max-w-[350px]">
-            <SearchForm placeholder="Search teachers" />
+            <SearchForm
+              placeholder="Search teachers"
+              onSearch={(value) => setSearchValue(value)}
+            />
           </div>
           <CreateButton
             onClick={() => setIsModalOpen(true)}

@@ -1,4 +1,4 @@
-import { FormikProvider, Form, useFormik } from 'formik';
+import { FormikProvider, Form, useFormik, Field } from 'formik';
 import { MdSearch } from 'react-icons/md';
 
 export default function SearchForm({ placeholder, onSearch }) {
@@ -6,15 +6,25 @@ export default function SearchForm({ placeholder, onSearch }) {
     initialValues: {
       search: '',
     },
-    onSubmit: onSearch,
+    onSubmit: handleSubmit,
   });
+
+  function handleSubmit(values) {
+    onSearch(values.search);
+  }
 
   return (
     <FormikProvider value={searchFormik}>
       <Form className="flex w-full items-center overflow-hidden rounded-lg border border-ship-gray-200 bg-white">
-        <input
+        <Field
           name="search"
-          //   value={searchFormik.search}
+          value={searchFormik.search}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              searchFormik.submitForm();
+            }
+          }}
           placeholder={placeholder}
           type="text"
           className="w-full px-4 py-3 placeholder:text-ship-gray-300 focus:outline-none"

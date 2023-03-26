@@ -9,9 +9,7 @@ import { shallow } from 'zustand/shallow';
 
 /**
  * @todo fix grid responsiveness
- * @todo restrict dropping of other elements to the table
  * @todo fix the isDragging not triggering restrictions
- * @todo remove room
  * @todo show subject info on layout item(optional)
  */
 
@@ -30,6 +28,7 @@ export default function Scheduler({
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
+
   // const [scheduleLayout, setScheduleLayout] = useState([]);
 
   //stores
@@ -290,7 +289,9 @@ export default function Scheduler({
     const subjSchedIds = subjectsData.map((data) => data.id);
     const subjSchedItems = layout.filter((item) => {
       const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      return (
+        subjSchedIds.includes(`${subjectCode}~${teacherId}`) && !item.static
+      );
     });
 
     //remove subjSchedIds that has no layout item

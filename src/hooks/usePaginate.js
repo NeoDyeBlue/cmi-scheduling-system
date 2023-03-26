@@ -30,9 +30,18 @@ export default function usePaginate({
   } = useSWR(getKey, options);
 
   const { docs, ...pageData } = result?.data || {};
+  const docsSource = useMemo(() => {
+    if (result?.data?.docs?.length) {
+      return result?.data?.docs;
+    } else if (result?.data?.length) {
+      return result?.data;
+    } else {
+      return [];
+    }
+  }, [result]);
 
   return {
-    docs: result?.data?.docs || [],
+    docs: docsSource,
     pageData,
     error,
     mutate,

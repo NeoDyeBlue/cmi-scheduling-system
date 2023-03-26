@@ -1,5 +1,5 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
@@ -19,15 +19,16 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
 
 export default function CourseTable({ type }) {
-  const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const { docs, pageData, setPageIndex } = usePaginate({
-    url: '/api/courses',
+    url: '/api/courses/status',
     limit: 10,
     query: {
       type,
     },
   });
+
+  const memoizedData = useMemo(() => docs, [docs]);
 
   const columns = useMemo(
     () => [
@@ -76,7 +77,7 @@ export default function CourseTable({ type }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data: courses }, useExpanded);
+  } = useTable({ columns, data: memoizedData }, useExpanded);
 
   return (
     <>
@@ -133,7 +134,6 @@ export default function CourseTable({ type }) {
                           cell.column.Header == '1st sem' ||
                           cell.column.Header == '2nd sem'
                         ) {
-                          console.log(cell);
                           return (
                             <td
                               key={index}

@@ -9,7 +9,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { schedulerData } from '@/lib/test_data/scheduler';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import { RoomSelector, Modal } from '@/components/Modals';
 import { Scrollbars } from 'react-custom-scrollbars-2';
@@ -18,6 +18,8 @@ import { Confirmation } from '@/components/Modals';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
+import { FullPageLoader } from '@/components/Loaders';
+import useSWRImmutable from 'swr/immutable';
 
 export default function Schedule() {
   const router = useRouter();
@@ -54,23 +56,43 @@ export default function Schedule() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const { course: courseCode, semester, year, section } = router.query;
+  const {
+    data: result,
+    isLoading,
+    error,
+  } = useSWRImmutable(
+    `/api/courses/${courseCode}?${new URLSearchParams({
+      semester,
+      year,
+      section,
+      p: 'draggable',
+    }).toString()}`
+  );
+
+  const schedulerData = useMemo(
+    () => (result?.data ? result.data : null),
+    [result]
+  );
 
   useEffect(() => {
-    setCourseSubjects(schedulerData.subjects);
-    setCourse(schedulerData.course);
-    const courseSubjectsData = [];
-    schedulerData.subjects.forEach((subject) => {
-      subject.teachers.forEach((teacher) => {
-        const dataId = `${subject.code}~${teacher.id}`;
-        const { teachers, ...newData } = subject;
-        courseSubjectsData.push({
-          id: dataId,
-          data: { ...newData, teacher },
+    if (schedulerData) {
+      setCourseSubjects(schedulerData?.subjects);
+      setCourse(schedulerData?.course);
+      const courseSubjectsData = [];
+      schedulerData?.subjects?.forEach((subject) => {
+        subject?.assignedTeachers?.forEach((teacher) => {
+          const dataId = `${subject.code}~${teacher.id}`;
+          const { teachers, ...newData } = subject;
+          courseSubjectsData.push({
+            id: dataId,
+            data: { ...newData, teacher },
+          });
         });
       });
-    });
-    setSubjectsData(courseSubjectsData);
-  }, [setCourseSubjects, setSubjectsData, setCourse]);
+      setSubjectsData(courseSubjectsData);
+    }
+  }, [setCourseSubjects, setSubjectsData, setCourse, result]);
 
   useEffect(() => {
     if (subjectsData.length) {
@@ -96,9 +118,13 @@ export default function Schedule() {
     }
   }, [selectedRooms]);
 
+  if (!schedulerData || isLoading) {
+    return <FullPageLoader message="Getting scheduler data please wait..." />;
+  }
+
   const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
     const { teachers, ...newData } = subject;
-    return subject.teachers.map((teacher, teacherIndex) => (
+    return subject?.assignedTeachers.map((teacher, teacherIndex) => (
       <DraggableSchedule
         key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
         data={{ ...newData, teacher }}
@@ -203,13 +229,13 @@ export default function Schedule() {
           <div>
             <p className="text-sm">
               Creating{' '}
-              {schedulerData.semester == '1' ? '1st semester' : '2nd semester'}{' '}
+              {schedulerData?.semester == '1' ? '1st semester' : '2nd semester'}{' '}
               schedules for:
             </p>
             <h1 className="font-display text-xl font-semibold">
-              {schedulerData.course.code}: {schedulerData.course.name}{' '}
-              {schedulerData.course.year}
-              {schedulerData.course.section}
+              {schedulerData?.course.code}: {schedulerData?.course.name}{' '}
+              {schedulerData?.course.year}
+              {schedulerData?.course.section}
             </h1>
           </div>
           <div className="ml-auto flex gap-2">

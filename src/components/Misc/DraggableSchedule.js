@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import ImageWithFallback from './ImageWithFallback';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import TeacherTypeBadge from './TeacherTypeBadge';
 import { useEffect, useState } from 'react';
@@ -128,12 +128,13 @@ export default function DraggableSchedule({ data }) {
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <Image
+        <ImageWithFallback
           src={data?.teacher?.image}
           alt="teacher image"
           width={36}
           height={36}
           draggable={false}
+          fallbackSrc="/images/teachers/default.jpg"
           className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
         />
         <div className="flex flex-col">
