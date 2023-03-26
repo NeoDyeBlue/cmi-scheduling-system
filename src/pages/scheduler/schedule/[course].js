@@ -118,6 +118,7 @@ export default function Schedule() {
               data: {
                 ...schedule.subject,
                 teacher: schedule.teacher,
+                course: schedule.course,
               },
             });
           }
@@ -132,7 +133,7 @@ export default function Schedule() {
     [course, subjectScheds]
   );
 
-  console.log(schedulerData);
+  // console.log(schedulerData);
 
   if (!schedulerData || isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;

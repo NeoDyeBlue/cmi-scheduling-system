@@ -13,13 +13,17 @@ export default function exportTableToPdf({
 
   console.log(tableId);
 
-  html2canvas(table).then((canvas) => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  //   html2canvas(table).then((canvas) => {
+  //     const imgData = canvas.toDataURL('image/png');
+  //     const pdfWidth = doc.internal.pageSize.getWidth();
+  //     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    // Add the canvas to the PDF document
-    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  //     // Add the canvas to the PDF document
+  //     doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+  //     doc.save(`${filename}.pdf`);
+  //   });
+
+  doc.html(table).then(() => {
     doc.save(`${filename}.pdf`);
   });
 }

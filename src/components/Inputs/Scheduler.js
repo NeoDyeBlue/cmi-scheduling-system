@@ -171,7 +171,7 @@ export default function Scheduler({
         <div
           key={schedule.i}
           className={classNames(
-            'group relative flex select-none flex-col items-center justify-center overflow-hidden rounded-lg border p-2',
+            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
             {
               'border-warning-400 bg-warning-100':
                 data?.teacher?.type == 'part-time' && !schedule.static,
@@ -209,16 +209,20 @@ export default function Scheduler({
             height={36}
             draggable={false}
             fallbackSrc="/images/teachers/default.jpg"
-            className="mb-2 aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+            className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
           />
           <div className="flex flex-col text-center">
             <p className="font-display font-semibold uppercase">{data.code}</p>
-          </div>
-          <div className="flex flex-col text-center">
             <p className="text-xs font-medium">
               {data?.teacher?.firstName} {data?.teacher?.lastName}
             </p>
           </div>
+          {schedule.static && (
+            <p className="text-center text-sm font-medium uppercase">
+              {data.course.code} {data.course.year}
+              {data.course.section}
+            </p>
+          )}
         </div>
       );
     });
@@ -281,9 +285,9 @@ export default function Scheduler({
                 static:
                   courseSubjects.some(
                     (subject) => subject.code !== subjSchedule.subject.code
-                  ) &&
-                  `${course.year}${course.section}` !==
-                    `${subjSchedule.course.year}${subjSchedule.course.section}`,
+                  ) ||
+                  `${course.code}${course.year}${course.section}` !==
+                    `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
               });
             });
           });
