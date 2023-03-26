@@ -24,6 +24,7 @@ import useSWRImmutable from 'swr/immutable';
 export default function Schedule() {
   const router = useRouter();
   const {
+    course,
     subjectsData,
     subjectScheds,
     courseSubjects,
@@ -38,6 +39,7 @@ export default function Schedule() {
   } = useSchedulerStore(
     useCallback(
       (state) => ({
+        course: state.course,
         subjectsData: state.subjectsData,
         subjectScheds: state.subjectScheds,
         courseSubjects: state.courseSubjects,
@@ -191,7 +193,12 @@ export default function Schedule() {
   }
 
   function submitChanges() {
-    console.log(subjectScheds);
+    const formData = {
+      course,
+      subjectScheds,
+    };
+
+    console.log(formData);
   }
 
   function onConfirmReset() {}
