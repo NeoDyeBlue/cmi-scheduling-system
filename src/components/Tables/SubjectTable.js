@@ -173,7 +173,7 @@ export default function SubjectTable({ data, mutate = () => {} }) {
                         key={index}
                         {...cell.getCellProps()}
                         className={classNames('p-4', {
-                          'font-semibold uppercase': index == 1,
+                          'font-semibold uppercase': index == 0,
                         })}
                       >
                         {cell.render('Cell')}
