@@ -18,8 +18,7 @@ export default function Scheduler({
   startTime = '1:00 AM',
   endTime = '12:00 AM',
   interval = 30,
-  roomCode = '',
-  roomSchedules = [],
+  roomData,
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -234,7 +233,7 @@ export default function Scheduler({
 
   // useEffect(() => {
   //   const roomLayout = roomsSubjSchedsLayouts.find(
-  //     (schedsLayout) => schedsLayout.roomCode == roomCode
+  //     (schedsLayout) => schedsLayout.roomData.code == roomData.code
   //   )?.layout;
 
   //   console.log(roomLayout);
@@ -249,14 +248,14 @@ export default function Scheduler({
   useEffect(
     () => {
       const existingRoomLayout =
-        roomsSubjSchedsLayouts.find((room) => room.roomCode == roomCode)
+        roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
           ?.layout || [];
       if (existingRoomLayout.length) {
         setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
       } else {
         const roomSubjectsLayout = [];
         const roomSubjectScheds = [];
-        roomSchedules.forEach((subjSchedule) => {
+        roomData?.schedules?.forEach((subjSchedule) => {
           subjSchedule.dayTimes.forEach((dayTime) => {
             dayTime.times.forEach((time) => {
               const yStart =
@@ -298,7 +297,7 @@ export default function Scheduler({
         setLayout([...headers, ...roomSubjectsLayout, ...timeLayout.flat()]);
       }
     },
-    // [roomSchedules, timeData, headers]
+    // [roomData?.schedules?, timeData, headers]
     []
   );
 
@@ -345,7 +344,6 @@ export default function Scheduler({
       const subjectData = subjectsData.find(
         (data) => data.id == `${code}~${teacher}`
       );
-      console.log(subjectData);
       //set the subject's times and days
       const schedules = subjSchedLayoutItems.map((layout) => ({
         day: layout.x,
@@ -364,7 +362,10 @@ export default function Scheduler({
         if (daySchedules.length) {
           groupedByDay.push({
             day,
-            roomCode,
+            room: {
+              _id: roomData._id,
+              code: roomData.code,
+            },
             times: daySchedules.map((daySchedule) => ({
               start: daySchedule.time.start,
               end: daySchedule.time.end,
@@ -402,7 +403,7 @@ export default function Scheduler({
             ...newSubjSched,
             schedules: [
               ...subjSched.schedules.filter(
-                (sched) => sched.roomCode !== roomCode
+                (sched) => sched.room.code !== roomData.code
               ),
               ...newSubjSched.schedules,
             ],
@@ -412,7 +413,7 @@ export default function Scheduler({
             ...subjSched,
             schedules: [
               ...subjSched.schedules.filter(
-                (sched) => sched.roomCode !== roomCode
+                (sched) => sched.room.code !== roomData.code
               ),
             ],
           });
@@ -434,7 +435,7 @@ export default function Scheduler({
       ),
     ];
     setSubjectScheds(schedsData);
-    setRoomSubjSchedsLayout(roomCode, subjSchedItems);
+    setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
 
     if (!oldSchedsData) {
       setOldSchedsData({ course, subjectScheds: schedsData });
@@ -445,7 +446,7 @@ export default function Scheduler({
     timeData,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
-    roomCode,
+    roomData.code,
   ]);
 
   //other funcs
@@ -474,7 +475,7 @@ export default function Scheduler({
       return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
     });
     const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
-      (roomLayout) => roomLayout.roomCode !== roomCode
+      (roomLayout) => roomLayout.roomCode !== roomData.code
     );
     const subjectData = subjectsData.find(
       (data) => data.id == `${subjectCode}~${teacherId}`
@@ -526,7 +527,7 @@ export default function Scheduler({
       }));
 
       const newRoomLayout = {
-        roomCode,
+        roomCode: roomData.code,
         layout: [
           ...roomSubjSchedItems.filter(
             (item) =>

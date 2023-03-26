@@ -97,7 +97,6 @@ export default function Schedule() {
           });
         });
       });
-      console.log(courseSubjectsData);
       setSubjectsData(courseSubjectsData);
     }
   }, [setCourseSubjects, setSubjectsData, setCourse, result]);
@@ -174,6 +173,7 @@ export default function Schedule() {
         interval={30}
         roomCode={room.code}
         roomSchedules={room.schedules}
+        roomData={room}
       />
     </TabPanel>
   ));
@@ -185,7 +185,7 @@ export default function Schedule() {
           ...subjectSched,
           schedules: [
             ...subjectSched.schedules.filter(
-              (schedule) => schedule.roomCode !== roomCode
+              (schedule) => schedule.room.code !== roomCode
             ),
           ],
         }))
