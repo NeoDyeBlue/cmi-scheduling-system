@@ -4,7 +4,7 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const course = new mongoose.Schema({
   name: { type: String, required: true },
-  code: { type: String, required: true, unique: true },
+  code: { type: String, required: true, unique: true, lowercase: true , trim: true},
   type: { type: String },
   yearSections: [
     new mongoose.Schema(
