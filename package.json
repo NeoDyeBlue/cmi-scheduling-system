@@ -20,6 +20,7 @@
     "formik": "^2.2.9",
     "framer-motion": "^9.0.4",
     "install": "^0.13.0",
+    "lodash": "^4.17.21",
     "mongodb": "^5.1.0",
     "mongoose": "^6.10.0",
     "mongoose-aggregate-paginate-v2": "^1.0.6",

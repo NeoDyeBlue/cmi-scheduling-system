@@ -6,6 +6,7 @@ import { MdRemove } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
+import { ImageWithFallback } from '../Misc';
 
 /**
  * @todo fix grid responsiveness
@@ -39,9 +40,11 @@ export default function Scheduler({
     subjectScheds,
     subjectsData,
     roomsSubjSchedsLayouts,
+    oldSchedsData,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
     setAllRoomSubjSchedsLayout,
+    setOldSchedsData,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -50,10 +53,12 @@ export default function Scheduler({
         draggingSubject: state.draggingSubject,
         subjectScheds: state.subjectScheds,
         subjectsData: state.subjectsData,
+        oldSchedsData: state.oldSchedsData,
         roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
         setSubjectScheds: state.setSubjectScheds,
         setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+        setOldSchedsData: state.setOldSchedsData,
       }),
       []
     ),
@@ -198,6 +203,15 @@ export default function Scheduler({
               <MdRemove size={16} />
             </button>
           )}
+          <ImageWithFallback
+            src={data?.teacher?.image}
+            alt="teacher image"
+            width={36}
+            height={36}
+            draggable={false}
+            fallbackSrc="/images/teachers/default.jpg"
+            className="mb-2 aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+          />
           <div className="flex flex-col text-center">
             <p className="font-display font-semibold">{data.code}</p>
           </div>
@@ -386,7 +400,7 @@ export default function Scheduler({
       newScheds = newRoomSubjectScheds;
     }
 
-    setSubjectScheds([
+    const schedsData = [
       ...newScheds.filter((newSched) => newSched.schedules.length),
       ...newRoomSubjectScheds.filter(
         (sched) =>
@@ -396,8 +410,13 @@ export default function Scheduler({
               sched.teacherId == newSched.teacherId
           )
       ),
-    ]);
+    ];
+    setSubjectScheds(schedsData);
     setRoomSubjSchedsLayout(roomCode, subjSchedItems);
+
+    if (!oldSchedsData) {
+      setOldSchedsData({ course, subjectScheds: schedsData });
+    }
   }, [
     layout,
     subjectsData,

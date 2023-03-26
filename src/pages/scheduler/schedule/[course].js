@@ -8,7 +8,6 @@ import {
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
-import { schedulerData } from '@/lib/test_data/scheduler';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import { RoomSelector, Modal } from '@/components/Modals';
@@ -20,6 +19,7 @@ import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader } from '@/components/Loaders';
 import useSWRImmutable from 'swr/immutable';
+import _ from 'lodash';
 
 export default function Schedule() {
   const router = useRouter();
@@ -30,6 +30,7 @@ export default function Schedule() {
     courseSubjects,
     selectedRooms,
     roomsSubjSchedsLayouts,
+    oldSchedsData,
     setCourseSubjects,
     setSubjectsData,
     setCourse,
@@ -45,6 +46,7 @@ export default function Schedule() {
         courseSubjects: state.courseSubjects,
         selectedRooms: state.selectedRooms,
         roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
+        oldSchedsData: state.oldSchedsData,
         setCourseSubjects: state.setCourseSubjects,
         setSubjectsData: state.setSubjectsData,
         setCourse: state.setCourse,
@@ -198,7 +200,8 @@ export default function Schedule() {
       subjectScheds,
     };
 
-    console.log(formData);
+    console.log(formData, oldSchedsData);
+    console.log(_.isEqual(formData, oldSchedsData));
   }
 
   function onConfirmReset() {}

@@ -8,6 +8,7 @@ const useSchedulerStore = create((set, get) => ({
   selectedRooms: [],
   subjectScheds: [],
   roomsSubjSchedsLayouts: [],
+  oldSchedsData: null,
   setCourse: (payload) =>
     set(() => ({
       course: payload,
@@ -43,6 +44,11 @@ const useSchedulerStore = create((set, get) => ({
     );
     set(() => ({
       roomsSubjSchedsLayouts: [...filteredLayouts, { roomCode, layout }],
+    }));
+  },
+  setOldSchedsData: (payload) => {
+    set(() => ({
+      oldSchedsData: payload,
     }));
   },
 }));
