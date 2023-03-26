@@ -6,14 +6,33 @@ class Schedule extends Model {
     super();
   }
   // just a snippet for schedule.
-  async createSchedule(payload) {
+  async createSchedule({ schedules }) {
     try {
-      
-      const data = new this.Schedule(payload);
-      await data.save();
-      return  data ;
+      const schedulesBulksOptions = schedules.map((schedule) => {
+        return {
+          updateOne: {
+            filter: {
+              subject: schedule.subject,
+              course: schedule.course,
+              semester: schedule.semester,
+              yearSec: {
+                year: schedule.yearSec.year,
+                section: schedule.yearSec.section,
+              },
+            },
+            update: {
+              $set: {
+                schedules: schedule.schedules,
+              },
+            },
+            upsert: true,
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
+      return data;
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 }
