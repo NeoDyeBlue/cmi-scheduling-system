@@ -3,7 +3,7 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const room = new mongoose.Schema({
-  code: { type: String, unique: true },
+  code: { type: String, unique: true, lowercase: true },
   name: { type: String, unique: true },
   type: {
     type: [String],
@@ -22,7 +22,7 @@ const room = new mongoose.Schema({
 });
 room.plugin(mongoosePaginate);
 room.plugin(aggregatePaginate);
-room.index({name: 1, code: 1})
+room.index({ name: 1, code: 1 });
 
 export default room;
 

@@ -2,21 +2,6 @@ import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
-// const yearSectionSchema = new mongoose.Schema({
-//   sectionCount: { type: Number, required: true },
-//   year: { type: Number, required: true },
-//   semesterSubjects: [
-//     new mongoose.Schema({
-//       semester: { type: Number, required: true },
-//       subjects: [
-//         new mongoose.Schema({
-//           subject: { type: mongoose.Types.ObjectId },
-//         }),
-//       ],
-//     }),
-//   ],
-// });
-
 const course = new mongoose.Schema({
   name: { type: String, required: true },
   code: { type: String, required: true, unique: true },

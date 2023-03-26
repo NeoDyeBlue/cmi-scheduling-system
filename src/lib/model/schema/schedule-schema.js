@@ -1,18 +1,18 @@
 // sample schema.
 import mongoosePaginate from 'mongoose-paginate-v2';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const schedule = new mongoose.Schema(
   {
-    teacher: { type: mongoose.Types.ObjectId, ref: "Teacher", required: true },
-    room: { type: mongoose.Types.ObjectId, ref: "Room", required: true },
-    subject: { type: mongoose.Types.ObjectId, ref: "Subject", required: true },
-    startTime: { type: Number },
-    endTime: { type: Number },
+    teacher: { type: mongoose.Types.ObjectId, ref: 'Teacher', required: true },
+    room: { type: mongoose.Types.ObjectId, ref: 'Room', required: true },
+    subject: { type: mongoose.Types.ObjectId, ref: 'Subject', required: true },
+    course: { type: mongoose.Types.ObjectId, ref: 'Course', required: true },
+    semester: { type: String },
     day: { type: Number },
-    schoolYear: {
-      start: { type: Number },
-      end: { type: Number },
+    time: {
+      start: { type: String },
+      end: { type: String },
     },
   },
   { timestamp: true }

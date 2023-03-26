@@ -114,6 +114,29 @@ class Room extends Model {
       throw error;
     }
   }
+  async getRoomSchedules({ roomCode }) {
+    try {
+      const pipeline = [
+        {
+          $match: {
+            code: { $regex: new RegExp(roomCode, 'i') },
+          },
+        },
+        {
+          $project: {
+            code: 1,
+            name: 1,
+            schedules: [],
+          },
+        },
+      ];
+      const data = await this.Room.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
 }
 const room = new Room();
 export default room;
