@@ -213,7 +213,7 @@ export default function Scheduler({
             className="mb-2 aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
           />
           <div className="flex flex-col text-center">
-            <p className="font-display font-semibold">{data.code}</p>
+            <p className="font-display font-semibold uppercase">{data.code}</p>
           </div>
           <div className="flex flex-col text-center">
             <p className="text-xs font-medium">
@@ -231,6 +231,19 @@ export default function Scheduler({
     .map((restriction) => {
       return <div key={restriction.i} className="bg-gray-300/50"></div>;
     });
+
+  // useEffect(() => {
+  //   const roomLayout = roomsSubjSchedsLayouts.find(
+  //     (schedsLayout) => schedsLayout.roomCode == roomCode
+  //   )?.layout;
+
+  //   console.log(roomLayout);
+  //   setLayout([
+  //     ...headers,
+  //     ...(roomLayout?.length ? roomLayout : []),
+  //     ...timeLayout.flat(),
+  //   ]);
+  // }, [roomsSubjSchedsLayouts]);
 
   //effects
   useEffect(

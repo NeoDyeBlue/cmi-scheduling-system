@@ -103,7 +103,7 @@ export default function DraggableSchedule({ data }) {
       }}
     >
       <div className="flex flex-col">
-        <p className="text-ellipsis whitespace-nowrap font-display font-semibold">
+        <p className="text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
           {data.code}
         </p>
         <p className="mb-1 text-ellipsis whitespace-nowrap text-xs">
