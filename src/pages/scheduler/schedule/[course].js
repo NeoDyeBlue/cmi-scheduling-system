@@ -210,7 +210,7 @@ export default function Schedule() {
   }
 
   function submitChanges() {
-    console.log({ ...formData, semester });
+    console.log({ ...formData, semester: schedulerData?.semester });
   }
 
   function onConfirmReset() {
