@@ -182,7 +182,9 @@ class Course extends Model {
                         pipeline: [
                           {
                             $project: {
-                              existingSchedules: '$schedules',
+                              day: { $arrayElemAt: ['$schedules.day', 0] },
+                              room: { $arrayElemAt: ['$schedules.room', 0] },
+                              times: { $arrayElemAt: ['$schedules.times', 0] },
                             },
                           },
                         ],
@@ -210,6 +212,147 @@ class Course extends Model {
             subjects: { $first: '$yearSections.subjects' },
           },
         },
+        // get rooms that this course have schedule ---------------------
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id._id',
+            foreignField: 'course',
+            pipeline: [
+              {
+                $project: {
+                  teacher: 1,
+                  course: 1,
+                  subject: 1,
+                  yearSec: 1,
+                  schedules: 1,
+                },
+              },
+              // populate subject
+              {
+                $lookup: {
+                  from: 'subjects',
+                  localField: 'subject',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                        units: 1,
+                      },
+                    },
+                  ],
+                  as: 'subject',
+                },
+              },
+              // populate course
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                      },
+                    },
+                  ],
+                  as: 'courseCodeName',
+                },
+              },
+              // // populate course teacher
+              {
+                $lookup: {
+                  from: 'teachers',
+                  localField: 'teacher',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        _id: 1,
+                        teacherId: 1,
+                        firstName: 1,
+                        lastName: 1,
+                      },
+                    },
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $project: {
+                              day: { $arrayElemAt: ['$schedules.day', 0] },
+                              room: { $arrayElemAt: ['$schedules.room', 0] },
+                              times: { $arrayElemAt: ['$schedules.times', 0] },
+                            },
+                          },
+                        ],
+                        as: 'existingSchedules',
+                      },
+                    },
+                  ],
+                  as: 'teacher',
+                },
+              },
+              // to get first index of courseCodeName, subject
+              {
+                $project: {
+                  yearSec: 1,
+                  dayTimes: '$schedules',
+                  teacher: {
+                    $arrayElemAt: ['$teacher', 0],
+                  },
+                  subject: {
+                    $arrayElemAt: ['$subject', 0],
+                  },
+                  course: {
+                    $arrayElemAt: ['$courseCodeName', 0],
+                  },
+                },
+              },
+              // group schedules of the course by room.
+              {
+                $unwind: '$dayTimes',
+              },
+              {
+                $group: {
+                  _id: {
+                    code: '$dayTimes.room.code',
+                  },
+                  code: { $first: '$dayTimes.room.code' },
+                  subject: { $first: '$subject' },
+                  teacher: { $first: '$teacher' },
+                  dayTimes: { $first: '$dayTimes' },
+                  yearSec: { $first: '$yearSec' },
+                  course: { $first: '$course' },
+                },
+              },
+              // project items on roomsSchedules
+              {
+                $project: {
+                  code: '$_id.code', // room code
+                  subject: 1,
+                  teacher: 1,
+                  dayTimes: 1,
+                  course: {
+                    code: '$course.code',
+                    name: '$course.name',
+                    year: '$yearSec.year',
+                    section: '$yearSec.section',
+                  },
+                },
+              },
+            ],
+            as: 'roomSchedules',
+          },
+        },
+
+        //--------------
         // check if the course-year-section is completed,
         // means all subjects are already scheduled by day to total of time.
         {
@@ -218,11 +361,6 @@ class Course extends Model {
             semester: semester,
             subjects: '$subjects',
             completed: false,
-          },
-        },
-        {
-          $match: {
-            'course.section': section,
           },
         },
         {
