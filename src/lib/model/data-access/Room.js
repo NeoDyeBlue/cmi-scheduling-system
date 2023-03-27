@@ -233,7 +233,13 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
-                  dayTimes: 1,
+                  dayTimes: {
+                    $filter: {
+                      input: '$dayTimes',
+                      as: 'day_time',
+                      cond: { $eq: ['$$day_time.room.code', roomCode] },
+                    },
+                  },
                   course: {
                     code: '$course.code',
                     name: '$course.name',
