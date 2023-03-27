@@ -213,6 +213,7 @@ class Course extends Model {
           },
         },
         // get rooms that this course have schedule ---------------------
+        // fieldName: rooms, description : schedules of the course on every rooms and anlso grouped it by room
         {
           $lookup: {
             from: 'schedules',
@@ -335,7 +336,7 @@ class Course extends Model {
               // project items on roomsSchedules
               {
                 $project: {
-                  code: '$_id.code', // room code
+                  roomCode: '$_id.code', // room code
                   subject: 1,
                   teacher: 1,
                   dayTimes: 1,
@@ -347,8 +348,22 @@ class Course extends Model {
                   },
                 },
               },
+              {
+                $group: {
+                  _id: '$roomCode',
+                  code: { $first: '$roomCode' },
+                  schedules: {
+                    $push: {
+                      subject: '$subject',
+                      teacher: '$teacher',
+                      dayTimes: '$dayTimes',
+                      course: '$course',
+                    },
+                  },
+                },
+              },
             ],
-            as: 'roomSchedules',
+            as: 'rooms',
           },
         },
 
