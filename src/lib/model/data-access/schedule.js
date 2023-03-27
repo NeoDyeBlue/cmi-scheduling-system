@@ -33,6 +33,7 @@ class Schedule extends Model {
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       return data;
     } catch (error) {
+      console.log("error",error)
       throw error;
     }
   }

@@ -5,12 +5,19 @@ export const handler = async (req, res) => {
   const { p } = req.query;
   if (req.method === 'GET' && p === 'draggable') {
     try {
-      const { semester, year, section, course: courseCode } = req.query;
+      const {
+        semester,
+        year,
+        section,
+        course: courseCode,
+        room: roomCode,
+      } = req.query;
       const data = await Course.getCourseSubjectTeachers({
         courseCode: courseCode.toLowerCase(),
         semester,
         year,
         section,
+        roomCode,
       });
 
       return successResponse(req, res, data);

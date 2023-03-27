@@ -124,8 +124,14 @@ class Course extends Model {
       throw error;
     }
   }
-
-  async getCourseSubjectTeachers({ courseCode, semester, year, section }) {
+  // ----------------------------------------------------
+  async getCourseSubjectTeachers({
+    courseCode,
+    semester,
+    year,
+    section,
+    roomCode,
+  }) {
     try {
       // look up for subjects
       // lookup for teachers
@@ -212,13 +218,20 @@ class Course extends Model {
             subjects: { $first: '$yearSections.subjects' },
           },
         },
+
         // get rooms that this course have schedule ---------------------
         // fieldName: rooms, description : schedules of the course on every rooms and anlso grouped it by room
+        // add field to have room code to lookup to the schedules.
+        {
+          $addFields: {
+            roomCode: roomCode,
+          },
+        },
         {
           $lookup: {
             from: 'schedules',
-            localField: '_id._id',
-            foreignField: 'course',
+            localField: 'roomCode',
+            foreignField: 'schedules.room.code', // schedules.room.code
             pipeline: [
               {
                 $project: {
@@ -316,30 +329,20 @@ class Course extends Model {
                   },
                 },
               },
+
               // group schedules of the course by room.
               {
-                $unwind: '$dayTimes',
-              },
-              {
-                $group: {
-                  _id: {
-                    code: '$dayTimes.room.code',
-                  },
-                  code: { $first: '$dayTimes.room.code' },
-                  subject: { $first: '$subject' },
-                  teacher: { $first: '$teacher' },
-                  dayTimes: { $push: '$dayTimes' }, // I think theres something wrong and filter by room code only
-                  yearSec: { $first: '$yearSec' },
-                  course: { $first: '$course' },
-                },
-              },
-              // project items on roomsSchedules
-              {
                 $project: {
-                  roomCode: '$_id.code', // room code
                   subject: 1,
                   teacher: 1,
-                  dayTimes: 1,
+                  existingSchedules: 1,
+                  dayTimes: {
+                    $filter: {
+                      input: '$dayTimes',
+                      as: 'day_time',
+                      cond: { $eq: ['$$day_time.room.code', roomCode] },
+                    },
+                  },
                   course: {
                     code: '$course.code',
                     name: '$course.name',
@@ -348,10 +351,11 @@ class Course extends Model {
                   },
                 },
               },
+
               {
                 $group: {
-                  _id: '$roomCode',
-                  code: { $first: '$roomCode' },
+                  _id: roomCode, // room code
+                  code: { $first: '$roomCode' }, // room code from schedules
                   schedules: {
                     $push: {
                       subject: '$subject',
