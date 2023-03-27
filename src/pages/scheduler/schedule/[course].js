@@ -37,6 +37,7 @@ export default function Schedule() {
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
+    setOldSchedsData,
     reset,
   } = useSchedulerStore(
     useCallback(
@@ -54,6 +55,7 @@ export default function Schedule() {
         setSubjectScheds: state.setSubjectScheds,
         setSelectedRooms: state.setSelectedRooms,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+        setOldSchedsData: state.setOldSchedsData,
         reset: state.reset,
       }),
       []
@@ -91,11 +93,11 @@ export default function Schedule() {
       const courseSubjectsData = [];
       schedulerData?.subjects?.forEach((subject) => {
         subject?.assignedTeachers?.forEach((teacher) => {
-          const dataId = `${subject.code}~${teacher.teacherId}`;
+          const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
           const { teachers, ...newData } = subject;
           courseSubjectsData.push({
             id: dataId,
-            data: { ...newData, teacher },
+            data: { ...newData, teacher, course: schedulerData?.course },
           });
         });
       });
@@ -108,13 +110,13 @@ export default function Schedule() {
       const roomSubjectsData = [];
       selectedRooms.forEach((room) => {
         room.schedules.forEach((schedule) => {
-          const dataId = `${schedule.subject.code}~${schedule.teacher.id}`;
+          const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
           if (
             !subjectsData.some((data) => data.id == dataId) &&
             !roomSubjectsData.some((data) => data.id == dataId)
           ) {
             roomSubjectsData.push({
-              id: `${schedule.subject.code}~${schedule.teacherId}`,
+              id: dataId,
               data: {
                 ...schedule.subject,
                 teacher: schedule.teacher,
@@ -133,7 +135,7 @@ export default function Schedule() {
     [course, subjectScheds]
   );
 
-  // console.log(schedulerData);
+  // console.log(subjectsData);
 
   if (!schedulerData || isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
@@ -144,7 +146,7 @@ export default function Schedule() {
     return subject?.assignedTeachers.map((teacher, teacherIndex) => (
       <DraggableSchedule
         key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-        data={{ ...newData, teacher }}
+        data={{ ...newData, teacher, course }}
       />
     ));
   });
@@ -215,6 +217,10 @@ export default function Schedule() {
   }
 
   async function submitChanges() {
+    console.log({
+      ...formData,
+      semester: schedulerData?.semester,
+    });
     try {
       setIsSubmitting(true);
       const res = await fetch('/api/schedules', {
@@ -228,11 +234,13 @@ export default function Schedule() {
       const result = await res.json();
       if (result?.success) {
         toast.success('Schedules saved');
+        setOldSchedsData({ course, subjectScheds });
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
       setIsSubmitting(false);
     } catch (error) {
+      console.log(error);
       setIsSubmitting(false);
       toast.error("Can't save schedules");
     }
