@@ -12,6 +12,8 @@ import { ImageWithFallback } from '../Misc';
  * @todo fix grid responsiveness
  * @todo fix the isDragging not triggering restrictions
  * @todo show subject info on layout item(optional)
+ * @todo fix maxH is getting limited if there is same subj and same teacher
+ * @todo fix existing scheds from other room restriction not showing
  */
 
 export default function Scheduler({
@@ -156,15 +158,19 @@ export default function Scheduler({
 
   const scheduleCells = layout
     .filter((item) => {
-      const { subjectCode, teacherId } = parseSubjSchedId(item.i);
+      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+        item.i
+      );
       return subjectsData.some(
-        (data) => data.id == `${subjectCode}~${teacherId}`
+        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
       );
     })
     .map((schedule) => {
       const data = subjectsData.find((subject) => {
-        const { subjectCode, teacherId } = parseSubjSchedId(schedule.i);
-        return subject.id == `${subjectCode}~${teacherId}`;
+        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+          schedule.i
+        );
+        return subject.id == `${subjectCode}~${teacherId}~${courseYearSec}`;
       })?.data;
 
       return (
@@ -235,32 +241,24 @@ export default function Scheduler({
       return <div key={restriction.i} className="bg-gray-300/50"></div>;
     });
 
-  // useEffect(() => {
-  //   const roomLayout = roomsSubjSchedsLayouts.find(
-  //     (schedsLayout) => schedsLayout.roomData.code == roomData.code
-  //   )?.layout;
-
-  //   console.log(roomLayout);
-  //   setLayout([
-  //     ...headers,
-  //     ...(roomLayout?.length ? roomLayout : []),
-  //     ...timeLayout.flat(),
-  //   ]);
-  // }, [roomsSubjSchedsLayouts]);
-
   //effects
   useEffect(
     () => {
+      //get the existing room layout
       const existingRoomLayout =
         roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
           ?.layout || [];
+      //if there is an existing room layout
       if (existingRoomLayout.length) {
         setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
       } else {
         const roomSubjectsLayout = [];
         const roomSubjectScheds = [];
+        //for each subject schedule
         roomData?.schedules?.forEach((subjSchedule) => {
+          //for each schedule day times of the subject
           subjSchedule.dayTimes.forEach((dayTime) => {
+            //for each times of the day
             dayTime.times.forEach((time) => {
               const yStart =
                 timeData.findIndex((timePairs) => timePairs[0] == time.start) +
@@ -269,7 +267,9 @@ export default function Scheduler({
                 timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
               roomSubjectsLayout.push({
                 i: `${subjSchedule.subject.code}~${
-                  subjSchedule.teacherId
+                  subjSchedule.teacher.teacherId
+                }~${subjSchedule.course.code}${subjSchedule.course.year}${
+                  subjSchedule.course.section
                 }~${nanoid(10)}`,
                 x: dayTime.day,
                 w: 1,
@@ -318,35 +318,49 @@ export default function Scheduler({
   useEffect(() => {
     const subjSchedIds = subjectsData.map((data) => data.id);
     const subjSchedItems = layout.filter((item) => {
-      const { subjectCode, teacherId } = parseSubjSchedId(item.i);
+      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+        item.i
+      );
       return (
-        subjSchedIds.includes(`${subjectCode}~${teacherId}`) && !item.static
+        subjSchedIds.includes(`${subjectCode}~${teacherId}~${courseYearSec}`) &&
+        !item.static
       );
     });
 
     //remove subjSchedIds that has no layout item
     const filteredSubjSchedIds = subjSchedIds.filter((id) =>
       subjSchedItems.some((item) => {
-        const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-        return id == `${subjectCode}~${teacherId}`;
+        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+          item.i
+        );
+        return id == `${subjectCode}~${teacherId}~${courseYearSec}`;
       })
     );
 
     const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
-      const { subjectCode, teacherId } = parseSubjSchedId(id);
-      return { code: subjectCode, teacher: teacherId };
+      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(id);
+      return { code: subjectCode, teacher: teacherId, courseYearSec };
     });
 
     const newRoomSubjectScheds = [];
     //for each schedIds
 
-    subjSchedIdsParsed.forEach(({ code, teacher }) => {
-      //get the subject layout items from subject code
-      const subjSchedLayoutItems = subjSchedItems.filter(
-        (item) => item.i.split('~')[0] == code
-      );
+    subjSchedIdsParsed.forEach(({ code, teacher, courseYearSec }) => {
+      //get the subject layout items of the same id
+      const subjSchedLayoutItems = subjSchedItems.filter((item) => {
+        const {
+          subjectCode: itemSubjCode,
+          teacherId: itemTeacherId,
+          courseYearSec: itemCourseYearSec,
+        } = parseSubjSchedId(item.i);
+        return (
+          code == itemSubjCode &&
+          teacher == itemTeacherId &&
+          courseYearSec == itemCourseYearSec
+        );
+      });
       const subjectData = subjectsData.find(
-        (data) => data.id == `${code}~${teacher}`
+        (data) => data.id == `${code}~${teacher}~${courseYearSec}`
       );
       //set the subject's times and days
       const schedules = subjSchedLayoutItems.map((layout) => ({
@@ -455,8 +469,8 @@ export default function Scheduler({
 
   //other funcs
   function parseSubjSchedId(id, separator = '~') {
-    const [subjectCode, teacherId, nanoId] = id.split(separator);
-    return { subjectCode, teacherId, nanoId };
+    const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
+    return { subjectCode, teacherId, courseYearSec, nanoId };
   }
 
   function removeLayoutItem(layoutId) {
@@ -472,19 +486,32 @@ export default function Scheduler({
    */
 
   function updateSubjSchedsMaxH(layoutSource, layoutItemId) {
-    const { subjectCode, teacherId } = parseSubjSchedId(layoutItemId);
+    //parse layoutItemId
+    const { subjectCode, teacherId, courseYearSec } =
+      parseSubjSchedId(layoutItemId);
+    //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
+    //get the layout items with the same ids
     const roomSubjSchedItems = layoutSource.filter((item) => {
-      const { subjectCode, teacherId } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      const {
+        subjectCode: itemSubjectCode,
+        teacherId: itemTeacherId,
+        courseYearSec: itemCourseYearSec,
+      } = parseSubjSchedId(item.i);
+      return subjSchedIds.includes(
+        `${itemSubjectCode}~${itemTeacherId}~${itemCourseYearSec}`
+      );
     });
+    //get the layout from other rooms
     const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
       (roomLayout) => roomLayout.roomCode !== roomData.code
     );
+    //get the subject's data
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}`
+      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
     )?.data;
 
+    //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
       const unitsMaxSpan = subjectData.units * 2;
       const subjSchedItems = [
@@ -493,8 +520,16 @@ export default function Scheduler({
           .map((obj) => obj.layout)
           .flat(),
       ].filter((item) => {
-        const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
-        return subjectCode == itemSubjCode;
+        const {
+          subjectCode: itemSubjectCode,
+          teacherId: itemTeacherId,
+          courseYearSec: itemCourseYearSec,
+        } = parseSubjSchedId(item.i);
+        return (
+          subjectCode == itemSubjectCode &&
+          teacherId == itemTeacherId &&
+          courseYearSec == itemCourseYearSec
+        );
       });
 
       const { totalRowSpanCount } = subjSchedItems.reduce(
@@ -565,14 +600,24 @@ export default function Scheduler({
     layoutItem,
     fromDrop = false
   ) {
-    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+      layoutItem.i
+    );
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}`
+      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
     )?.data;
     if (subjectData) {
       const subjSchedItems = layoutSource.filter((item) => {
-        const { subjectCode: itemSubjCode } = parseSubjSchedId(item.i);
-        return subjectCode == itemSubjCode;
+        const {
+          subjectCode: itemSubjCode,
+          teacherId: itemTeacherId,
+          courseYearSec: itemCourseYearSec,
+        } = parseSubjSchedId(item.i);
+        return (
+          subjectCode == itemSubjCode &&
+          teacherId == itemTeacherId &&
+          courseYearSec == itemCourseYearSec
+        );
       });
 
       if (fromDrop) {
@@ -829,7 +874,7 @@ export default function Scheduler({
       const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const nanoId = nanoid(10);
-        const layoutItemId = `${data.code}~${data.teacher.teacherId}~${nanoId}`;
+        const layoutItemId = `${data.code}~${data.teacher.teacherId}~${data.course.code}${data.course.year}${data.course.section}~${nanoId}`;
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
@@ -850,11 +895,14 @@ export default function Scheduler({
   function onDropDragOver() {
     //set item dragging item maxH and minH
     if (draggingSubject) {
+      console.log(draggingSubject);
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
-          const { subjectCode, teacherId } = parseSubjSchedId(item.i);
+          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+            item.i
+          );
           return subjectsData.some(
-            (data) => data.id == `${subjectCode}~${teacherId}`
+            (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
           );
         })
         .reduce(
@@ -886,9 +934,11 @@ export default function Scheduler({
   function onDragStart(newLayout, layoutItem) {
     if (!isDraggingFromOutside && layoutItem.i !== '__dropping-elem__') {
       setIsDragging(true);
-      const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+        layoutItem.i
+      );
       const subjectData = subjectsData.find(
-        (data) => data.id == `${subjectCode}~${teacherId}`
+        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
       )?.data;
       createRestrictions(layout, subjectData);
     }
@@ -905,9 +955,11 @@ export default function Scheduler({
 
   function onResizeStart(newLayout, layoutItem) {
     setIsResizing(true);
-    const { subjectCode, teacherId } = parseSubjSchedId(layoutItem.i);
+    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+      layoutItem.i
+    );
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}`
+      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
     )?.data;
     createRestrictions(layout, subjectData);
   }
