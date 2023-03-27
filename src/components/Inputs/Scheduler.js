@@ -580,6 +580,8 @@ export default function Scheduler({
         ],
       };
 
+      console.log(newRoomLayout);
+
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
       setLayout([...headers, ...newRoomLayout.layout, ...timeLayout.flat()]);
     } else {
@@ -895,7 +897,6 @@ export default function Scheduler({
   function onDropDragOver() {
     //set item dragging item maxH and minH
     if (draggingSubject) {
-      console.log(draggingSubject);
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
           const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(

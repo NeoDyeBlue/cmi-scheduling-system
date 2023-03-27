@@ -102,6 +102,7 @@ export default function Schedule() {
         });
       });
       setSubjectsData(courseSubjectsData);
+      setSelectedRooms(schedulerData?.rooms);
     }
   }, [setCourseSubjects, setSubjectsData, setCourse, result]);
 
