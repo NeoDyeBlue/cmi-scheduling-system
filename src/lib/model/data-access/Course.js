@@ -327,7 +327,7 @@ class Course extends Model {
                   code: { $first: '$dayTimes.room.code' },
                   subject: { $first: '$subject' },
                   teacher: { $first: '$teacher' },
-                  dayTimes: { $first: '$dayTimes' },
+                  dayTimes: { $push: '$dayTimes' }, // I think theres something wrong and filter by room code only
                   yearSec: { $first: '$yearSec' },
                   course: { $first: '$course' },
                 },
