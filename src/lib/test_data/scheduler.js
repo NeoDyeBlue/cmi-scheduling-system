@@ -194,6 +194,221 @@ const schedulerData = {
   ],
 };
 
+const testSchedulerResponseData = {
+  code: 200,
+  data: [
+    {
+      subjects: [
+        {
+          _id: '641fd035b9a3e0fcfc1441f0',
+          code: 'math',
+          name: 'Mathematics',
+          units: 1,
+          assignedTeachers: [
+            {
+              _id: '641fd00db9a3e0fcfc1441e8',
+              firstName: 'Zhongli',
+              lastName: 'Pillario',
+              image: '/images/teachers/641fd00db9a3e0fcfc1441e8.png',
+              type: 'full-time',
+              preferredDayTimes: [],
+              teacherId: '19-1460',
+              existingSchedules: [
+                {
+                  _id: '64211ab21cbef4dc8bdcf28a',
+                  day: 1,
+                  room: {
+                    _id: '641fd053b9a3e0fcfc1441f7',
+                    code: 'cb207',
+                  },
+                  times: [
+                    {
+                      start: '6:00 AM',
+                      end: '7:00 AM',
+                      _id: '642119bff4d3717efbd55834',
+                    },
+                  ],
+                },
+                {
+                  _id: '64211af81cbef4dc8bdd470a',
+                  day: 4,
+                  room: {
+                    _id: '641fd053b9a3e0fcfc1441f7',
+                    code: 'cb207',
+                  },
+                  times: [
+                    {
+                      start: '9:30 AM',
+                      end: '10:30 AM',
+                      _id: '64212b24038bec34c511146b',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      rooms: [
+        {
+          _id: 'cb207',
+          code: 'cb207',
+          schedules: [
+            {
+              subject: {
+                _id: '641fd035b9a3e0fcfc1441f0',
+                code: 'math',
+                name: 'Mathematics',
+                units: 1,
+              },
+              teacher: {
+                _id: '641fd00db9a3e0fcfc1441e8',
+                firstName: 'Zhongli',
+                lastName: 'Pillario',
+                teacherId: '19-1460',
+                existingSchedules: [
+                  {
+                    _id: '64211ab21cbef4dc8bdcf28a',
+                    day: 1,
+                    room: {
+                      _id: '641fd053b9a3e0fcfc1441f7',
+                      code: 'cb207',
+                    },
+                    times: [
+                      {
+                        start: '6:00 AM',
+                        end: '7:00 AM',
+                        _id: '642119bff4d3717efbd55834',
+                      },
+                    ],
+                  },
+                  {
+                    _id: '64211af81cbef4dc8bdd470a',
+                    day: 4,
+                    room: {
+                      _id: '641fd053b9a3e0fcfc1441f7',
+                      code: 'cb207',
+                    },
+                    times: [
+                      {
+                        start: '9:30 AM',
+                        end: '10:30 AM',
+                        _id: '64212b24038bec34c511146b',
+                      },
+                    ],
+                  },
+                ],
+              },
+              dayTimes: [
+                {
+                  day: 4,
+                  room: {
+                    _id: '641fd053b9a3e0fcfc1441f7',
+                    code: 'cb207',
+                  },
+                  times: [
+                    {
+                      start: '9:30 AM',
+                      end: '10:30 AM',
+                      _id: '64212b24038bec34c511146b',
+                    },
+                  ],
+                  _id: '64212b24038bec34c511146a',
+                },
+              ],
+              course: {
+                code: 'bscs',
+                name: 'Computer Science',
+                year: 1,
+                section: 'A',
+              },
+            },
+            {
+              subject: {
+                _id: '641fd035b9a3e0fcfc1441f0',
+                code: 'math',
+                name: 'Mathematics',
+                units: 1,
+              },
+              teacher: {
+                _id: '641fd00db9a3e0fcfc1441e8',
+                firstName: 'Zhongli',
+                lastName: 'Pillario',
+                teacherId: '19-1460',
+                existingSchedules: [
+                  {
+                    _id: '64211ab21cbef4dc8bdcf28a',
+                    day: 1,
+                    room: {
+                      _id: '641fd053b9a3e0fcfc1441f7',
+                      code: 'cb207',
+                    },
+                    times: [
+                      {
+                        start: '6:00 AM',
+                        end: '7:00 AM',
+                        _id: '642119bff4d3717efbd55834',
+                      },
+                    ],
+                  },
+                  {
+                    _id: '64211af81cbef4dc8bdd470a',
+                    day: 4,
+                    room: {
+                      _id: '641fd053b9a3e0fcfc1441f7',
+                      code: 'cb207',
+                    },
+                    times: [
+                      {
+                        start: '9:30 AM',
+                        end: '10:30 AM',
+                        _id: '64212b24038bec34c511146b',
+                      },
+                    ],
+                  },
+                ],
+              },
+              dayTimes: [
+                {
+                  day: 1,
+                  room: {
+                    _id: '641fd053b9a3e0fcfc1441f7',
+                    code: 'cb207',
+                  },
+                  times: [
+                    {
+                      start: '9:30 AM',
+                      end: '10:30 AM',
+                      _id: '64212b24038bec34c511146b',
+                    },
+                  ],
+                  _id: '64212b24038bec34c511146a',
+                },
+              ],
+              course: {
+                code: 'bsgi',
+                name: 'Genshin',
+                year: 1,
+                section: 'A',
+              },
+            },
+          ],
+        },
+      ],
+      course: {
+        _id: '641fd152b9a3e0fcfc14421f',
+        code: 'bscs',
+        name: 'Computer Science',
+        year: 1,
+        section: 'A',
+      },
+      semester: '1',
+      completed: false,
+    },
+  ],
+  success: true,
+};
+
 const rooms = [
   {
     code: 'CB206',
