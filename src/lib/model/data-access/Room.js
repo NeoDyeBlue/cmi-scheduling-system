@@ -199,7 +199,9 @@ class Room extends Model {
                         pipeline: [
                           {
                             $project: {
-                              existingSchedules: '$schedules',
+                              day: { $arrayElemAt: ['$schedules.day', 0] },
+                              room: { $arrayElemAt: ['$schedules.room', 0] },
+                              times: { $arrayElemAt: ['$schedules.times', 0] },
                             },
                           },
                         ],
