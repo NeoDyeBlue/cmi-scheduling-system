@@ -269,7 +269,7 @@ class Room extends Model {
       throw error;
     }
   }
-  async getAllRoomSchedules() {
+  async getAllRoomSchedules({ semester }) {
     try {
       const pipeline = [
         {
@@ -285,6 +285,11 @@ class Room extends Model {
             localField: 'code',
             foreignField: 'schedules.room.code',
             pipeline: [
+              {
+                $match: {
+                  semester: parseInt(semester),
+                },
+              },
               {
                 $project: {
                   teacher: 1,
@@ -392,7 +397,7 @@ class Room extends Model {
                     $filter: {
                       input: '$dayTimes',
                       as: 'day_time',
-                      cond: { $eq: ['$$day_time.room.code', "$roomCode"] },
+                      cond: { $eq: ['$$day_time.room.code', '$roomCode'] },
                     },
                   },
                   course: {
