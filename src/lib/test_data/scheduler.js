@@ -513,6 +513,10 @@ const lagyanDawCommentsSabiNiAdam = [
                 // },
                 times: [
                   {
+                    /**
+                     * remove field:
+                     * room: {code, _id, name(optional)},
+                     */
                     start: '6:00 AM',
                     end: '6:30 AM',
                     _id: '642271fdcdba7e6ef0b6d368',
