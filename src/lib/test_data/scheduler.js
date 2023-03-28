@@ -435,15 +435,28 @@ const lagyanDawCommentsSabiNiAdam = [
                 //   code: 'cb207',
                 // },
                 times: [
-                  /**
-                   * add fields:
-                   * room: {code, _id, name(optional)},
-                   * course: {code, year, section, _id, name(optional)},
-                   * subject: {code, name(optional), _id}
-                   */
                   {
+                    /**
+                     * add fields:
+                     * room: {code, _id, name(optional)},
+                     * course: {code, year, section, _id, name(optional)},
+                     * subject: {code, name(optional), _id}
+                     */
+                    // same day sched different time for subject math
                     start: '6:00 AM',
                     end: '6:30 AM',
+                    _id: '642271fdcdba7e6ef0b6d368',
+                  },
+                  {
+                    /**
+                     * add fields:
+                     * room: {code, _id, name(optional)},
+                     * course: {code, year, section, _id, name(optional)},
+                     * subject: {code, name(optional), _id, semester}
+                     */
+                    // same day sched different time for subject math
+                    start: '7:00 AM',
+                    end: '7:30 AM',
                     _id: '642271fdcdba7e6ef0b6d368',
                   },
                 ],

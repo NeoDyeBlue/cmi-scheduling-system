@@ -189,8 +189,7 @@ export default function Schedule() {
         startTime="6:00 AM"
         endTime="6:00 PM"
         interval={30}
-        roomCode={room.code}
-        roomSchedules={room.schedules}
+        semester={schedulerData?.semester}
         roomData={room}
       />
     </TabPanel>

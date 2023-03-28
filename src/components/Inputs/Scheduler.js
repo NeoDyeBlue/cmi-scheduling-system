@@ -21,6 +21,7 @@ export default function Scheduler({
   endTime = '12:00 AM',
   interval = 30,
   roomData,
+  semester,
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -715,13 +716,10 @@ export default function Scheduler({
       let availableTimesY = [];
       let unavailableTimesY = [];
       let unavailableTimeYPairs = [];
-      console.log(subjectData);
       const existingScheduleTimes =
         (subjectData?.teacher?.existingSchedules &&
           subjectData?.teacher?.existingSchedules.find(
-            (existingSchedule) =>
-              existingSchedule.day == x &&
-              existingSchedule.room.code !== roomData.code
+            (existingSchedule) => existingSchedule.day == x
           )?.times) ||
         [];
       const inSchedulerDayTimes = subjectScheds
@@ -776,15 +774,21 @@ export default function Scheduler({
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingScheduleTimes.length) {
         existingScheduleTimes.forEach((scheduleTime) => {
-          const timeStartIndex = timeData.findIndex((time) => {
-            return time[0] == scheduleTime.start;
-          });
-          const timeEndIndex = timeData.findIndex((time) => {
-            return time[1] == scheduleTime.end;
-          });
+          if (
+            `${course.code}${course.year}${course.section}` !==
+              `${scheduleTime.course.code}${scheduleTime.course.year}${scheduleTime.course.section}` ||
+            scheduleTime.subject.semester !== semester
+          ) {
+            const timeStartIndex = timeData.findIndex((time) => {
+              return time[0] == scheduleTime.start;
+            });
+            const timeEndIndex = timeData.findIndex((time) => {
+              return time[1] == scheduleTime.end;
+            });
 
-          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-            unavailableTimesY.push(i + 1);
+            for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+              unavailableTimesY.push(i + 1);
+            }
           }
         });
       }
