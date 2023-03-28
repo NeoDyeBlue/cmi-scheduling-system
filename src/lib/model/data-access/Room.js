@@ -285,11 +285,7 @@ class Room extends Model {
             localField: 'code',
             foreignField: 'schedules.room.code',
             pipeline: [
-              {
-                $match: {
-                  $expr: { $eq: ['$schedules.room.code', '$$roomCode'] },
-                },
-              },
+ 
               {
                 $project: {
                   teacher: 1,
@@ -410,7 +406,7 @@ class Room extends Model {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
         },
         {
-          $project: { code: 1, name: 1, schedules: 1 },
+          $project: { _id: 1, code: 1, name: 1, schedules: 1 },
         },
 
         // {
