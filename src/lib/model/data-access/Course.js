@@ -185,6 +185,7 @@ class Course extends Model {
                               course: 1,
                               subject: 1,
                               teacher: 1,
+                              yearSec: 1,
                               schedules: 1, // dayTimes
                             },
                           },
@@ -225,6 +226,7 @@ class Course extends Model {
                           {
                             $project: {
                               schedules: 1,
+                              yearSec: 1,
                               subject: {
                                 $arrayElemAt: ['$subject', 0],
                               },
@@ -233,7 +235,19 @@ class Course extends Model {
                               },
                             },
                           },
-
+                          // yearSec on scourse
+                          {
+                            $project: {
+                              schedules: 1,
+                              subject: 1,
+                              course: {
+                                year: '$yearSec.year',
+                                section: '$yearSec.section',
+                                code: '$course.code',
+                                name: '$course.name',
+                              },
+                            },
+                          },
                           //  add fields on schedules.times
                           {
                             $addFields: {

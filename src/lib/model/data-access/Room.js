@@ -271,7 +271,7 @@ class Room extends Model {
       throw error;
     }
   }
-  async getAllRoomSchedules({ semester }) {
+  async getAllRoomSchedules({ semester, courseCode }) {
     try {
       const pipeline = [
         {
@@ -280,6 +280,7 @@ class Room extends Model {
         {
           $project: { _id: 1, code: 1, name: 1 },
         },
+
         {
           $lookup: {
             from: 'schedules',
@@ -415,8 +416,20 @@ class Room extends Model {
             as: 'schedules',
           },
         },
+
         {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
+        },
+        {
+          $project: {
+            schedules: {
+              $filter: {
+                input: '$schedules',
+                as: 'scheds',
+                cond: { $eq: ['$$scheds.course.code', courseCode] },
+              },
+            },
+          },
         },
         {
           $project: { _id: 1, code: 1, name: 1, schedules: 1 },
