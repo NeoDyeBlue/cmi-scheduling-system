@@ -422,6 +422,9 @@ class Room extends Model {
         },
         {
           $project: {
+            _id: 1,
+            code: 1,
+            name: 1,
             schedules: {
               $filter: {
                 input: '$schedules',
@@ -431,9 +434,7 @@ class Room extends Model {
             },
           },
         },
-        {
-          $project: { _id: 1, code: 1, name: 1, schedules: 1 },
-        },
+       
 
         // {
         //   $project: {
