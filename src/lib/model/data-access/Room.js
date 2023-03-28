@@ -228,6 +228,7 @@ class Room extends Model {
                   },
                 },
               },
+              // filter only the dayTimes of specific room per schedule.
               {
                 $project: {
                   subject: 1,
@@ -265,6 +266,145 @@ class Room extends Model {
       return data;
     } catch (error) {
       console.log('error', error);
+      throw error;
+    }
+  }
+  async getAllRoomSchedules() {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $project: { _id: 1, code: 1, name: 1 },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            let: { roomCode: '$code' },
+            localField: 'code',
+            foreignField: 'schedules.room.code',
+            pipeline: [
+              {
+                $project: {
+                  teacher: 1,
+                  course: 1,
+                  subject: 1,
+                  yearSec: 1,
+                  schedules: 1,
+                  roomCode: '$$roomCode',
+                },
+              },
+              // populate subject
+              {
+                $lookup: {
+                  from: 'subjects',
+                  localField: 'subject',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                        units: 1,
+                      },
+                    },
+                  ],
+                  as: 'subject',
+                },
+              },
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        code: 1,
+                        name: 1,
+                      },
+                    },
+                  ],
+                  as: 'courseCodeName',
+                },
+              },
+              // // populate course teacher
+              {
+                $lookup: {
+                  from: 'teachers',
+                  localField: 'teacher',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        _id: 1,
+                        teacherId: 1,
+                        firstName: 1,
+                        lastName: 1,
+                      },
+                    },
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $project: {
+                              day: { $arrayElemAt: ['$schedules.day', 0] },
+                              room: { $arrayElemAt: ['$schedules.room', 0] },
+                              times: { $arrayElemAt: ['$schedules.times', 0] },
+                            },
+                          },
+                        ],
+                        as: 'existingSchedules',
+                      },
+                    },
+                  ],
+                  as: 'teacher',
+                },
+              },
+              // to get first index of courseCodeName, subject
+              {
+                $project: {
+                  yearSec: 1,
+                  roomCode: 1,
+                  dayTimes: '$schedules',
+                  teacher: {
+                    $arrayElemAt: ['$teacher', 0],
+                  },
+                  subject: {
+                    $arrayElemAt: ['$subject', 0],
+                  },
+                  course: {
+                    $arrayElemAt: ['$courseCodeName', 0],
+                  },
+                },
+              },
+              // filter only the dayTimes of specific room per schedule.
+              {
+                $project: {
+                  subject: 1,
+                  teacher: 1,
+                  existingSchedules: 1,
+                  dayTimes:1,
+                  course: {
+                    code: '$course.code',
+                    name: '$course.name',
+                    year: '$yearSec.year',
+                    section: '$yearSec.section',
+                  },
+                },
+              },
+            ],
+            as: 'roomSchedules',
+          },
+        },
+      ];
+      const data = await this.Room.aggregate(pipeline);
+      return data;
+    } catch (error) {
       throw error;
     }
   }
