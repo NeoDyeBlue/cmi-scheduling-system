@@ -217,11 +217,6 @@ class Course extends Model {
             subjects: { $first: '$yearSections.subjects' },
           },
         },
-
-        // get rooms that this course have schedule ---------------------
-        // fieldName: rooms, description : schedules of the course on every rooms and anlso grouped it by room
-        // add field to have room code to lookup to the schedules.
-
         
         //--------------
         // check if the course-year-section is completed,
