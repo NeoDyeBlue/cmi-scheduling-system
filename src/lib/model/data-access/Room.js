@@ -285,7 +285,6 @@ class Room extends Model {
             localField: 'code',
             foreignField: 'schedules.room.code',
             pipeline: [
- 
               {
                 $project: {
                   teacher: 1,
@@ -389,7 +388,13 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
-                  dayTimes: 1,
+                  dayTimes: {
+                    $filter: {
+                      input: '$dayTimes',
+                      as: 'day_time',
+                      cond: { $eq: ['$$day_time.room.code', "$roomCode"] },
+                    },
+                  },
                   course: {
                     code: '$course.code',
                     name: '$course.name',
