@@ -200,6 +200,7 @@ class Course extends Model {
                                     code: 1,
                                     name: 1,
                                     units: 1,
+                                    semester: 1,
                                   },
                                 },
                               ],
