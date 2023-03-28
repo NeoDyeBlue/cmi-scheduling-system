@@ -6,7 +6,10 @@ export const handler = async (req, res) => {
   if (req.method === 'GET' && p === 'draggable') {
     try {
       const { semester, year, section, course: courseCode } = req.query;
-      const roomSchedules = await Room.getAllRoomSchedules({ semester,courseCode });
+      const roomSchedules = await Room.getAllRoomSchedules({
+        semester,
+        courseCode,
+      });
 
       const data = await Course.getCourseSubjectTeachers({
         courseCode: courseCode.toLowerCase(),
