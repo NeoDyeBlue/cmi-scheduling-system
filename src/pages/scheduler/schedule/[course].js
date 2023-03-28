@@ -18,6 +18,7 @@ import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import useSWRImmutable from 'swr/immutable';
+import useSWR from 'swr';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 
@@ -72,13 +73,20 @@ export default function Schedule() {
     data: result,
     isLoading,
     error,
-  } = useSWRImmutable(
+  } = useSWR(
     `/api/courses/${courseCode}?${new URLSearchParams({
       semester,
       year,
       section,
       p: 'draggable',
-    }).toString()}`
+    }).toString()}`,
+    null,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+      revalidateOnReconnect: false,
+    }
   );
 
   const schedulerData = useMemo(

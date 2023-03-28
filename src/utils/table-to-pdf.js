@@ -1,17 +1,18 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import 'jspdf-autotable';
 
 export default function exportTableToPdf({
   filename = 'exported',
   tableId = '',
 }) {
-  const doc = new jsPDF({
-    orientation: 'landscape',
-  });
+  // const doc = new jsPDF({
+  //   orientation: 'landscape',
+  // });
 
   const table = document.getElementById(tableId);
 
-  console.log(tableId);
+  // console.log(tableId);
 
   //   html2canvas(table).then((canvas) => {
   //     const imgData = canvas.toDataURL('image/png');
@@ -23,7 +24,25 @@ export default function exportTableToPdf({
   //     doc.save(`${filename}.pdf`);
   //   });
 
-  doc.html(table).then(() => {
-    doc.save(`${filename}.pdf`);
+  html2canvas(table, { scale: 2 }).then((canvas) => {
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'landscape' });
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, null);
+    pdf.save(`${filename}.pdf`);
   });
+
+  // doc.autoTable({ html: table });
+
+  // doc.save(`${filename}.pdf`);
+
+  // doc.html(table, {
+  //   callback: function (doc) {
+  //     doc.save();
+  //   },
+  //   x: 10,
+  //   y: 10,
+  // });
 }

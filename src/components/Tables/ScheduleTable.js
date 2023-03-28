@@ -1,17 +1,13 @@
 import { useTable } from 'react-table';
-import { useMemo } from 'react';
+import { useMemo, forwardRef } from 'react';
 import { parse, addMinutes, format } from 'date-fns';
 import Image from 'next/image';
 import classNames from 'classnames';
 
-export default function ScheduleTable({
-  id,
-  data,
-  startTime,
-  endTime,
-  interval,
-  type,
-}) {
+const ScheduleTable = forwardRef(function ScheduleTable(
+  { id, data, startTime, endTime, interval, type, exportTitle = 'Schedules' },
+  ref
+) {
   const timeData = useMemo(() => {
     const start = parse(startTime, 'hh:mm a', new Date());
     const end = parse(endTime, 'hh:mm a', new Date());
@@ -238,114 +234,130 @@ export default function ScheduleTable({
   }
 
   return (
-    <table
-      id={id}
-      {...getTableProps()}
-      className="w-full border border-gray-200 lg:table-fixed"
-    >
-      <thead className="p-4 text-center font-display text-xs font-semibold">
-        {headerGroups.map((headerGroup, index) => (
-          <tr
-            key={index}
-            {...headerGroup.getHeaderGroupProps()}
-            className="border border-gray-300"
-          >
-            {headerGroup.headers.map((column, index) => (
-              <th
+    <>
+      <div className="page-landscape flex flex-col gap-4 print:m-4" ref={ref}>
+        <p className="hidden font-display text-2xl font-semibold print:block">
+          {exportTitle}
+        </p>
+        <table
+          id={id}
+          {...getTableProps()}
+          className="w-full border border-gray-200 lg:table-fixed"
+        >
+          <thead className="p-4 text-center font-display text-xs font-semibold">
+            {headerGroups.map((headerGroup, index) => (
+              <tr
                 key={index}
-                {...column.getHeaderProps()}
-                className="border border-gray-200 px-4 py-3"
+                {...headerGroup.getHeaderGroupProps()}
+                className="border border-gray-300"
               >
-                {column.render('Header')}
-              </th>
+                {headerGroup.headers.map((column, index) => (
+                  <th
+                    key={index}
+                    {...column.getHeaderProps()}
+                    className="border border-gray-200 px-4 py-3"
+                  >
+                    {column.render('Header')}
+                  </th>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, rowIndex) => {
-          prepareRow(row);
-          if (rowIndex == 0) {
-            row.rowSpans = [];
-          } else {
-            row.rowSpans =
-              rows[rowIndex - 1]?.rowSpans?.filter(
-                (r) => r.spanToRow >= rowIndex
-              ) || [];
-          }
-          for (let j = 0; j < row.allCells.length; j++) {
-            let cell = row.allCells[j];
-
-            if (cell.column?.enableRowSpan) {
-              let slot =
-                cell.value.length &&
-                cell.value.find(
-                  (slot) => slot.time.start == timeData[rowIndex][0]
-                );
-
-              let rowSpanToIndex = 0;
-
-              if (slot) {
-                const timeEndIndex = timeData.findIndex(
-                  (timePairs) => timePairs[1] == slot.time.end
-                );
-
-                rowSpanToIndex = timeEndIndex + 1;
-
-                row.rowSpans.push({
-                  index: j,
-                  spanToRow: rowSpanToIndex,
-                });
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, rowIndex) => {
+              prepareRow(row);
+              if (rowIndex == 0) {
+                row.rowSpans = [];
+              } else {
+                row.rowSpans =
+                  rows[rowIndex - 1]?.rowSpans?.filter(
+                    (r) => r.spanToRow >= rowIndex
+                  ) || [];
               }
-            }
-          }
-          return (
-            <tr
-              key={rowIndex}
-              {...row.getRowProps()}
-              className="border border-gray-200"
-            >
-              {row.cells.map((cell, cellIndex) => {
-                if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
-                  return (
-                    <td
-                      key={cellIndex}
-                      {...cell.getCellProps()}
-                      className={`border border-gray-200 px-4 py-3 text-center text-xs`}
-                    >
-                      <div
-                        className={classNames(
-                          'flex items-center justify-center gap-1 overflow-hidden px-3 text-center text-xs capitalize leading-none'
-                        )}
-                      >
-                        <p>{cell.value[0]}</p> - <p>{cell.value[1]}</p>
-                      </div>
-                    </td>
-                  );
-                } else {
-                  const slot =
+              for (let j = 0; j < row.allCells.length; j++) {
+                let cell = row.allCells[j];
+
+                if (cell.column?.enableRowSpan) {
+                  let slot =
                     cell.value.length &&
                     cell.value.find(
                       (slot) => slot.time.start == timeData[rowIndex][0]
                     );
+
+                  let rowSpanToIndex = 0;
+
                   if (slot) {
-                    return createScheduleCell(slot, cell, cellIndex, rowIndex);
-                  } else {
-                    let span = row.rowSpans.find((r) => r.index == cellIndex);
-                    return span && span.spanToRow > rowIndex ? null : (
-                      <td
-                        key={cellIndex}
-                        {...cell.getCellProps()}
-                        className={`min-w-[150px] border border-gray-200 px-4 py-3 text-center text-xs`}
-                      ></td>
+                    const timeEndIndex = timeData.findIndex(
+                      (timePairs) => timePairs[1] == slot.time.end
                     );
+
+                    rowSpanToIndex = timeEndIndex + 1;
+
+                    row.rowSpans.push({
+                      index: j,
+                      spanToRow: rowSpanToIndex,
+                    });
                   }
                 }
-              })}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+              }
+              return (
+                <tr
+                  key={rowIndex}
+                  {...row.getRowProps()}
+                  className="border border-gray-200"
+                >
+                  {row.cells.map((cell, cellIndex) => {
+                    if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
+                      return (
+                        <td
+                          key={cellIndex}
+                          {...cell.getCellProps()}
+                          className={`border border-gray-200 text-center text-xs`}
+                        >
+                          <div
+                            className={classNames(
+                              'flex min-h-[40px] items-center justify-center gap-1 overflow-hidden px-4 text-center text-xs capitalize leading-none'
+                            )}
+                          >
+                            <p>{cell.value[0]}</p> - <p>{cell.value[1]}</p>
+                          </div>
+                        </td>
+                      );
+                    } else {
+                      const slot =
+                        cell.value.length &&
+                        cell.value.find(
+                          (slot) => slot.time.start == timeData[rowIndex][0]
+                        );
+                      if (slot) {
+                        return createScheduleCell(
+                          slot,
+                          cell,
+                          cellIndex,
+                          rowIndex
+                        );
+                      } else {
+                        let span = row.rowSpans.find(
+                          (r) => r.index == cellIndex
+                        );
+                        return span && span.spanToRow > rowIndex ? null : (
+                          <td
+                            key={cellIndex}
+                            {...cell.getCellProps()}
+                            className={`min-w-[150px] border border-gray-200 px-4 py-3 text-center text-xs`}
+                          ></td>
+                        );
+                      }
+                    }
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
-}
+});
+
+export default ScheduleTable;

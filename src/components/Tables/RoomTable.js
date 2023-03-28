@@ -1,5 +1,5 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
 import {
@@ -17,7 +17,7 @@ import { Modal, Confirmation } from '../Modals';
 import { RoomForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
-import exportTableToPdf from '@/utils/table-to-pdf';
+import ReactToPrint from 'react-to-print';
 
 export default function RoomTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -27,6 +27,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const rooms = useMemo(() => data, [data]);
+  const toPrintRefs = useRef([]);
 
   const columns = useMemo(
     () => [
@@ -58,7 +59,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
       {
         Header: () => null,
         id: 'actions',
-        Cell: ({ cell }) => (
+        Cell: ({ cell, row }) => (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
@@ -83,17 +84,16 @@ export default function RoomTable({ data, mutate = () => {} }) {
                 setIsConfirmationOpen(true);
               }}
             />
-            <ActionButton
-              icon={<MdDownload size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="export"
-              toolTipContent="Export"
-              onClick={() => {
-                exportTableToPdf({
-                  filename: `${cell.row.original.code}`,
-                  tableId: `${cell.row.original.code}`,
-                });
-              }}
+            <ReactToPrint
+              trigger={() => (
+                <ActionButton
+                  icon={<MdDownload size={16} className="text-white" />}
+                  buttonColor={theme.colors.primary[400]}
+                  toolTipId="export"
+                  toolTipContent="Export"
+                />
+              )}
+              content={() => toPrintRefs.current[row.index]}
             />
           </div>
         ),
@@ -184,12 +184,12 @@ export default function RoomTable({ data, mutate = () => {} }) {
             ))}
           </thead>
           <tbody {...getTableBodyProps()}>
-            {rows.map((row, index) => {
+            {rows.map((row, rowIndex) => {
               prepareRow(row);
               return (
-                <React.Fragment key={index}>
+                <React.Fragment key={rowIndex}>
                   <tr
-                    key={index}
+                    key={rowIndex}
                     {...row.getRowProps()}
                     {...row.getToggleRowExpandedProps({ title: '' })}
                     className={classNames(
@@ -219,6 +219,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
                       <td colSpan={visibleColumns.length}>
                         <div className="overflow-auto">
                           <ScheduleTable
+                            ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                             id={row.original.code}
                             data={row.original.schedules}
                             startTime="7:00 AM"

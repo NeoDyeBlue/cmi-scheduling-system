@@ -11,11 +11,14 @@ import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import { addOrdinalSuffix } from '@/utils/number-utils';
 import React from 'react';
+import { useRef } from 'react';
+import ReactToPrint from 'react-to-print';
 
 export default function Course() {
   const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const { course } = router.query;
+  const toPrintRefs = useRef([]);
   const tabs = bscs.yearSections.map((yearSection) => (
     <Tab key={yearSection.year} selectedClassName="tab-active" className="tab">
       {addOrdinalSuffix(yearSection.year)}
@@ -34,15 +37,22 @@ export default function Course() {
                 <h3 className="font-display text-xl font-semibold">
                   Section {section.section}
                 </h3>
-                <ActionButton
-                  icon={<MdDownload size={16} className="text-white" />}
-                  buttonColor={theme.colors.primary[400]}
-                  toolTipId="export"
-                  toolTipContent="Export"
+                <ReactToPrint
+                  trigger={() => (
+                    <ActionButton
+                      icon={<MdDownload size={16} className="text-white" />}
+                      buttonColor={theme.colors.primary[400]}
+                      toolTipId="export"
+                      toolTipContent="Export"
+                    />
+                  )}
+                  content={() => toPrintRefs.current[sectionIndex]}
                 />
               </div>
               <div className="overflow-x-auto">
                 <ScheduleTable
+                  ref={(el) => (toPrintRefs.current[sectionIndex] = el)}
+                  id={sectionIndex}
                   data={section.schedules}
                   startTime="7:00 AM"
                   endTime="6:00 PM"
