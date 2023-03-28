@@ -191,25 +191,23 @@ class Room extends Model {
                         lastName: 1,
                       },
                     },
-                    // yung pinaparemove ni sir Jampol.
-
-                    // {
-                    //   $lookup: {
-                    //     from: 'schedules',
-                    //     localField: '_id',
-                    //     foreignField: 'teacher',
-                    //     pipeline: [
-                    //       {
-                    //         $project: {
-                    //           day: { $arrayElemAt: ['$schedules.day', 0] },
-                    //           room: { $arrayElemAt: ['$schedules.room', 0] },
-                    //           times: { $arrayElemAt: ['$schedules.times', 0] },
-                    //         },
-                    //       },
-                    //     ],
-                    //     as: 'existingSchedules',
-                    //   },
-                    // },
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $project: {
+                              day: { $arrayElemAt: ['$schedules.day', 0] },
+                              room: { $arrayElemAt: ['$schedules.room', 0] },
+                              times: { $arrayElemAt: ['$schedules.times', 0] },
+                            },
+                          },
+                        ],
+                        as: 'existingSchedules',
+                      },
+                    },
                   ],
                   as: 'teacher',
                 },
@@ -353,23 +351,24 @@ class Room extends Model {
                         lastName: 1,
                       },
                     },
-                    {
-                      $lookup: {
-                        from: 'schedules',
-                        localField: '_id',
-                        foreignField: 'teacher',
-                        pipeline: [
-                          {
-                            $project: {
-                              day: { $arrayElemAt: ['$schedules.day', 0] },
-                              room: { $arrayElemAt: ['$schedules.room', 0] },
-                              times: { $arrayElemAt: ['$schedules.times', 0] },
-                            },
-                          },
-                        ],
-                        as: 'existingSchedules',
-                      },
-                    },
+                    // remove existingSchedules of the room sabi ni jamp
+                    // {
+                    //   $lookup: {
+                    //     from: 'schedules',
+                    //     localField: '_id',
+                    //     foreignField: 'teacher',
+                    //     pipeline: [
+                    //       {
+                    //         $project: {
+                    //           day: { $arrayElemAt: ['$schedules.day', 0] },
+                    //           room: { $arrayElemAt: ['$schedules.room', 0] },
+                    //           times: { $arrayElemAt: ['$schedules.times', 0] },
+                    //         },
+                    //       },
+                    //     ],
+                    //     as: 'existingSchedules',
+                    //   },
+                    // },
                   ],
                   as: 'teacher',
                 },
