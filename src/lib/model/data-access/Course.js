@@ -182,19 +182,102 @@ class Course extends Model {
                         pipeline: [
                           {
                             $project: {
+                              course: 1,
+                              subject: 1,
                               teacher: 1,
+                              schedules: 1, // dayTimes
+                            },
+                          },
+                          {
+                            $lookup: {
+                              from: 'subjects',
+                              localField: 'subject',
+                              foreignField: '_id',
+                              pipeline: [
+                                {
+                                  $project: {
+                                    code: 1,
+                                    name: 1,
+                                    units: 1,
+                                  },
+                                },
+                              ],
+                              as: 'subject',
+                            },
+                          },
+                          // populate courses
+                          {
+                            $lookup: {
+                              from: 'courses',
+                              localField: 'course',
+                              foreignField: '_id',
+                              pipeline: [
+                                {
+                                  $project: {
+                                    code: 1,
+                                    name: 1,
+                                  },
+                                },
+                              ],
+                              as: 'course',
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 1,
+                              subject: {
+                                $arrayElemAt: ['$subject', 0],
+                              },
+                              course: {
+                                $arrayElemAt: ['$course', 0],
+                              },
+                            },
+                          },
+
+                          //  add fields on schedules.times
+                          {
+                            $addFields: {
+                              'schedules.times.course': '$course',
+                              'schedules.times.subject': '$subject',
+                              'schedules.times.course': '$course',
+                              'schedules.times.room': {
+                                $arrayElemAt: ['$schedules.room', 0],
+                              },
+                            },
+                          },
+                          // remove room on schedule
+                          {
+                            $project: {
+                              'schedules.room': 0,
+                            },
+                          },
+                          {
+                            $project: {
                               schedules: 1,
                             },
                           },
                           { $unwind: '$schedules' },
-                          {
-                            $group: {
-                              _id: '$teacher',
-                              schedules: {
-                                $push: '$schedules',
-                              },
-                            },
-                          },
+                          // {
+                          //   $project: {
+                          //     day: 1,
+                          //     times: {
+                          //       course: 1,
+                          //       subject: 1,
+                          //       times: 1,
+                          //       room: 1,
+                          //     },
+                          //   },
+                          // },
+                          // group by _id of times to seperate every times
+
+                          // {
+                          //   $group: {
+                          //     _id: '$_id',
+                          //     dayTimes: { $first: '$schedules' },
+                          //     course: { $first: '$course' },
+                          //     subject: { $first: '$subject' },
+                          //   },
+                          // },
                           // {
                           //   $project: {
                           //     day: { $arrayElemAt: ['$schedules.day', 0] },
@@ -217,9 +300,10 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
-                        existingSchedules: {
-                          $arrayElemAt: ['$existingSchedules.schedules', 0],
-                        },
+                        existingSchedules: '$existingSchedules.schedules',
+                        //  {
+                        //   $arrayElemAt: ['$existingSchedules.schedules', 0],
+                        // },
                       },
                     },
                   ],
