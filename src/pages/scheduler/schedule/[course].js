@@ -74,12 +74,14 @@ export default function Schedule() {
     isLoading,
     error,
   } = useSWR(
-    `/api/courses/${courseCode}?${new URLSearchParams({
-      semester,
-      year,
-      section,
-      p: 'draggable',
-    }).toString()}`,
+    Object.keys(router.query).length
+      ? `/api/courses/${courseCode}?${new URLSearchParams({
+          semester,
+          year,
+          section,
+          p: 'draggable',
+        }).toString()}`
+      : null,
     null,
     {
       revalidateIfStale: false,

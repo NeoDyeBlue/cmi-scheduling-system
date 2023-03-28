@@ -409,6 +409,104 @@ const testSchedulerResponseData = {
   success: true,
 };
 
+const lagyanDawCommentsSabiNiAdam = [
+  {
+    /**
+     * ...other schedulerData here
+     */
+    subjects: [
+      {
+        /**
+         * ...other subject fields here
+         */
+        assignedTeachers: [
+          {
+            /**
+             * ...other assigned teacher fields here
+             */
+            existingSchedules: [
+              {
+                day: 1,
+                /**
+                 * room field here will be removed
+                 */
+                // room: {
+                //   _id: '641fd053b9a3e0fcfc1441f7',
+                //   code: 'cb207',
+                // },
+                times: [
+                  /**
+                   * add fields:
+                   * room: {code, _id, name(optional)},
+                   * course: {code, year, section, _id, name(optional)},
+                   * subject: {code, name(optional), _id}
+                   */
+                  {
+                    start: '6:00 AM',
+                    end: '6:30 AM',
+                    _id: '642271fdcdba7e6ef0b6d368',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    rooms: [
+      {
+        /**
+         * ..other room fields
+         */
+        schedules: [
+          {
+            /**
+             * ...other schedule/subject fields here
+             */
+            teacher: {
+              /**
+               * ...other teacher fields
+               */
+              /**
+               * ung field na existing schedules dito is pede na iremove kasi ung iba is automatically static na
+               * at mayroon na rin sa existingSchedules data na nsa subjects.assignedTeachers if ever nmn na editable
+               * ung subjects n nandito.
+               */
+              // existingSchedules: [
+              //   "..."
+              // ],
+            },
+            dayTimes: [
+              {
+                day: 1,
+                /**
+                 * room field here will be removed
+                 */
+                // room: {
+                //   _id: '641fd053b9a3e0fcfc1441f7',
+                //   code: 'cb207',
+                // },
+                times: [
+                  {
+                    /**
+                     * add field:
+                     * room: {code, _id, name(optional)},
+                     */
+                    start: '6:00 AM',
+                    end: '6:30 AM',
+                    _id: '642271fdcdba7e6ef0b6d368',
+                  },
+                ],
+                _id: '642271fdcdba7e6ef0b6d367',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
 const rooms = [
   {
     code: 'CB206',
