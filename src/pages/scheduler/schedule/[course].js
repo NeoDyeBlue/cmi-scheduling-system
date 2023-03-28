@@ -98,19 +98,38 @@ export default function Schedule() {
 
   useEffect(() => {
     if (schedulerData) {
-      setCourseSubjects(schedulerData?.subjects);
-      setCourse(schedulerData?.course);
       const courseSubjectsData = [];
+      const initialSubjectScheds = [];
       schedulerData?.subjects?.forEach((subject) => {
         subject?.assignedTeachers?.forEach((teacher) => {
+          //add to course subjects data
           const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
           const { teachers, ...newData } = subject;
           courseSubjectsData.push({
             id: dataId,
             data: { ...newData, teacher, course: schedulerData?.course },
           });
+
+          //check if addable to initial subject scheds
+          if (teacher.existingSchedules.length) {
+            const courseSubjectsSchedules = [];
+            teacher.existingSchedules.forEach((dayTimes) => {
+              let subjectTimes = [];
+              dayTimes.times.forEach((time) => {
+                if (
+                  `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
+                    `${time.course.code}${time.course.year}${time.course.section}` &&
+                  time.subject.code == subject.code
+                ) {
+                  subjectTimes.push({});
+                }
+              });
+            });
+          }
         });
       });
+      setCourseSubjects(schedulerData?.subjects);
+      setCourse(schedulerData?.course);
       setSubjectsData(courseSubjectsData);
       setSelectedRooms(schedulerData?.rooms);
     }

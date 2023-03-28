@@ -428,7 +428,7 @@ const lagyanDawCommentsSabiNiAdam = [
               {
                 day: 1,
                 /**
-                 * room field here will be removed
+                 * room field here will be re added
                  */
                 // room: {
                 //   _id: '641fd053b9a3e0fcfc1441f7',
@@ -438,23 +438,35 @@ const lagyanDawCommentsSabiNiAdam = [
                   {
                     /**
                      * add fields:
-                     * room: {code, _id, name(optional)},
+                     * room: {code, _id, name(optional)}, -->> remove this again
                      * course: {code, year, section, _id, name(optional)},
                      * subject: {code, name(optional), _id}
                      */
-                    // same day sched different time for subject math
+                    // same day sched different time for subject math but different room
                     start: '6:00 AM',
                     end: '6:30 AM',
                     _id: '642271fdcdba7e6ef0b6d368',
                   },
+                ],
+              },
+              {
+                day: 1,
+                /**
+                 * room field here will be re added
+                 */
+                // room: {
+                //   _id: '641fd053b9a3e0fcfc1441f7',
+                //   code: 'cb208',
+                // },
+                times: [
                   {
                     /**
                      * add fields:
-                     * room: {code, _id, name(optional)},
+                     * room: {code, _id, name(optional)}, -->> remove this again
                      * course: {code, year, section, _id, name(optional)},
-                     * subject: {code, name(optional), _id, semester}
+                     * subject: {code, name(optional), _id}
                      */
-                    // same day sched different time for subject math
+                    // same day sched different time for subject math but different room
                     start: '7:00 AM',
                     end: '7:30 AM',
                     _id: '642271fdcdba7e6ef0b6d368',
@@ -493,7 +505,7 @@ const lagyanDawCommentsSabiNiAdam = [
               {
                 day: 1,
                 /**
-                 * room field here will be removed
+                 * room field here will be re added
                  */
                 // room: {
                 //   _id: '641fd053b9a3e0fcfc1441f7',
@@ -501,10 +513,6 @@ const lagyanDawCommentsSabiNiAdam = [
                 // },
                 times: [
                   {
-                    /**
-                     * add field:
-                     * room: {code, _id, name(optional)},
-                     */
                     start: '6:00 AM',
                     end: '6:30 AM',
                     _id: '642271fdcdba7e6ef0b6d368',

@@ -600,6 +600,8 @@ export default function Scheduler({
     }
   }
 
+  console.log(subjectScheds);
+
   /**
    *
    * @param {Array} layoutSource - what layout to use
