@@ -125,12 +125,7 @@ class Course extends Model {
     }
   }
   // ----------------------------------------------------
-  async getCourseSubjectTeachers({
-    courseCode,
-    semester,
-    year,
-    section,
-  }) {
+  async getCourseSubjectTeachers({ courseCode, semester, year, section }) {
     try {
       // look up for subjects
       // lookup for teachers
@@ -187,13 +182,44 @@ class Course extends Model {
                         pipeline: [
                           {
                             $project: {
-                              day: { $arrayElemAt: ['$schedules.day', 0] },
-                              room: { $arrayElemAt: ['$schedules.room', 0] },
-                              times: { $arrayElemAt: ['$schedules.times', 0] },
+                              teacher: 1,
+                              schedules: 1,
                             },
                           },
+                          { $unwind: '$schedules' },
+                          {
+                            $group: {
+                              _id: '$teacher',
+                              schedules: {
+                                $push: '$schedules',
+                              },
+                            },
+                          },
+                          // {
+                          //   $project: {
+                          //     day: { $arrayElemAt: ['$schedules.day', 0] },
+                          //     room: { $arrayElemAt: ['$schedules.room', 0] },
+                          //     times: { $arrayElemAt: ['$schedules.times', 0] },
+                          //   },
+                          // },
                         ],
                         as: 'existingSchedules',
+                      },
+                    },
+                    // at this point, the existingSchedules has schedules : [day: 1..] ni it.
+                    // lets project bring the schedules array out.
+                    {
+                      $project: {
+                        _id: 1,
+                        teacherId: '$teacherId',
+                        firstName: 1,
+                        lastName: 1,
+                        image: 1,
+                        type: 1,
+                        preferredDayTimes: 1,
+                        existingSchedules: {
+                          $arrayElemAt: ['$existingSchedules.schedules', 0],
+                        },
                       },
                     },
                   ],
@@ -217,7 +243,7 @@ class Course extends Model {
             subjects: { $first: '$yearSections.subjects' },
           },
         },
-        
+
         //--------------
         // check if the course-year-section is completed,
         // means all subjects are already scheduled by day to total of time.
