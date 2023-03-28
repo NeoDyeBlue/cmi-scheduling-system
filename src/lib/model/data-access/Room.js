@@ -286,6 +286,11 @@ class Room extends Model {
             foreignField: 'schedules.room.code',
             pipeline: [
               {
+                $match: {
+                  $expr: { $eq: ['$schedules.room.code', '$$roomCode'] },
+                },
+              },
+              {
                 $project: {
                   teacher: 1,
                   course: 1,
@@ -388,7 +393,7 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
-                  dayTimes:1,
+                  dayTimes: 1,
                   course: {
                     code: '$course.code',
                     name: '$course.name',
@@ -398,9 +403,27 @@ class Room extends Model {
                 },
               },
             ],
-            as: 'roomSchedules',
+            as: 'schedules',
           },
         },
+        {
+          $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
+        },
+        {
+          $project: { code: 1, name: 1, schedules: 1 },
+        },
+
+        // {
+        //   $project: {
+        //     schedules: {
+        //       $filter: {
+        //         input: '$schedules',
+        //         as: 'scheds',
+        //         cond: { $ne: ['$$scheds', []] },
+        //       },
+        //     },
+        //   },
+        // },
       ];
       const data = await this.Room.aggregate(pipeline);
       return data;
