@@ -54,49 +54,57 @@ class Course extends Model {
             type: type,
           },
         },
-
-        {
-          $project: {
-            code: 1,
-            name: 1,
-            years: {
-              $max: '$yearSections.year',
-            },
-            sections: {
-              $size: '$yearSections',
-            },
-            type: 1,
-            yearSections: 1,
-          },
-        },
-        {
-          $unwind: '$yearSections',
-        },
+        { $unwind: '$yearSections' },
         {
           $group: {
-            _id: {
-              year: '$yearSections.year',
-              year: '$yearSections.section',
-            },
-            code: { $first: '$code' },
-            name: { $first: '$name' },
-            years: { $first: '$years' },
-            sections: { $first: '$sections' },
-            type: { $first: '$type' },
-            yearSections: { $push: '$yearSections' },
+            _id: '$yearSections.year',
             sectionCount: { $sum: 1 },
+            yearSections: { $push: '$yearSections' },
           },
         },
-        {
-          $project: {
-            code: 1,
-            name: 1,
-            type: 1,
-            'yearSections.year': '$_id.year',
-            'yearSections.sectionCount': '$sectionCount',
-            'yearSections.semesterSubjects': '$yearSections.semesterSubjects',
-          },
-        },
+
+        // {
+        //   $project: {
+        //     code: 1,
+        //     name: 1,
+        //     years: {
+        //       $max: '$yearSections.year',
+        //     },
+        //     sections: {
+        //       $size: '$yearSections',
+        //     },
+        //     type: 1,
+        //     yearSections: 1,
+        //   },
+        // },
+        // {
+        //   $unwind: '$yearSections',
+        // },
+        // {
+        //   $group: {
+        //     _id: {
+        //       year: '$yearSections.year',
+        //       year: '$yearSections.section',
+        //     },
+        //     code: { $first: '$code' },
+        //     name: { $first: '$name' },
+        //     years: { $first: '$years' },
+        //     sections: { $first: '$sections' },
+        //     type: { $first: '$type' },
+        //     yearSections: { $push: '$yearSections' },
+        //     sectionCount: { $sum: 1 },
+        //   },
+        // },
+        // {
+        //   $project: {
+        //     code: 1,
+        //     name: 1,
+        //     type: 1,
+        //     'yearSections.year': '$_id.year',
+        //     'yearSections.sectionCount': '$sectionCount',
+        //     'yearSections.semesterSubjects': '$yearSections.semesterSubjects',
+        //   },
+        // },
       ];
       const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
@@ -265,38 +273,48 @@ class Course extends Model {
                               },
                             },
                           },
-
-                          // yearSec on scourse
                           {
-                            $project: {
-                              schedules: 1,
-                              subject: 1,
-                              course: {
-                                year: '$yearSec.year',
-                                section: '$yearSec.section',
-                                code: '$course.code',
-                                name: '$course.name',
-                              },
+                            $unwind: '$schedules',
+                          },
+                          {
+                            $group: {
+                              _id: '$schedules._id',
+                              schedules: { $first: '$schedules' },
+                              course: { $first: '$course' },
+                              subject: { $first: '$subject' },
+                              yearSec: { $first: '$yearSec' },
                             },
                           },
+                          // yearSec on scourse
+                          // {
+                          //   $project: {
+                          //     schedules: 1,
+                          //     subject: 1,
+                          //     course: {
+                          //       year: '$yearSec.year',
+                          //       section: '$yearSec.section',
+                          //       code: '$course.code',
+                          //       name: '$course.name',
+                          //     },
+                          //   },
+                          // },
                           // //  add fields on schedules.times
+
                           {
                             $addFields: {
                               'schedules.times.course': '$course',
                               'schedules.times.subject': '$subject',
                               'schedules.times.course': '$course',
-                              'schedules.room': {
-                                $arrayElemAt: ['$schedules.room', 0],
-                              },
+                              'schedules.room': '$schedules.room',
                             },
                           },
-                          // remove room on schedule
+                          // // remove room on schedule
                           {
                             $project: {
                               schedules: 1,
                             },
                           },
-                          { $unwind: '$schedules' },
+                    
                         ],
                         as: 'existingSchedules',
                       },
