@@ -18,7 +18,7 @@ export default function MultiComboBox({
 }) {
   const [field, meta, helpers] = useField(name);
   const [inputValue, setInputValue] = useState('');
-  const [selectedItems, setSelectedItems] = useState(meta.value);
+  const [selectedItems, setSelectedItems] = useState(field.value);
   const [searchedItems, setSearchedItems] = useState([]);
 
   // fetcher on input change
@@ -51,7 +51,7 @@ export default function MultiComboBox({
         }
       };
     }
-  }, [inputValue, searchUrl]);
+  }, [inputValue, searchUrl, filter]);
 
   useEffect(() => {
     helpers.setValue(selectedItems);
@@ -216,7 +216,7 @@ export default function MultiComboBox({
           </label>
         )}
         <div className="inline-flex flex-wrap items-center gap-2 rounded-lg border border-ship-gray-200 bg-white p-4">
-          {selectedItems.map((selectedItemForRender, index) => {
+          {selectedItems?.map((selectedItemForRender, index) => {
             return (
               <span
                 className={classNames(

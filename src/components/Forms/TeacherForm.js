@@ -135,8 +135,6 @@ export default function TeacherForm({
                     (dayTime) => dayTime.day == index + 1
                   );
 
-                  console.log(isChecked);
-
                   return (
                     <MultiSelectItem
                       key={day}

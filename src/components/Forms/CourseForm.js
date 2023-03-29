@@ -18,6 +18,20 @@ export default function CourseForm({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const { theme } = resolveConfig(tailwindConfig);
+
+  const initialYearSections = [
+    {
+      year: 1,
+      sectionCount: 1,
+      semesterSubjects: [
+        { semester: '1', subjects: [] },
+        { semester: '2', subjects: [] },
+        { semester: 'special', subjects: [] },
+        { semester: 'summer', subjects: [] },
+      ],
+    },
+  ];
+
   const courseFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
@@ -25,22 +39,13 @@ export default function CourseForm({
       type: initialData?.type || 'college',
       yearSections: initialData?.yearSections?.length
         ? initialData?.yearSections
-        : [
-            {
-              year: 1,
-              sectionCount: 1,
-              semesterSubjects: [
-                { semester: '1', subjects: [] },
-                { semester: '2', subjects: [] },
-                { semester: 'special', subjects: [] },
-                { semester: 'summer', subjects: [] },
-              ],
-            },
-          ],
+        : initialYearSections,
     },
     onSubmit: handleSubmit,
     validationSchema: courseSchema,
   });
+
+  // console.log(courseFormik.values);
 
   async function handleSubmit(values) {
     try {
@@ -103,6 +108,12 @@ export default function CourseForm({
             name="type"
             value="college"
             checked={courseFormik.values.type == 'college'}
+            onChange={(e) => {
+              if (e.target.value !== courseFormik.values.type) {
+                courseFormik.setFieldValue('yearSections', initialYearSections);
+              }
+              courseFormik.setFieldValue('type', e.target.value);
+            }}
           >
             College
           </RadioSelectItem>
@@ -110,6 +121,12 @@ export default function CourseForm({
             name="type"
             value="shs"
             checked={courseFormik.values.type == 'shs'}
+            onChange={(e) => {
+              if (e.target.value !== courseFormik.values.type) {
+                courseFormik.setFieldValue('yearSections', initialYearSections);
+              }
+              courseFormik.setFieldValue('type', e.target.value);
+            }}
           >
             Senior High
           </RadioSelectItem>
@@ -175,6 +192,7 @@ export default function CourseForm({
                               // label="Subjects"
                               filter={{
                                 semester: 1,
+                                type: courseFormik.values.type,
                               }}
                             />
                           </TabPanel>
@@ -186,6 +204,7 @@ export default function CourseForm({
                               // label="Subjects"
                               filter={{
                                 semester: 2,
+                                type: courseFormik.values.type,
                               }}
                             />
                           </TabPanel>
@@ -196,7 +215,7 @@ export default function CourseForm({
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
-                                semester: 'special',
+                                type: courseFormik.values.type,
                               }}
                             />
                           </TabPanel>
@@ -207,7 +226,7 @@ export default function CourseForm({
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
-                                semester: 'summer',
+                                type: courseFormik.values.type,
                               }}
                             />
                           </TabPanel>
@@ -240,6 +259,8 @@ export default function CourseForm({
                                   semesterSubjects: [
                                     { semester: 1, subjects: [] },
                                     { semester: 2, subjects: [] },
+                                    { semester: 'special', subjects: [] },
+                                    { semester: 'summer', subjects: [] },
                                   ],
                                 })
                               }
