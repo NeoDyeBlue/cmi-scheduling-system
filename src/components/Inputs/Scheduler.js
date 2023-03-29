@@ -330,9 +330,9 @@ export default function Scheduler({
     setSubjectScheds(courseSchedsData);
     setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
 
-    if (!oldSchedsData) {
-      setOldSchedsData({ course, subjectScheds: courseSchedsData });
-    }
+    // if (!oldSchedsData) {
+    //   setOldSchedsData({ course, subjectScheds: courseSchedsData });
+    // }
   }, [
     layout,
     subjectsData,
@@ -718,11 +718,11 @@ export default function Scheduler({
       let availableTimesY = [];
       let unavailableTimesY = [];
       let unavailableTimeYPairs = [];
-      const existingScheduleTimes =
+      const existingSchedules =
         (subjectData?.teacher?.existingSchedules &&
-          subjectData?.teacher?.existingSchedules.find(
+          subjectData?.teacher?.existingSchedules.filter(
             (existingSchedule) => existingSchedule.day == x
-          )?.times) ||
+          )) ||
         [];
       const inSchedulerDayTimes = subjectScheds
         .filter(
@@ -774,24 +774,26 @@ export default function Scheduler({
       }
 
       //get all the unavailable existing schedule time indexes of the teacher
-      if (existingScheduleTimes.length) {
-        existingScheduleTimes.forEach((scheduleTime) => {
-          if (
-            `${course.code}${course.year}${course.section}` !==
-              `${scheduleTime.course.code}${scheduleTime.course.year}${scheduleTime.course.section}` ||
-            scheduleTime.subject.semester !== semester
-          ) {
-            const timeStartIndex = timeData.findIndex((time) => {
-              return time[0] == scheduleTime.start;
-            });
-            const timeEndIndex = timeData.findIndex((time) => {
-              return time[1] == scheduleTime.end;
-            });
+      if (existingSchedules.length) {
+        existingSchedules.forEach((scheduleDays) => {
+          scheduleDays.times.forEach((scheduleTime) => {
+            if (
+              `${course.code}${course.year}${course.section}` !==
+                `${scheduleTime.course.code}${scheduleTime.course.year}${scheduleTime.course.section}` ||
+              scheduleTime.subject.semester !== semester
+            ) {
+              const timeStartIndex = timeData.findIndex((time) => {
+                return time[0] == scheduleTime.start;
+              });
+              const timeEndIndex = timeData.findIndex((time) => {
+                return time[1] == scheduleTime.end;
+              });
 
-            for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-              unavailableTimesY.push(i + 1);
+              for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+                unavailableTimesY.push(i + 1);
+              }
             }
-          }
+          });
         });
       }
 

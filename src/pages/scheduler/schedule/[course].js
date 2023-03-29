@@ -112,22 +112,47 @@ export default function Schedule() {
 
           //check if addable to initial subject scheds
           if (teacher.existingSchedules.length) {
-            const courseSubjectsSchedules = [];
+            const courseSubjectSchedules = [];
             teacher.existingSchedules.forEach((dayTimes) => {
-              let subjectTimes = [];
+              const subjectTimes = [];
+
               dayTimes.times.forEach((time) => {
                 if (
                   `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
                     `${time.course.code}${time.course.year}${time.course.section}` &&
                   time.subject.code == subject.code
                 ) {
-                  subjectTimes.push({});
+                  subjectTimes.push(time);
                 }
               });
+
+              if (subjectTimes.length) {
+                courseSubjectSchedules.push({
+                  day: dayTimes.day,
+                  room: dayTimes.room,
+                  times: subjectTimes,
+                });
+              }
             });
+
+            if (courseSubjectSchedules.length) {
+              initialSubjectScheds.push({
+                subject: {
+                  code: subject.code,
+                  _id: subject._id,
+                },
+                teacher: {
+                  teacherId: teacher.teacherId,
+                  _id: teacher._id,
+                },
+                schedules: courseSubjectSchedules,
+              });
+            }
           }
         });
       });
+      setSubjectScheds(initialSubjectScheds);
+      setOldSchedsData(initialSubjectScheds);
       setCourseSubjects(schedulerData?.subjects);
       setCourse(schedulerData?.course);
       setSubjectsData(courseSubjectsData);
