@@ -8,10 +8,11 @@ import { Modal } from '@/components/Modals';
 import { RoomForm } from '@/components/Forms';
 import usePaginate from '@/hooks/usePaginate';
 import ReactPaginate from 'react-paginate';
+import { SpinnerLoader } from '@/components/Loaders';
 
 export default function Rooms() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { docs, pageData, setPageIndex, mutate } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
     url: '/api/rooms',
     limit: 10,
   });
@@ -44,25 +45,33 @@ export default function Rooms() {
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>
         <div className="flex flex-col gap-4">
-          <div className="overflow-x-auto">
-            <RoomTable data={docs} mutate={() => mutate()} />
-          </div>
-          <ReactPaginate
-            breakLabel="..."
-            nextLabel="next >"
-            onPageChange={({ selected }) => setPageIndex(selected + 1)}
-            pageRangeDisplayed={5}
-            pageCount={Math.ceil(pageData?.totalPages) || 0}
-            previousLabel="< prev"
-            renderOnZeroPageCount={null}
-            containerClassName="paginate-container"
-            previousLinkClassName="paginate-button"
-            nextLinkClassName="paginate-button"
-            pageLinkClassName="paginate-link"
-            activeLinkClassName="paginate-link-active"
-            breakLinkClassName="paginate-break"
-            disabledLinkClassName="paginate-link-disabled"
-          />
+          {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
+          {!isLoading && !docs.length ? (
+            <p className="text-ship-gray-500">Nothing to show</p>
+          ) : null}
+          {!isLoading && docs.length ? (
+            <>
+              <div className="overflow-x-auto">
+                <RoomTable data={docs} mutate={() => mutate()} />
+              </div>
+              <ReactPaginate
+                breakLabel="..."
+                nextLabel="next >"
+                onPageChange={({ selected }) => setPageIndex(selected + 1)}
+                pageRangeDisplayed={5}
+                pageCount={Math.ceil(pageData?.totalPages) || 0}
+                previousLabel="< prev"
+                renderOnZeroPageCount={null}
+                containerClassName="paginate-container"
+                previousLinkClassName="paginate-button"
+                nextLinkClassName="paginate-button"
+                pageLinkClassName="paginate-link"
+                activeLinkClassName="paginate-link-active"
+                breakLinkClassName="paginate-break"
+                disabledLinkClassName="paginate-link-disabled"
+              />
+            </>
+          ) : null}
         </div>
       </div>
     </>

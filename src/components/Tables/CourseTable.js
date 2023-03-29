@@ -13,6 +13,7 @@ import { Modal, Confirmation } from '../Modals';
 import { CourseForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
+import { SpinnerLoader } from '../Loaders';
 
 export default function CourseTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -22,7 +23,7 @@ export default function CourseTable({ type }) {
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const { docs, pageData, setPageIndex, mutate } = usePaginate({
+  const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
     url: '/api/courses',
     limit: 10,
     query: {
@@ -143,67 +144,72 @@ export default function CourseTable({ type }) {
           }}
         />
       </Modal>
-      <div className="flex flex-col gap-4">
-        <div className="overflow-x-auto">
-          <table {...getTableProps()} className="w-full">
-            <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-              {headerGroups.map((headerGroup, index) => (
-                <tr
-                  key={index}
-                  {...headerGroup.getHeaderGroupProps()}
-                  className="border-b border-gray-300"
-                >
-                  {headerGroup.headers.map((column, index) => (
-                    <th
-                      key={index}
-                      {...column.getHeaderProps()}
-                      className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
-                    >
-                      {column.render('Header')}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-              {rows.map((row, index) => {
-                prepareRow(row);
-                return (
-                  <React.Fragment key={index}>
-                    <tr
-                      key={index}
-                      {...row.getRowProps()}
-                      onClick={() =>
-                        router.push(
-                          `/courses/${row.allCells[0].value.toLowerCase()}`
-                        )
-                      }
-                      // {...row.getToggleRowExpandedProps({ title: '' })}
-                      className={classNames(
-                        'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
-                        {
-                          'bg-primary-900 text-white hover:bg-primary-900':
-                            row.isExpanded,
+      {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
+      {!isLoading && !docs.length ? (
+        <p className="text-ship-gray-500">Nothing to show</p>
+      ) : null}
+      {!isLoading && docs.length ? (
+        <div className="flex flex-col gap-4">
+          <div className="overflow-x-auto">
+            <table {...getTableProps()} className="w-full">
+              <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+                {headerGroups.map((headerGroup, index) => (
+                  <tr
+                    key={index}
+                    {...headerGroup.getHeaderGroupProps()}
+                    className="border-b border-gray-300"
+                  >
+                    {headerGroup.headers.map((column, index) => (
+                      <th
+                        key={index}
+                        {...column.getHeaderProps()}
+                        className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                      >
+                        {column.render('Header')}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody {...getTableBodyProps()}>
+                {rows.map((row, index) => {
+                  prepareRow(row);
+                  return (
+                    <React.Fragment key={index}>
+                      <tr
+                        key={index}
+                        {...row.getRowProps()}
+                        onClick={() =>
+                          router.push(
+                            `/courses/${row.allCells[0].value.toLowerCase()}`
+                          )
                         }
-                      )}
-                    >
-                      {row.cells.map((cell, index) => {
-                        return (
-                          <td
-                            key={index}
-                            {...cell.getCellProps()}
-                            className={classNames('p-4', {
-                              'whitespace-nowrap font-semibold uppercase':
-                                index == 0,
-                              'min-w-[300px]': index == 1,
-                            })}
-                          >
-                            {cell.render('Cell')}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                    {/* {row.isExpanded ? (
+                        // {...row.getToggleRowExpandedProps({ title: '' })}
+                        className={classNames(
+                          'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
+                          {
+                            'bg-primary-900 text-white hover:bg-primary-900':
+                              row.isExpanded,
+                          }
+                        )}
+                      >
+                        {row.cells.map((cell, index) => {
+                          return (
+                            <td
+                              key={index}
+                              {...cell.getCellProps()}
+                              className={classNames('p-4', {
+                                'whitespace-nowrap font-semibold uppercase':
+                                  index == 0,
+                                'min-w-[300px]': index == 1,
+                              })}
+                            >
+                              {cell.render('Cell')}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      {/* {row.isExpanded ? (
                 <tr>
                   <td colSpan={visibleColumns.length}>
                     <div className="overflow-auto">
@@ -212,29 +218,30 @@ export default function CourseTable({ type }) {
                   </td>
                 </tr>
               ) : null} */}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
+          />
         </div>
-        <ReactPaginate
-          breakLabel="..."
-          nextLabel="next >"
-          onPageChange={({ selected }) => setPageIndex(selected + 1)}
-          pageRangeDisplayed={5}
-          pageCount={Math.ceil(pageData?.totalPages) || 0}
-          previousLabel="< prev"
-          renderOnZeroPageCount={null}
-          containerClassName="paginate-container"
-          previousLinkClassName="paginate-button"
-          nextLinkClassName="paginate-button"
-          pageLinkClassName="paginate-link"
-          activeLinkClassName="paginate-link-active"
-          breakLinkClassName="paginate-break"
-          disabledLinkClassName="paginate-link-disabled"
-        />
-      </div>
+      ) : null}
     </>
   );
 }

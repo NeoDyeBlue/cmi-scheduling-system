@@ -1,9 +1,8 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 // import Image from 'next/image';
 import { ImageWithFallback } from '../Misc';
 import { ActionButton } from '../Buttons';
-import ScheduleTable from './ScheduleTable';
 import PerSemScheduleTable from './PerSemScheduleTable';
 import { TeacherTypeBadge } from '../Misc';
 import {
@@ -29,7 +28,6 @@ export default function TeacherTable({ data, mutate = () => {} }) {
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const teachers = useMemo(() => data, [data]);
-  const toPrintRefs = useRef([]);
 
   const columns = useMemo(
     () => [
