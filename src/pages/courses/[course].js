@@ -3,16 +3,13 @@ import { MainLayout } from '@/components/Layouts';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { bscs } from '@/lib/test_data/courses';
-import { ScheduleTable } from '@/components/Tables';
+import { PerSemScheduleTable } from '@/components/Tables';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { ActionButton } from '@/components/Buttons';
-import { MdDownload } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import { addOrdinalSuffix } from '@/utils/number-utils';
 import React from 'react';
 import { useRef } from 'react';
-import ReactToPrint from 'react-to-print';
 
 export default function Course() {
   const { theme } = resolveConfig(tailwindConfig);
@@ -37,28 +34,9 @@ export default function Course() {
                 <h3 className="font-display text-xl font-semibold">
                   Section {section.section}
                 </h3>
-                <ReactToPrint
-                  trigger={() => (
-                    <ActionButton
-                      icon={<MdDownload size={16} className="text-white" />}
-                      buttonColor={theme.colors.primary[400]}
-                      toolTipId="export"
-                      toolTipContent="Export"
-                    />
-                  )}
-                  content={() => toPrintRefs.current[sectionIndex]}
-                />
               </div>
               <div className="overflow-x-auto">
-                <ScheduleTable
-                  ref={(el) => (toPrintRefs.current[sectionIndex] = el)}
-                  id={sectionIndex}
-                  data={section.schedules}
-                  startTime="7:00 AM"
-                  endTime="6:00 PM"
-                  interval={30}
-                  type="course"
-                />
+                <PerSemScheduleTable type="course" />
               </div>
             </React.Fragment>
           ))}
