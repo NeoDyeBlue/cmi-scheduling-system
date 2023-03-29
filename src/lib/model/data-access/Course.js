@@ -54,6 +54,61 @@ class Course extends Model {
             type: type,
           },
         },
+        {
+          $unwind: '$yearSections',
+        },
+        {
+          $group: {
+            _id: {
+              _id: '$_id',
+              year: '$yearSections.year',
+            },
+            sectionCount: { $sum: 1 },
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            type: { $first: '$type' },
+            yearSections: { $first: '$yearSections' },
+          },
+        },
+
+        {
+          $addFields: {
+            'yearSections.sectionCount': '$sectionCount',
+          },
+        },
+        {
+          $project: {
+            'yearSections.section': 0,
+          },
+        },
+        {
+          $set: {
+            yearSections: {
+              $map: {
+                input: { $range: [0, 1] }, // Change the range values based on the number of year sections
+                in: {
+                  year: '$yearSections.year',
+                  semesterSubjects: '$yearSections.semesterSubjects',
+                  sectionCount: '$yearSections.sectionCount',
+                },
+              },
+            },
+          },
+        },
+        { $unwind: '$yearSections' },
+        {
+          $group: {
+            _id: '$code',
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            type: { $first: '$type' },
+            years: {
+              $max: '$yearSections.year',
+            },
+            sections: { $sum: '$sectionCount' },
+            yearSections: { $push: '$yearSections' },
+          },
+        },
 
         // {
         //   $project: {

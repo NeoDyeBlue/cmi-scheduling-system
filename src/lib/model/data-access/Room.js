@@ -421,11 +421,7 @@ class Room extends Model {
         {
           $project: { _id: 1, code: 1, name: 1, schedules: 1 },
         },
-        {
-          $match: {
-            'schedules.course.code': courseCode,
-          },
-        },
+
         // {
         //   $project: {
         //     schedules: {
@@ -438,6 +434,14 @@ class Room extends Model {
         //   },
         // },
       ];
+      if (courseCode) {
+        pipeline.push({
+          $match: {
+            'schedules.course.code': courseCode,
+          },
+        });
+      }
+
       const data = await this.Room.aggregate(pipeline);
       return data;
     } catch (error) {
