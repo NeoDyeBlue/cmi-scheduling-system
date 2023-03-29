@@ -66,6 +66,35 @@ class Course extends Model {
               $size: '$yearSections',
             },
             type: 1,
+            yearSections: 1,
+          },
+        },
+        {
+          $unwind: '$yearSections',
+        },
+        {
+          $group: {
+            _id: {
+              year: '$yearSections.year',
+              year: '$yearSections.section',
+            },
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            years: { $first: '$years' },
+            sections: { $first: '$sections' },
+            type: { $first: '$type' },
+            yearSections: { $push: '$yearSections' },
+            sectionCount: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            code: 1,
+            name: 1,
+            type: 1,
+            'yearSections.year': '$_id.year',
+            'yearSections.sectionCount': '$sectionCount',
+            'yearSections.semesterSubjects': '$yearSections.semesterSubjects',
           },
         },
       ];
@@ -236,6 +265,7 @@ class Course extends Model {
                               },
                             },
                           },
+
                           // yearSec on scourse
                           {
                             $project: {
@@ -249,13 +279,13 @@ class Course extends Model {
                               },
                             },
                           },
-                          //  add fields on schedules.times
+                          // //  add fields on schedules.times
                           {
                             $addFields: {
                               'schedules.times.course': '$course',
                               'schedules.times.subject': '$subject',
                               'schedules.times.course': '$course',
-                              'schedules.times.room': {
+                              'schedules.room': {
                                 $arrayElemAt: ['$schedules.room', 0],
                               },
                             },
@@ -263,43 +293,10 @@ class Course extends Model {
                           // remove room on schedule
                           {
                             $project: {
-                              'schedules.room': 0,
-                            },
-                          },
-                          {
-                            $project: {
                               schedules: 1,
                             },
                           },
                           { $unwind: '$schedules' },
-                          // {
-                          //   $project: {
-                          //     day: 1,
-                          //     times: {
-                          //       course: 1,
-                          //       subject: 1,
-                          //       times: 1,
-                          //       room: 1,
-                          //     },
-                          //   },
-                          // },
-                          // group by _id of times to seperate every times
-
-                          // {
-                          //   $group: {
-                          //     _id: '$_id',
-                          //     dayTimes: { $first: '$schedules' },
-                          //     course: { $first: '$course' },
-                          //     subject: { $first: '$subject' },
-                          //   },
-                          // },
-                          // {
-                          //   $project: {
-                          //     day: { $arrayElemAt: ['$schedules.day', 0] },
-                          //     room: { $arrayElemAt: ['$schedules.room', 0] },
-                          //     times: { $arrayElemAt: ['$schedules.times', 0] },
-                          //   },
-                          // },
                         ],
                         as: 'existingSchedules',
                       },
