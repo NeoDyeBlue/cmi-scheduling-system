@@ -42,7 +42,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] Dashboard
 - [ ] Table searches
 - [ ] Fix subject teachers not updating in form
-- [ ] Fix year sections count not showing in updating of courses
+- [x] Fix year sections count not showing in updating of courses
 - [ ] add sem tabs in viewing of course schedules
 - [ ] fix scheduler initial schedules for showing the confirmation modal
 - [ ] fix room schedules not updating when room is removed
@@ -50,3 +50,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] add scheduler course statuses
 - [ ] show info on row click or layout item click
 - [ ] add special and summer semesters
+- [ ] show schedules on tables
+- [ ] add per sem schedule tables for viewing
+- [ ] fix scheduler bugs
+- [ ] pagination problem in subjects
+- [ ] some subjects does not appear on search
+- [ ] fix on course, room, teacher, and subject delete should also update the schedules collection
