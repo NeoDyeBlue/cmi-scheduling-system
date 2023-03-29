@@ -6,6 +6,7 @@ export const handler = async (req, res) => {
   if (req.method === 'GET' && p === 'draggable') {
     try {
       const { semester, year, section, course: courseCode } = req.query;
+
       const roomSchedules = await Room.getAllRoomSchedules({
         semester,
         courseCode,
@@ -17,7 +18,11 @@ export const handler = async (req, res) => {
         year,
         section,
       });
-      data[0]['rooms'] = roomSchedules;
+      console.log('roomSchedules', roomSchedules);
+
+      if (data[0]) {
+        data[0]['rooms'] = roomSchedules;
+      }
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error);

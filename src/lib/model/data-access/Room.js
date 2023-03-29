@@ -116,8 +116,10 @@ class Room extends Model {
       throw error;
     }
   }
-  async getRoomSchedules({ roomCode }) {
+
+  async getRoomSchedules({ roomCode, semester }) {
     try {
+      const matchSemester = semester ? { semester: parseInt(semester) } : {};
       const pipeline = [
         // get specific room
         {
@@ -132,6 +134,7 @@ class Room extends Model {
             localField: 'code',
             foreignField: 'schedules.room.code',
             pipeline: [
+              { $match: matchSemester },
               {
                 $project: {
                   teacher: 1,
@@ -269,6 +272,8 @@ class Room extends Model {
       throw error;
     }
   }
+
+  // this is used to get schedules of rooms and also used for specific room's schedule.
   async getAllRoomSchedules({ semester, courseCode }) {
     try {
       const pipeline = [
@@ -434,6 +439,7 @@ class Room extends Model {
         //   },
         // },
       ];
+      // if courseCode exists, then filter it by courseCode.
       if (courseCode) {
         pipeline.push({
           $match: {

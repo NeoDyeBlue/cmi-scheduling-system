@@ -12,7 +12,6 @@ export const handler = async (req, res) => {
       category: 'teachers',
       id: _id,
     });
-
     if (filePath && !uploadError) {
       try {
         const data = await teacher.createTeacher({
@@ -64,7 +63,6 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { image, _id: id, firstName, ...payload } = req.body;
-      console.log('payload', payload);
       // checks if teacher's exists.
       const isTeacher = await teacher.isTeacherExists({
         id,

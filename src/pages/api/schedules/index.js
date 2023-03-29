@@ -1,4 +1,4 @@
-import schedule from '@/lib/model/data-access/schedule';
+import schedule from '@/lib/model/data-access/Schedule';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 
 export const handler = async (req, res) => {

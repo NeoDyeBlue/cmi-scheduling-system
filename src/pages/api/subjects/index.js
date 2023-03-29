@@ -41,6 +41,7 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { _id: id, ...fields } = req.body;
+      
       const data = await subject.updateSubject({ id, fields });
       return successResponse(req, res, data);
     } catch (error) {

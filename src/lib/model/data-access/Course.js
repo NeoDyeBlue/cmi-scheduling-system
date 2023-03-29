@@ -190,6 +190,7 @@ class Course extends Model {
       throw error;
     }
   }
+  // make it upserr
   async updateCourse({ id, fields }) {
     try {
       await this.isCourseCodeUsed({ id, code: fields.code });
