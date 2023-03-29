@@ -54,14 +54,6 @@ class Course extends Model {
             type: type,
           },
         },
-        { $unwind: '$yearSections' },
-        {
-          $group: {
-            _id: '$yearSections.year',
-            sectionCount: { $sum: 1 },
-            yearSections: { $push: '$yearSections' },
-          },
-        },
 
         // {
         //   $project: {
@@ -308,13 +300,19 @@ class Course extends Model {
                               'schedules.room': '$schedules.room',
                             },
                           },
+                          {
+                            $addFields: {
+                              'schedules.times.course.year': '$yearSec.year',
+                              'schedules.times.course.section':
+                                '$yearSec.section',
+                            },
+                          },
                           // // remove room on schedule
                           {
                             $project: {
                               schedules: 1,
                             },
                           },
-                    
                         ],
                         as: 'existingSchedules',
                       },
