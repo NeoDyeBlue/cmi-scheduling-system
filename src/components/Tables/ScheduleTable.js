@@ -3,6 +3,7 @@ import { useMemo, forwardRef } from 'react';
 import { parse, addMinutes, format } from 'date-fns';
 import Image from 'next/image';
 import classNames from 'classnames';
+import useSWR from 'swr';
 
 const ScheduleTable = forwardRef(function ScheduleTable(
   { id, data, startTime, endTime, interval, type, exportTitle = 'Schedules' },

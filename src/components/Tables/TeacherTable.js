@@ -4,13 +4,13 @@ import { useMemo, useState, useRef } from 'react';
 import { ImageWithFallback } from '../Misc';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
+import PerSemScheduleTable from './PerSemScheduleTable';
 import { TeacherTypeBadge } from '../Misc';
 import {
   MdDelete,
   MdEdit,
   MdArrowDropDown,
   MdArrowRight,
-  MdDownload,
 } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -20,7 +20,6 @@ import { TeacherForm } from '../Forms';
 import { Modal, Confirmation } from '../Modals';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
-import ReactToPrint from 'react-to-print';
 
 export default function TeacherTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -104,17 +103,6 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                   setToDeleteId(cell.row.original._id);
                   setIsConfirmationOpen(true);
                 }}
-              />
-              <ReactToPrint
-                trigger={() => (
-                  <ActionButton
-                    icon={<MdDownload size={16} className="text-white" />}
-                    buttonColor={theme.colors.primary[400]}
-                    toolTipId="export"
-                    toolTipContent="Export"
-                  />
-                )}
-                content={() => toPrintRefs.current[row.index]}
               />
             </div>
           );
@@ -311,14 +299,15 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                   <tr>
                     <td colSpan={visibleColumns.length}>
                       <div className="overflow-auto">
-                        <ScheduleTable
+                        <PerSemScheduleTable type="teacher" />
+                        {/* <ScheduleTable
                           ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                           data={row.original.schedules}
                           startTime="7:00 AM"
                           endTime="6:00 PM"
                           interval={30}
                           type="teacher"
-                        />
+                        /> */}
                       </div>
                     </td>
                   </tr>

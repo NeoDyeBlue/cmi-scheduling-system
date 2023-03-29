@@ -21,7 +21,7 @@ export const courseSchema = yup.object().shape({
             yup.object().shape({
               semester: yup
                 .string()
-                .oneOf(['1', '2'])
+                .oneOf(['1', '2', 'special', 'summer'])
                 .required('Semester name is required'),
               subjects: yup
                 .array()

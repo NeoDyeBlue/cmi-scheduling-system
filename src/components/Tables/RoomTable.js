@@ -2,6 +2,7 @@ import { useTable, useExpanded } from 'react-table';
 import { useMemo, useState, useRef } from 'react';
 import { ActionButton } from '../Buttons';
 import ScheduleTable from './ScheduleTable';
+import PerSemScheduleTable from './PerSemScheduleTable';
 import {
   MdDelete,
   MdEdit,
@@ -17,8 +18,6 @@ import { Modal, Confirmation } from '../Modals';
 import { RoomForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
-import ReactToPrint from 'react-to-print';
-
 export default function RoomTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,7 +83,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
                 setIsConfirmationOpen(true);
               }}
             />
-            <ReactToPrint
+            {/* <ReactToPrint
               trigger={() => (
                 <ActionButton
                   icon={<MdDownload size={16} className="text-white" />}
@@ -94,7 +93,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
                 />
               )}
               content={() => toPrintRefs.current[row.index]}
-            />
+            /> */}
           </div>
         ),
       },
@@ -218,7 +217,8 @@ export default function RoomTable({ data, mutate = () => {} }) {
                     <tr>
                       <td colSpan={visibleColumns.length}>
                         <div className="overflow-auto">
-                          <ScheduleTable
+                          <PerSemScheduleTable type="room" />
+                          {/* <ScheduleTable
                             ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                             id={row.original.code}
                             data={row.original.schedules}
@@ -226,7 +226,7 @@ export default function RoomTable({ data, mutate = () => {} }) {
                             endTime="6:00 PM"
                             interval={30}
                             type="room"
-                          />
+                          /> */}
                         </div>
                       </td>
                     </tr>

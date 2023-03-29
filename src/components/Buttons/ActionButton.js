@@ -21,7 +21,7 @@ export default function ActionButton({
         data-tooltip-content={toolTipContent}
         onClick={onClick}
         style={{ backgroundColor: buttonColor }}
-        className="relative flex items-center justify-center rounded-md p-1"
+        className="relative flex aspect-square h-fit min-h-[24px] min-w-[24px] items-center justify-center rounded-md p-1"
       >
         {icon}
       </button>

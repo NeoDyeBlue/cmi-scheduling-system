@@ -13,7 +13,7 @@ export default function Teachers() {
   const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, mutate } = usePaginate({
     url: `/api/teachers${searchValue ? '/search' : ''}`,
-    limit: 3,
+    limit: 10,
     query: { ...(searchValue ? { q: searchValue } : {}) },
   });
   return (

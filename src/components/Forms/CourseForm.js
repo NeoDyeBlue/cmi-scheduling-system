@@ -32,6 +32,8 @@ export default function CourseForm({
               semesterSubjects: [
                 { semester: '1', subjects: [] },
                 { semester: '2', subjects: [] },
+                { semester: 'special', subjects: [] },
+                { semester: 'summer', subjects: [] },
               ],
             },
           ],
@@ -152,6 +154,18 @@ export default function CourseForm({
                             >
                               2nd sem
                             </Tab>
+                            <Tab
+                              selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
+                              className="tab-sm"
+                            >
+                              Special
+                            </Tab>
+                            <Tab
+                              selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
+                              className="tab-sm"
+                            >
+                              Summer
+                            </Tab>
                           </TabList>
                           <TabPanel>
                             <MultiComboBox
@@ -171,7 +185,29 @@ export default function CourseForm({
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
-                                semester: 1,
+                                semester: 2,
+                              }}
+                            />
+                          </TabPanel>
+                          <TabPanel>
+                            <MultiComboBox
+                              placeholder="Enter subject code or name"
+                              name={`yearSections[${index}].semesterSubjects[1].subjects`}
+                              searchUrl="/api/subjects/search"
+                              // label="Subjects"
+                              filter={{
+                                semester: 'special',
+                              }}
+                            />
+                          </TabPanel>
+                          <TabPanel>
+                            <MultiComboBox
+                              placeholder="Enter subject code or name"
+                              name={`yearSections[${index}].semesterSubjects[1].subjects`}
+                              searchUrl="/api/subjects/search"
+                              // label="Subjects"
+                              filter={{
+                                semester: 'summer',
                               }}
                             />
                           </TabPanel>

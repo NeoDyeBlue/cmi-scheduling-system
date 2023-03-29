@@ -8,14 +8,6 @@ import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 
-/**
- * @todo fix grid responsiveness
- * @todo fix the isDragging not triggering restrictions
- * @todo show subject info on layout item(optional)
- * @todo fix maxH is getting limited if there is same subj and same teacher
- * @todo fix existing scheds from other room restriction not showing
- */
-
 export default function Scheduler({
   startTime = '1:00 AM',
   endTime = '12:00 AM',
@@ -258,6 +250,10 @@ export default function Scheduler({
         //for each subject schedule
         roomData?.schedules?.forEach((subjSchedule) => {
           //for each schedule day times of the subject
+          console.log(
+            `${course.code}${course.year}${course.section}`,
+            `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`
+          );
           subjSchedule.dayTimes.forEach((dayTime) => {
             //for each times of the day
             dayTime.times.forEach((time) => {
@@ -600,8 +596,6 @@ export default function Scheduler({
     }
   }
 
-  console.log(subjectScheds);
-
   /**
    *
    * @param {Array} layoutSource - what layout to use
@@ -741,12 +735,15 @@ export default function Scheduler({
           (dayTimes) => dayTimes.day == x
         );
 
+        console.log(preffered);
+
         if (preffered) {
+          // console.log(preffered.time.start);
           const preferredTimeStartIndex = timeData.findIndex((time) => {
-            return time[0] == preffered?.time?.start;
+            return time[0] == parse(preffered?.start, 'hh:mm a', new Date());
           });
           const preferredTimeEndIndex = timeData.findIndex((time) => {
-            return time[1] == preffered?.time?.end;
+            return time[1] == parse(preffered?.end, 'hh:mm a', new Date());
           });
 
           //get all the available time indexes of the teacher from preffered day start and end

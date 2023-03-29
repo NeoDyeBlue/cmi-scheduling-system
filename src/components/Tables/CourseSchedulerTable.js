@@ -65,6 +65,14 @@ export default function CourseTable({ type }) {
         Header: '2nd sem',
         accessor: 'schedCompletionStatus.secondSem.isCompleted', // accessor is the "key" in the data
       },
+      {
+        Header: 'Special',
+        accessor: 'schedCompletionStatus.special.isCompleted', // accessor is the "key" in the data
+      },
+      {
+        Header: 'Summer',
+        accessor: 'schedCompletionStatus.summer.isCompleted', // accessor is the "key" in the data
+      },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -196,6 +204,18 @@ export default function CourseTable({ type }) {
                                   >
                                     2nd sem
                                   </Tab>
+                                  <Tab
+                                    selectedClassName="tab-active"
+                                    className="tab-sm"
+                                  >
+                                    Special
+                                  </Tab>
+                                  <Tab
+                                    selectedClassName="tab-active"
+                                    className="tab-sm"
+                                  >
+                                    Summer
+                                  </Tab>
                                 </TabList>
                               </div>
 
@@ -212,9 +232,29 @@ export default function CourseTable({ type }) {
                               <TabPanel>
                                 <CourseSchedulerYearSecTable
                                   courseCode={row.original.code}
-                                  semester={'1'}
+                                  semester={'2'}
                                   data={
-                                    row.original.schedCompletionStatus.firstSem
+                                    row.original.schedCompletionStatus.secondSem
+                                      .perYearSec || []
+                                  }
+                                />
+                              </TabPanel>
+                              <TabPanel>
+                                <CourseSchedulerYearSecTable
+                                  courseCode={row.original.code}
+                                  semester={'special'}
+                                  data={
+                                    row.original.schedCompletionStatus.special
+                                      .perYearSec || []
+                                  }
+                                />
+                              </TabPanel>
+                              <TabPanel>
+                                <CourseSchedulerYearSecTable
+                                  courseCode={row.original.code}
+                                  semester={'summer'}
+                                  data={
+                                    row.original.schedCompletionStatus.summer
                                       .perYearSec || []
                                   }
                                 />
