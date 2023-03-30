@@ -217,16 +217,10 @@ export default function RoomTable({ data, mutate = () => {} }) {
                           <PerSemScheduleTable
                             type="rooms"
                             fetchQuery={{ code: row.original.code }}
+                            title={`${row.original.code.toUpperCase()}: ${
+                              row.original.name
+                            }`}
                           />
-                          {/* <ScheduleTable
-                            ref={(el) => (toPrintRefs.current[rowIndex] = el)}
-                            id={row.original.code}
-                            data={row.original.schedules}
-                            startTime="7:00 AM"
-                            endTime="6:00 PM"
-                            interval={30}
-                            type="room"
-                          /> */}
                         </div>
                       </td>
                     </tr>

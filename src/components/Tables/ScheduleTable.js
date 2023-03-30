@@ -5,7 +5,16 @@ import { ImageWithFallback } from '../Misc';
 import classNames from 'classnames';
 
 const ScheduleTable = forwardRef(function ScheduleTable(
-  { id, data, startTime, endTime, interval, type, exportTitle = 'Schedules' },
+  {
+    id,
+    data,
+    startTime,
+    endTime,
+    interval,
+    type,
+    title = 'Schedules',
+    subtitle = '',
+  },
   ref
 ) {
   const weekDays = useMemo(
@@ -296,9 +305,10 @@ const ScheduleTable = forwardRef(function ScheduleTable(
   return (
     <>
       <div className="page-landscape flex flex-col gap-4 print:m-4" ref={ref}>
-        <p className="hidden font-display text-2xl font-semibold print:block">
-          {exportTitle}
-        </p>
+        <div className="hidden print:block">
+          <p className="font-display text-2xl font-semibold">{title}</p>
+          {subtitle && <p className="text-sm">{subtitle}</p>}
+        </div>
         <table
           id={id}
           {...getTableProps()}

@@ -22,12 +22,14 @@ export default function CourseTable({ type }) {
   const [toEditTeacherData, setToEditTeacherData] = useState(null);
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: '/api/courses',
+    url: `/api/courses${searchValue ? '/search' : ''}`,
     limit: 10,
     query: {
       type,
+      ...(searchValue ? { q: searchValue } : {}),
     },
   });
 
@@ -150,7 +152,10 @@ export default function CourseTable({ type }) {
       </Modal>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="w-full max-w-[350px]">
-          <SearchForm placeholder={`Search ${type} courses`} />
+          <SearchForm
+            placeholder={`Search ${type} courses`}
+            onSearch={(value) => setSearchValue(value)}
+          />
         </div>
         <CreateButton onClick={() => setIsModalOpen(true)} text="New Course" />
       </div>

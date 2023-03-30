@@ -10,7 +10,11 @@ import { useRef } from 'react';
 import useSWR from 'swr';
 import { SpinnerLoader } from '../Loaders';
 
-export default function PerSemScheduleTable({ type = '', fetchQuery }) {
+export default function PerSemScheduleTable({
+  type = '',
+  fetchQuery,
+  title = '',
+}) {
   const { theme } = resolveConfig(tailwindConfig);
   const tabs = ['1', '2', 'special', 'summer'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
@@ -90,6 +94,8 @@ export default function PerSemScheduleTable({ type = '', fetchQuery }) {
                     (schedule) => schedule.semester == '1'
                   )?.schedules || []
                 }
+                title={title}
+                subtitle="1st Semester Schedules"
                 startTime="7:00 AM"
                 endTime="6:00 PM"
                 interval={30}
@@ -106,6 +112,8 @@ export default function PerSemScheduleTable({ type = '', fetchQuery }) {
                     (schedule) => schedule.semester == '2'
                   )?.schedules || []
                 }
+                title={title}
+                subtitle="2nd Semester Schedules"
                 startTime="7:00 AM"
                 endTime="6:00 PM"
                 interval={30}
@@ -122,6 +130,8 @@ export default function PerSemScheduleTable({ type = '', fetchQuery }) {
                     (schedule) => schedule.semester == 'special'
                   )?.schedules || []
                 }
+                title={title}
+                subtitle="Specials Schedules"
                 startTime="7:00 AM"
                 endTime="6:00 PM"
                 interval={30}
@@ -138,6 +148,8 @@ export default function PerSemScheduleTable({ type = '', fetchQuery }) {
                     (schedule) => schedule.semester == 'summer'
                   )?.schedules || []
                 }
+                title={title}
+                subtitle="Summer Schedules"
                 startTime="7:00 AM"
                 endTime="6:00 PM"
                 interval={30}
