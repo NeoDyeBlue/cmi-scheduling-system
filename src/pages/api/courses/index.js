@@ -61,6 +61,21 @@ export const handler = async (req, res) => {
     try {
       const { _id: id, ...fields } = req.body;
       console.log("req.body;",JSON.stringify(req.body))
+      const sectionNames = generateChar(20);
+      const sections = [];
+      for (let yearIndex in fields.yearSections) {
+        for (
+          let secIndex = 0;
+          secIndex < fields.yearSections[yearIndex].sectionCount;
+          secIndex++
+        ) {
+          sections.push({
+            ...fields.yearSections[yearIndex],
+            section: sectionNames[secIndex],
+          });
+        }
+      }
+      fields.yearSections = sections;
       const data = await course.updateCourse({ id, fields });
       return successResponse(req, res, data);
     } catch (error) {
