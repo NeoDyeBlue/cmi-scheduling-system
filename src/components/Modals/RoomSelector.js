@@ -7,7 +7,7 @@ import { MdSearch } from 'react-icons/md';
 import { shallow } from 'zustand/shallow';
 import { PopupLoader } from '../Loaders';
 
-export default function RoomSelector({ onSelectClose }) {
+export default function RoomSelector({ onSelectClose, filter, semester }) {
   const { selectedRooms, setSelectedRooms } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -67,7 +67,9 @@ export default function RoomSelector({ onSelectClose }) {
   async function getRoomExistingScheds(roomCode) {
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/rooms/${roomCode}?p=scheduler`);
+      const res = await fetch(
+        `/api/rooms/${roomCode}?p=scheduler&semester=${semester}`
+      );
       const result = await res.json();
 
       if (result?.success) {

@@ -368,7 +368,10 @@ export default function Schedule() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
-        <RoomSelector onSelectClose={() => setIsModalOpen(false)} />
+        <RoomSelector
+          onSelectClose={() => setIsModalOpen(false)}
+          semester={schedulerData?.semester}
+        />
       </Modal>
       <div className="relative grid h-screen grid-cols-1 grid-rows-[auto_1fr] overflow-hidden">
         <div className="flex items-center gap-4 border-b border-gray-300 p-4">
