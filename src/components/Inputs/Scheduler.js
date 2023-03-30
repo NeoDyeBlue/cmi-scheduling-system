@@ -735,15 +735,18 @@ export default function Scheduler({
           (dayTimes) => dayTimes.day == x
         );
 
-        console.log(preffered);
-
         if (preffered) {
-          // console.log(preffered.time.start);
           const preferredTimeStartIndex = timeData.findIndex((time) => {
-            return time[0] == parse(preffered?.start, 'hh:mm a', new Date());
+            return (
+              time[0] ==
+              format(parse(preffered?.start, 'HH:mm', new Date()), 'h:mm a')
+            );
           });
           const preferredTimeEndIndex = timeData.findIndex((time) => {
-            return time[1] == parse(preffered?.end, 'hh:mm a', new Date());
+            return (
+              time[1] ==
+              format(parse(preffered?.end, 'HH:mm', new Date()), 'h:mm a')
+            );
           });
 
           //get all the available time indexes of the teacher from preffered day start and end

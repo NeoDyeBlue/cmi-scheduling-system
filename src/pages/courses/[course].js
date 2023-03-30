@@ -36,7 +36,7 @@ export default function Course() {
                 </h3>
               </div>
               <div className="overflow-x-auto">
-                <PerSemScheduleTable type="course" />
+                <PerSemScheduleTable type="courses" />
               </div>
             </React.Fragment>
           ))}

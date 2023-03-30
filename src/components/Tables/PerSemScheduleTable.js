@@ -7,8 +7,9 @@ import { ActionButton } from '../Buttons';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import { useRef } from 'react';
+import useSWR from 'swr';
 
-export default function PerSemScheduleTable({ type = '', filter }) {
+export default function PerSemScheduleTable({ type = '', fetchQuery }) {
   const { theme } = resolveConfig(tailwindConfig);
   const tabs = ['1', '2', 'special', 'summer'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
@@ -18,6 +19,13 @@ export default function PerSemScheduleTable({ type = '', filter }) {
   const summerSemTableRef = useRef();
 
   //fetch func here for getting all the persem schedules
+  const { data, error, isLoading } = useSWR(
+    `/api/${type}/schedules?${new URLSearchParams({
+      ...fetchQuery,
+    }).toString()}`
+  );
+
+  console.log(data);
 
   return (
     <Tabs

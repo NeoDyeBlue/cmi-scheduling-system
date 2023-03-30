@@ -32,7 +32,7 @@ export const courseSchema = yup.object().shape({
                     code: yup.string().required('code is required'),
                   })
                 )
-                .min(1, 'Add atleast 1 subject')
+                // .min(1, 'Add atleast 1 subject')
                 .required('Required'),
             })
           ),

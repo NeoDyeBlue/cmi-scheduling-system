@@ -146,7 +146,9 @@ export default function CourseTable({ type }) {
       </Modal>
       {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
       {!isLoading && !docs.length ? (
-        <p className="text-ship-gray-500">Nothing to show</p>
+        <p className="mx-auto py-6 text-center text-ship-gray-500">
+          Nothing to show
+        </p>
       ) : null}
       {!isLoading && docs.length ? (
         <div className="flex flex-col gap-4">

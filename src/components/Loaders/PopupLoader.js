@@ -9,7 +9,7 @@ export default function PopupLoader({ message, isOpen }) {
     <ReactModal
       isOpen={isOpen}
       // closeTimeoutMS={300}
-      overlayClassName={`bg-black/20 fixed top-0 z-50 flex h-full w-full p-4`}
+      overlayClassName={`bg-black/20 fixed top-0 z-50 flex h-full w-full p-4 z-100`}
       preventScroll={true}
       bodyOpenClassName="modal-open-body"
       className={`relative m-auto w-fit overflow-hidden rounded-[10px]

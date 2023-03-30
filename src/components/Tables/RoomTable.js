@@ -217,7 +217,10 @@ export default function RoomTable({ data, mutate = () => {} }) {
                     <tr>
                       <td colSpan={visibleColumns.length}>
                         <div className="overflow-auto">
-                          <PerSemScheduleTable type="room" />
+                          <PerSemScheduleTable
+                            type="rooms"
+                            fetchQuery={{ code: row.original.code }}
+                          />
                           {/* <ScheduleTable
                             ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                             id={row.original.code}

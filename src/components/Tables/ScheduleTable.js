@@ -191,7 +191,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         className="min-w-[150px] border border-success-200 bg-success-100 px-4 py-3 text-center text-sm"
       >
         <div className="flex flex-col items-center justify-center gap-2 p-4">
-          {type !== 'teacher' ? (
+          {type !== 'teachers' ? (
             <Image
               src={slot?.teacher?.image}
               alt="teacher image"
@@ -200,14 +200,11 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
-          {type !== 'subject' && (
-            <p className="font-display font-semibold">{slot?.subject?.code}</p>
-          )}
-          {type !== 'teacher' && type !== 'room' ? (
+          {type !== 'teachers' && type !== 'rooms' ? (
             <>
               <p
                 className={classNames('font-medium', {
-                  'font-display font-semibold': type !== 'course',
+                  'font-display font-semibold': type !== 'courses',
                 })}
               >
                 {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
@@ -215,15 +212,15 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               <p className="font-medium">{slot?.room?.code}</p>
             </>
           ) : null}
-          {type == 'teacher' && (
+          {type == 'teachers' && (
             <p className="font-medium">{slot?.room?.code}</p>
           )}
-          {type == 'room' && (
+          {type == 'rooms' && (
             <p className="font-medium">
               {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
             </p>
           )}
-          {type !== 'course' && (
+          {type !== 'courses' && (
             <p className="font-medium">
               {slot?.course?.code} {slot?.course?.year}
               {slot?.course?.section}

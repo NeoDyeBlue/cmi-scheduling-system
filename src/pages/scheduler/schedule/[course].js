@@ -19,7 +19,7 @@ import { shallow } from 'zustand/shallow';
 import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import useSWRImmutable from 'swr/immutable';
 import useSWR from 'swr';
-import _ from 'lodash';
+import _, { remove } from 'lodash';
 import { toast } from 'react-hot-toast';
 
 export default function Schedule() {
@@ -65,6 +65,9 @@ export default function Schedule() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isRemoveRoomConfirmOpen, setIsRemoveRoomConfirmOpen] = useState(false);
+  const [toRemoveRoom, setToRemoveRoom] = useState('');
+  const [removeRoom, setRemoveRoom] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -185,10 +188,19 @@ export default function Schedule() {
     }
   }, [selectedRooms]);
 
-  useEffect(
-    () => setFormData({ course, subjectScheds }),
-    [course, subjectScheds]
-  );
+  useEffect(() => {
+    setFormData({ course, subjectScheds });
+  }, [course, subjectScheds]);
+
+  useEffect(() => {
+    if (removeRoom) {
+      submitChanges().then(() => {
+        setToRemoveRoom('');
+        setIsRemoveRoomConfirmOpen(false);
+        setRemoveRoom(false);
+      });
+    }
+  }, [removeRoom]);
 
   // console.log(subjectsData);
 
@@ -215,7 +227,8 @@ export default function Schedule() {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          removeRoom(room.code);
+          setToRemoveRoom(room.code);
+          setIsRemoveRoomConfirmOpen(true);
         }}
         className="absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
               justify-center rounded-full border border-gray-200 bg-white text-center 
@@ -238,27 +251,6 @@ export default function Schedule() {
       />
     </TabPanel>
   ));
-
-  function removeRoom(roomCode) {
-    setSubjectScheds(
-      subjectScheds
-        .map((subjectSched) => ({
-          ...subjectSched,
-          schedules: [
-            ...subjectSched.schedules.filter(
-              (schedule) => schedule.room.code !== roomCode
-            ),
-          ],
-        }))
-        .filter((items) => items.schedules.length)
-    );
-    setSelectedRooms(selectedRooms.filter((room) => room.code !== roomCode));
-    setAllRoomSubjSchedsLayout(
-      roomsSubjSchedsLayouts.filter(
-        (roomLayout) => roomLayout.roomCode !== roomCode
-      )
-    );
-  }
 
   function checkForChanges() {
     const hasChanges = _.isEqual(formData, oldSchedsData);
@@ -310,6 +302,31 @@ export default function Schedule() {
     setSubjectScheds([]);
   }
 
+  function onConfirmRemoveRoom() {
+    const newSubjScheds = subjectScheds
+      .map((subjectSched) => ({
+        ...subjectSched,
+        schedules: [
+          ...subjectSched.schedules.filter(
+            (schedule) => schedule.room.code !== toRemoveRoom
+          ),
+        ],
+      }))
+      .filter((items) => items.schedules.length);
+    setFormData({ course, subjectScheds: newSubjScheds });
+    setSubjectScheds(newSubjScheds);
+    setSelectedRooms(
+      selectedRooms.filter((room) => room.code !== toRemoveRoom)
+    );
+    setAllRoomSubjSchedsLayout(
+      roomsSubjSchedsLayouts.filter(
+        (roomLayout) => roomLayout.roomCode !== toRemoveRoom
+      )
+    );
+
+    setRemoveRoom(true);
+  }
+
   return (
     <>
       <PopupLoader isOpen={isSubmitting} message="Saving schedules..." />
@@ -319,6 +336,16 @@ export default function Schedule() {
         onConfirm={onConfirmReset}
         label="Reset Subject Schedules?"
         message="This will remove all placed subject schedules from every rooms."
+      />
+      <Confirmation
+        isOpen={isRemoveRoomConfirmOpen}
+        onCancel={() => {
+          setIsRemoveRoomConfirmOpen(false);
+          setToRemoveRoom('');
+        }}
+        onConfirm={onConfirmRemoveRoom}
+        label="Remove Room?"
+        message="This will remove the placed subject schedules in this room."
       />
       <Confirmation
         isOpen={isCancelConfirmOpen}

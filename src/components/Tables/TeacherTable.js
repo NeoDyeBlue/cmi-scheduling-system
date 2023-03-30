@@ -297,7 +297,7 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                   <tr>
                     <td colSpan={visibleColumns.length}>
                       <div className="overflow-auto">
-                        <PerSemScheduleTable type="teacher" />
+                        <PerSemScheduleTable type="teachers" />
                         {/* <ScheduleTable
                           ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                           data={row.original.schedules}
