@@ -41,11 +41,11 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 - [ ] Dashboard
 - [ ] Table searches
-- [ ] Fix subject teachers not updating in form
+- [x] Fix subject teachers not updating in form
 - [x] Fix year sections count not showing in updating of courses
 - [x] add sem tabs in viewing of course schedules
 - [ ] fix scheduler initial schedules for showing the confirmation modal
-- [ ] fix room schedules not updating when room is removed
+- [x] fix room schedules not updating when room is removed
 - [ ] fix onClick is triggering the restrictions and when dragged does not trigger them
 - [ ] add scheduler course statuses
 - [ ] show info on row click or layout item click
