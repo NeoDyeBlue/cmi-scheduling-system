@@ -7,7 +7,10 @@ export const handler = async (req, res) => {
       const courseSubjectScheds = req.body;
       const schedules = [];
       for (let courseScheds of courseSubjectScheds.subjectScheds) {
-        console.log("teacher: courseScheds.teacher._id,",courseScheds.teacher._id,)
+        console.log(
+          'teacher: courseScheds.teacher._id,',
+          courseScheds.teacher._id
+        );
         const scheds = {
           teacher: courseScheds.teacher._id,
           subject: courseScheds.subject._id,
@@ -22,7 +25,7 @@ export const handler = async (req, res) => {
         schedules.push(scheds);
       }
       console.log('schedules', JSON.stringify(schedules));
-      const data = await schedule.createSchedule({schedules});
+      const data = await schedule.createSchedule({ schedules });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
@@ -30,10 +33,12 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'GET') {
     try {
-      const { code: roomCode, room } = req.query;
+      // teacher is teacher _id.
+      const { roomcode: roomCode, teacher } = req.query;
 
       const data = await schedule.getSchedulesBy({
         roomCode,
+        teacher,
       });
       return successResponse(req, res, data);
     } catch (error) {

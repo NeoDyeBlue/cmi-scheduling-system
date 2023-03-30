@@ -1,6 +1,8 @@
 import Model from '..';
 import MongoConnect from '../mongo-connect/MongoConnect';
 import errorThrower from '@/utils/error.util';
+import mongoose from 'mongoose';
+
 class Schedule extends Model {
   constructor() {
     super();
@@ -38,14 +40,22 @@ class Schedule extends Model {
     }
   }
   // to view all schedules by room
-  async getSchedulesBy({ roomCode }) {
+  async getSchedulesBy({ roomCode, teacher }) {
     try {
+      let matchBy = {};
+      if (roomCode) {
+        matchBy = {
+          'schedules.room.code': roomCode,
+        };
+      } else if (teacher) {
+        matchBy = {
+          teacher: mongoose.Types.ObjectId(teacher),
+        };
+      }
       const pipeline = [
         // get all schedules that has using room code.
         {
-          $match: {
-            'schedules.room.code': roomCode,
-          },
+          $match: matchBy,
         },
         // group it by room semester populate subject
         {
@@ -95,6 +105,23 @@ class Schedule extends Model {
                   teacherId: 1,
                   firstName: 1,
                   lastName: 1,
+                  preferredDayTimes: 1,
+                },
+              },
+              {
+                $addFields: {
+                  isFulltime: {
+                    $cond: {
+                      if: { $gt: [{ $size: '$preferredDayTimes' }, 0] },
+                      then: false,
+                      else: true,
+                    },
+                  },
+                },
+              },
+              {
+                $project: {
+                  preferredDayTimes: 0,
                 },
               },
             ],
@@ -119,7 +146,13 @@ class Schedule extends Model {
             },
           },
         },
-
+        // add year and section to the course
+        {
+          $addFields: {
+            'course.year': '$yearSec.year',
+            'course.section': '$yearSec.section',
+          },
+        },
         {
           $group: {
             _id: '$semester',

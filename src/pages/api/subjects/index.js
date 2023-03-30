@@ -20,9 +20,9 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'GET') {
     try {
-      const limit = 2;
-      const page = 1;
-      // const { limit, page } = req.query;
+      // const limit = 2;
+      // const page = 1;
+      const { limit, page, type, semester } = req.query;
       const data = await subject.getSubjectsPagination({ limit, page });
       return successResponse(req, res, data);
     } catch (error) {
