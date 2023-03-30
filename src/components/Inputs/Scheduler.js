@@ -250,10 +250,16 @@ export default function Scheduler({
         //for each subject schedule
         roomData?.schedules?.forEach((subjSchedule) => {
           //for each schedule day times of the subject
-          console.log(
-            `${course.code}${course.year}${course.section}`,
-            `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`
-          );
+          // console.log(
+          //   `${course.code}${course.year}${course.section}`,
+          //   `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
+          //   courseSubjects,
+          //   subjSchedule.subject.code,
+          //   !courseSubjects.some(
+          //     (subject) => subject.code == subjSchedule.subject.code
+          //   )
+          // );
+
           subjSchedule.dayTimes.forEach((dayTime) => {
             //for each times of the day
             dayTime.times.forEach((time) => {
@@ -280,8 +286,8 @@ export default function Scheduler({
                  * - if subject is in the courseSubjects, check if it has the same year and section
                  */
                 static:
-                  courseSubjects.some(
-                    (subject) => subject.code !== subjSchedule.subject.code
+                  !courseSubjects.some(
+                    (subject) => subject.code == subjSchedule.subject.code
                   ) ||
                   `${course.code}${course.year}${course.section}` !==
                     `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
