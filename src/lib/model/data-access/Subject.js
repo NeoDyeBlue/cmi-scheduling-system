@@ -50,6 +50,8 @@ class Subject extends Model {
             code: '$code',
             name: '$name',
             units: '$units',
+            type: '$type',
+            semester: '$semester',
             schedules: [],
             assignedTeachers: '$teachers',
           },

@@ -4,13 +4,10 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
+      console.log('req.body', req.body);
       const courseSubjectScheds = req.body;
       const schedules = [];
       for (let courseScheds of courseSubjectScheds.subjectScheds) {
-        console.log(
-          'teacher: courseScheds.teacher._id,',
-          courseScheds.teacher._id
-        );
         const scheds = {
           teacher: courseScheds.teacher._id,
           subject: courseScheds.subject._id,
@@ -41,6 +38,13 @@ export const handler = async (req, res) => {
         teacher,
       });
       return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
+  if (req.method === 'DELETE') {
+    try {
+      //
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
     }

@@ -32,6 +32,8 @@ class Schedule extends Model {
           },
         };
       });
+      // delete that not in the new schedules.
+      
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       return data;
     } catch (error) {
