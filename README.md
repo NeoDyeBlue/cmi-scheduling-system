@@ -55,4 +55,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] pagination problem in subjects (f,b)
 - [ ] some subjects does not appear on search (f,b)
 - [ ] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
-- [ ] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
+- [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
+- [ ] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
