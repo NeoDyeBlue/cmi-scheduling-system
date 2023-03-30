@@ -142,6 +142,7 @@ class Room extends Model {
                   subject: 1,
                   yearSec: 1,
                   schedules: 1,
+                  semester: 1,
                 },
               },
               // populate subject
@@ -220,6 +221,7 @@ class Room extends Model {
                 $project: {
                   yearSec: 1,
                   dayTimes: '$schedules',
+                  semester:1,
                   teacher: {
                     $arrayElemAt: ['$teacher', 0],
                   },
@@ -237,6 +239,7 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
+                  semester:"$semester",
                   dayTimes: {
                     $filter: {
                       input: '$dayTimes',
@@ -261,6 +264,7 @@ class Room extends Model {
             _id: 1,
             code: 1,
             name: 1,
+            semester:1,
             schedules: 1,
           },
         },

@@ -99,6 +99,7 @@ class Course extends Model {
         {
           $group: {
             _id: '$code',
+            courseDocId : {$first: "$_id._id"},
             code: { $first: '$code' },
             name: { $first: '$name' },
             type: { $first: '$type' },
@@ -109,7 +110,17 @@ class Course extends Model {
             yearSections: { $push: '$yearSections' },
           },
         },
-
+        {
+          $project: {
+            _id: '$courseDocId',
+            code: 1,
+            name: 1,
+            type: 1,
+            years: 1,
+            sections: 1,
+            yearSections: 1,
+          },
+        },
         // {
         //   $project: {
         //     code: 1,

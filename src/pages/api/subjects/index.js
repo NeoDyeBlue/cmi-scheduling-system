@@ -41,7 +41,12 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { _id: id, ...fields } = req.body;
-      
+      const assignedTeachers = [];
+      for (let teacher of req.body.teachers) {
+        assignedTeachers.push({ teacher: teacher._id });
+      }
+      fields['assignedTeachers'] = assignedTeachers;
+      // console.log("req.body",req.body)
       const data = await subject.updateSubject({ id, fields });
       return successResponse(req, res, data);
     } catch (error) {

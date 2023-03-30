@@ -60,6 +60,7 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { _id: id, ...fields } = req.body;
+      console.log("req.body;",JSON.stringify(req.body))
       const data = await course.updateCourse({ id, fields });
       return successResponse(req, res, data);
     } catch (error) {
