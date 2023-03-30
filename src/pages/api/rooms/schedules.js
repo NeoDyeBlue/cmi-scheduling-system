@@ -4,13 +4,10 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'GET') {
     try {
-      const { semester, code: roomCode, page, limit } = req.query;
+      const { semester, code: roomCode } = req.query;
       const data = await Room.getRoomSchedules({
         semester,
         roomCode,
-        page,
-        limit,
-        semester,
       });
       return successResponse(req, res, data);
     } catch (error) {

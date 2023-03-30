@@ -498,6 +498,36 @@ class Course extends Model {
                 },
               },
             },
+            specialSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: {
+                    $eq: ['$yearSections.semesterSubjects.semester', 'special'],
+                  },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: 'unscheduled', // should be dynamic
+                  },
+                  else: null,
+                },
+              },
+            },
+            summerSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: {
+                    $eq: ['$yearSections.semesterSubjects.semester', 'summer'],
+                  },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: 'unscheduled', // should be dynamic
+                  },
+                  else: null,
+                },
+              },
+            },
           },
         },
         {
@@ -520,6 +550,26 @@ class Course extends Model {
                 perYearSec: {
                   $filter: {
                     input: '$secondSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+              special: {
+                isCompleted: true,
+                perYearSec: {
+                  $filter: {
+                    input: '$specialSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+              summer: {
+                isCompleted: true,
+                perYearSec: {
+                  $filter: {
+                    input: '$summerSemPerYearSec',
                     as: 'course',
                     cond: { $ne: ['$$course', null] },
                   },

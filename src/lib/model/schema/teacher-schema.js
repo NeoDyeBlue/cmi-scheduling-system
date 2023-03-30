@@ -11,6 +11,8 @@ const preferredDayTimes = new mongoose.Schema({
   start: { type: String },
   end: { type: String },
 });
+
+// wala na to, kasi yung teachers na ang inaassign sa subject.
 const assignedSubjectsSchema = new mongoose.Schema({
   subject: { type: mongoose.Types.ObjectId, ref: 'Subject', required: true },
   course: { type: mongoose.Types.ObjectId, ref: 'Course', required: true },
