@@ -117,7 +117,7 @@ class Room extends Model {
     }
   }
 
-  async getRoomSchedules({ roomCode, semester }) {
+  async getRoomSchedulesPerSemester({ roomCode, semester }) {
     try {
       const matchSemester = semester
         ? { semester: { $in: [semester, 'special'] } }
@@ -278,6 +278,7 @@ class Room extends Model {
       throw error;
     }
   }
+
 
   // this is used to get schedules of rooms and also used for specific room's schedule.
   async getAllRoomSchedules({ semester, courseCode }) {

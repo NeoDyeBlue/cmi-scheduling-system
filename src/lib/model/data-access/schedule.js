@@ -33,7 +33,136 @@ class Schedule extends Model {
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       return data;
     } catch (error) {
-      console.log("error",error)
+      console.log('error', error);
+      throw error;
+    }
+  }
+  // to view all schedules by room
+  async getSchedulesBy({ roomCode }) {
+    try {
+      const pipeline = [
+        // get all schedules that has using room code.
+        {
+          $match: {
+            'schedules.room.code': roomCode,
+          },
+        },
+        // group it by room semester populate subject
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  code: 1,
+                  name: 1,
+                  units: 1,
+                },
+              },
+            ],
+            as: 'subject',
+          },
+        },
+        // populate course
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'course',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  code: 1,
+                  name: 1,
+                },
+              },
+            ],
+            as: 'courseCodeName',
+          },
+        },
+        // populate course teacher
+        {
+          $lookup: {
+            from: 'teachers',
+            localField: 'teacher',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  teacherId: 1,
+                  firstName: 1,
+                  lastName: 1,
+                },
+              },
+            ],
+            as: 'teacher',
+          },
+        },
+        // to get first index of courseCodeName, subject
+        {
+          $project: {
+            _id: 1,
+            yearSec: 1,
+            dayTimes: '$schedules',
+            semester: 1,
+            teacher: {
+              $arrayElemAt: ['$teacher', 0],
+            },
+            subject: {
+              $arrayElemAt: ['$subject', 0],
+            },
+            course: {
+              $arrayElemAt: ['$courseCodeName', 0],
+            },
+          },
+        },
+
+        {
+          $group: {
+            _id: '$semester',
+            semester: { $first: '$semester' },
+            schedules: {
+              $addToSet: {
+                course: '$course',
+                subject: '$subject',
+                teacher: '$teacher',
+                yearSec: '$yearSec',
+                dayTimes: '$dayTimes',
+              },
+            },
+          },
+        },
+
+        // filter only the dayTimes of specific room per schedule.
+        // {
+        //   $project: {
+
+        //     subject: 1,
+        //     teacher: 1,
+        //     existingSchedules: 1,
+        //     semester: '$semester',
+        //     dayTimes: {
+        //       $filter: {
+        //         input: '$dayTimes',
+        //         as: 'day_time',
+        //         cond: { $eq: ['$$day_time.room.code', roomCode] },
+        //       },
+        //     },
+        //     course: {
+        //       code: '$course.code',
+        //       name: '$course.name',
+        //       year: '$yearSec.year',
+        //       section: '$yearSec.section',
+        //     },
+        //   },
+        // },
+      ];
+      const data = await this.Schedule.aggregate(pipeline);
+      return data;
+    } catch (error) {
       throw error;
     }
   }
