@@ -5,17 +5,42 @@ import { useRouter } from 'next/router';
 import { bscs } from '@/lib/test_data/courses';
 import { PerSemScheduleTable } from '@/components/Tables';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from 'tailwind.config';
 import { addOrdinalSuffix } from '@/utils/number-utils';
 import React from 'react';
-import { useRef } from 'react';
+import useSWR from 'swr';
+import { FullPageLoader } from '@/components/Loaders';
+import { useMemo } from 'react';
+import { ErrorScreen } from '@/components/Misc';
 
 export default function Course() {
-  const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const { course } = router.query;
-  const toPrintRefs = useRef([]);
+
+  const {
+    data: result,
+    error: courseError,
+    isLoading,
+  } = useSWR(`/api/courses/${course}/info`);
+
+  const courseData = useMemo(
+    () => (result?.data[0] ? result.data[0] : null),
+    [result]
+  );
+
+  if (!courseData && isLoading) {
+    return <FullPageLoader message="Getting course data please wait..." />;
+  }
+
+  if (courseError && !isLoading) {
+    return (
+      <ErrorScreen
+        message="Can't get course info"
+        returnUrl="/courses"
+        returnUrlMessage="Back to Courses"
+      />
+    );
+  }
+
   const tabs = bscs.yearSections.map((yearSection) => (
     <Tab key={yearSection.year} selectedClassName="tab-active" className="tab">
       {addOrdinalSuffix(yearSection.year)}

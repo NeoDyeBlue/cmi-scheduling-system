@@ -20,6 +20,7 @@ import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import useSWR from 'swr';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
+import { ErrorScreen } from '@/components/Misc';
 
 export default function Schedule() {
   const router = useRouter();
@@ -203,8 +204,18 @@ export default function Schedule() {
 
   // console.log(formData);
 
-  if (!schedulerData || isLoading) {
+  if (!schedulerData && isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
+  }
+
+  if (error && !isLoading) {
+    return (
+      <ErrorScreen
+        message="Something went wrong"
+        returnUrl="/scheduler"
+        returnUrlMessage="Back to Scheduler"
+      />
+    );
   }
 
   const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
