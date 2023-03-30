@@ -297,7 +297,10 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                   <tr>
                     <td colSpan={visibleColumns.length}>
                       <div className="overflow-auto">
-                        <PerSemScheduleTable type="teachers" />
+                        <PerSemScheduleTable
+                          type="teachers"
+                          fetchQuery={{ teacher: row.original._id }}
+                        />
                         {/* <ScheduleTable
                           ref={(el) => (toPrintRefs.current[rowIndex] = el)}
                           data={row.original.schedules}

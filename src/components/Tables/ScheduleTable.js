@@ -1,14 +1,25 @@
 import { useTable } from 'react-table';
 import { useMemo, forwardRef } from 'react';
 import { parse, addMinutes, format } from 'date-fns';
-import Image from 'next/image';
+import { ImageWithFallback } from '../Misc';
 import classNames from 'classnames';
-import useSWR from 'swr';
 
 const ScheduleTable = forwardRef(function ScheduleTable(
   { id, data, startTime, endTime, interval, type, exportTitle = 'Schedules' },
   ref
 ) {
+  const weekDays = useMemo(
+    () => [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ],
+    []
+  );
   const timeData = useMemo(() => {
     const start = parse(startTime, 'hh:mm a', new Date());
     const end = parse(endTime, 'hh:mm a', new Date());
@@ -33,6 +44,41 @@ const ScheduleTable = forwardRef(function ScheduleTable(
 
     return pairedTimes;
   }, [startTime, endTime, interval]);
+
+  const groupedByDay = useMemo(() => {
+    const newData = [];
+    weekDays.forEach((day, dayIndex) => {
+      const slots = [];
+      data.forEach((schedule, schedIndex) => {
+        schedule.dayTimes.forEach((dayTime) => {
+          if (dayTime.day == dayIndex + 1) {
+            dayTime.times.forEach((time) => {
+              slots.push({
+                teacher: schedule.teacher,
+                subject: schedule.subject,
+                course: schedule.course,
+                room: dayTime.room,
+                time: {
+                  start: time.start,
+                  end: time.end,
+                },
+              });
+            });
+          }
+        });
+      });
+
+      newData.push({
+        day,
+        dayIndex: dayIndex + 1,
+        slots,
+      });
+    });
+
+    return newData;
+  }, [data, weekDays]);
+
+  console.log(groupedByDay);
 
   const columns = useMemo(
     () => [
@@ -103,49 +149,49 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         // id: "monday",
         dayIndex: 1,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'monday'),
+        accessor: () => findSchedule(groupedByDay, 'monday'),
       },
       {
         Header: 'Tuesday',
         // id: "tuesday",
         dayIndex: 2,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'tuesday'),
+        accessor: () => findSchedule(groupedByDay, 'tuesday'),
       },
       {
         Header: 'Wednesday',
         // id: "wednesday",
         dayIndex: 3,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'wednesday'),
+        accessor: () => findSchedule(groupedByDay, 'wednesday'),
       },
       {
         Header: 'Thursday',
         // id: "thursday",
         dayIndex: 4,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'thursday'),
+        accessor: () => findSchedule(groupedByDay, 'thursday'),
       },
       {
         Header: 'Friday',
         // id: "friday",
         dayIndex: 5,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'friday'),
+        accessor: () => findSchedule(groupedByDay, 'friday'),
       },
       {
         Header: 'Saturday',
         // id: "saturday",
         dayIndex: 6,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'saturday'),
+        accessor: () => findSchedule(groupedByDay, 'saturday'),
       },
       {
         Header: 'Sunday',
         // id: "sunday",
         dayIndex: 7,
         enableRowSpan: true,
-        accessor: () => findSchedule(data, 'sunday'),
+        accessor: () => findSchedule(groupedByDay, 'sunday'),
       },
       {
         Header: 'Time',
@@ -155,7 +201,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         fixed: 'right',
       },
     ],
-    [data]
+    [groupedByDay]
   );
 
   const newData = useMemo(
@@ -182,21 +228,37 @@ const ScheduleTable = forwardRef(function ScheduleTable(
       (timePairs) => timePairs[1] == slot.time.end
     );
 
+    console.log(timeEndIndex + 1 - timeStartIndex);
+
     return (
       <td
         key={cellIndex}
         {...cell.getCellProps({
           rowSpan: timeEndIndex + 1 - timeStartIndex,
         })}
-        className="min-w-[150px] border border-success-200 bg-success-100 px-4 py-3 text-center text-sm"
+        className={classNames(
+          'relative min-w-[150px] overflow-hidden border-2 border-indigo-300 bg-indigo-50 text-center text-sm'
+          // 'z-10 before:absolute before:inset-0 before:h-full before:w-full before:bg-transparent'
+          // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
+        )}
       >
-        <div className="flex flex-col items-center justify-center gap-2 p-4">
-          {type !== 'teachers' ? (
-            <Image
+        <div
+          style={{
+            maxHeight: `${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px`,
+          }}
+          className={classNames(
+            'relative flex flex-col items-center justify-center gap-1 overflow-hidden p-4'
+            // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
+          )}
+        >
+          {type !== 'teachers' &&
+          Math.abs(timeEndIndex + 1 - timeStartIndex) > 2 ? (
+            <ImageWithFallback
               src={slot?.teacher?.image}
               alt="teacher image"
               width={42}
               height={42}
+              fallbackSrc={'/images/teachers/default.jpg'}
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
@@ -213,7 +275,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
             </>
           ) : null}
           {type == 'teachers' && (
-            <p className="font-medium">{slot?.room?.code}</p>
+            <p className="font-medium uppercase">{slot?.room?.code}</p>
           )}
           {type == 'rooms' && (
             <p className="font-medium">
@@ -221,7 +283,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
             </p>
           )}
           {type !== 'courses' && (
-            <p className="font-medium">
+            <p className="font-bold uppercase">
               {slot?.course?.code} {slot?.course?.year}
               {slot?.course?.section}
             </p>
@@ -302,7 +364,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                 <tr
                   key={rowIndex}
                   {...row.getRowProps()}
-                  className="border border-gray-200"
+                  className="h-[40px] max-h-[40px] border border-gray-200"
                 >
                   {row.cells.map((cell, cellIndex) => {
                     if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
@@ -310,7 +372,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                         <td
                           key={cellIndex}
                           {...cell.getCellProps()}
-                          className={`border border-gray-200 text-center text-xs`}
+                          className={`h-[40px] max-h-[40px] border border-gray-200 text-center text-xs`}
                         >
                           <div
                             className={classNames(

@@ -6,7 +6,7 @@ export default function SpinnerLoader({ size }) {
   const { theme } = resolveConfig(tailwindConfig);
   return (
     <MoonLoader
-      className="mx-auto"
+      className="mx-auto my-2"
       size={size}
       color={theme.colors.primary[500]}
     />
