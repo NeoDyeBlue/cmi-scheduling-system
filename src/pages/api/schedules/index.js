@@ -28,5 +28,17 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  if (req.method === 'GET') {
+    try {
+      const { code: roomCode, room } = req.query;
+
+      const data = await schedule.getSchedulesBy({
+        roomCode,
+      });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
 };
 export default handler;
