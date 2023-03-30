@@ -22,7 +22,10 @@ export const handler = async (req, res) => {
         schedules.push(scheds);
       }
       console.log('schedules', JSON.stringify(schedules));
-      const data = await schedule.createSchedule({ schedules });
+      const data = await schedule.createSchedule({
+        schedules,
+        courseSubjectScheds,
+      });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);

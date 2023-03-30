@@ -8,7 +8,7 @@ class Schedule extends Model {
     super();
   }
   // just a snippet for schedule.
-  async createSchedule({ schedules }) {
+  async createSchedule({ schedules, courseSubjectScheds }) {
     try {
       const schedulesBulksOptions = schedules.map((schedule) => {
         return {
@@ -32,8 +32,48 @@ class Schedule extends Model {
           },
         };
       });
+
       // delete that not in the new schedules.
-      
+      // delete schedules all if schedules/dayTimes is empty
+      // what is the requirements that we can say if the document should be deleted?
+      // 1. if schedules are empty
+      // 2. if in the same course-year-section and was not equal from payload schedules array.
+      //
+
+      // processes?
+      // 1. get all schedules of course-year-section
+      // 2. compare to know what schedules to remove that conditioned by subject._id *optional(rooom)
+      // store all schedules to remove to an array.
+
+      // get all schedules of the course-year-section
+
+      const { course } = courseSubjectScheds;
+      const currentSchedules = await this.Schedule.find({
+        course: course._id,
+        yearSec: {
+          course: course.year,
+          section: course.section,
+        },
+      }).exec();
+
+      // if elements of currentSchedules is not exists in schedules it will remove.
+      const toDeleteItems = currentSchedules.filter((currentSched) => {
+        return !schedules.some((sched) => {
+          return sched.subject === currentSched.subject;
+        });
+      });
+
+      console.log('toDeleteItems', toDeleteItems);
+      const toDeleteSchedsOptions = schedules.map((schedule) => {
+        return {
+          deleteMany: {
+            filter: {
+              _id: schedule._id,
+            },
+          },
+        };
+      });
+      // await this.Schedule.bulkWrite(toDeleteSchedsOptions);
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       return data;
     } catch (error) {
