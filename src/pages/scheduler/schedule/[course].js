@@ -140,12 +140,12 @@ export default function Schedule() {
             if (courseSubjectSchedules.length) {
               initialSubjectScheds.push({
                 subject: {
-                  code: subject.code,
                   _id: subject._id,
+                  code: subject.code,
                 },
                 teacher: {
-                  teacherId: teacher.teacherId,
                   _id: teacher._id,
+                  teacherId: teacher.teacherId,
                 },
                 schedules: courseSubjectSchedules,
               });
@@ -201,7 +201,7 @@ export default function Schedule() {
     }
   }, [removeRoom]);
 
-  // console.log(subjectsData);
+  // console.log(formData);
 
   if (!schedulerData || isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
@@ -326,8 +326,8 @@ export default function Schedule() {
     setRemoveRoom(true);
   }
 
-  console.log('old', oldSchedsData);
-  console.log('new', subjectScheds);
+  // console.log('old', oldSchedsData);
+  // console.log('new', subjectScheds);
 
   return (
     <>
