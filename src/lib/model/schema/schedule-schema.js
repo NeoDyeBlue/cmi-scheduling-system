@@ -6,7 +6,7 @@ const schedule = new mongoose.Schema(
     teacher: { type: mongoose.Types.ObjectId, ref: 'Teacher', required: true },
     subject: { type: mongoose.Types.ObjectId, ref: 'Subject', required: true },
     course: { type: mongoose.Types.ObjectId, ref: 'Course', required: true },
-    semester: { type: Number },
+    semester: { type: String, enum: ['1', '2', '3', 'special', 'summer'] },
     yearSec: {
       year: { type: String },
       section: { type: String },
