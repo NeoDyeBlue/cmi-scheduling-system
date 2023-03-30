@@ -99,7 +99,7 @@ class Course extends Model {
         {
           $group: {
             _id: '$code',
-            courseDocId : {$first: "$_id._id"},
+            courseDocId: { $first: '$_id._id' },
             code: { $first: '$code' },
             name: { $first: '$name' },
             type: { $first: '$type' },
@@ -234,13 +234,41 @@ class Course extends Model {
         {
           $match: {
             code: courseCode,
-            'yearSections.semesterSubjects.semester': semester,
+            // 'yearSections.semesterSubjects.semester': {
+            //   $in: [semester, 'special'],
+            // },
           },
         },
         { $unwind: '$yearSections' },
+        { $unwind: '$yearSections.semesterSubjects' },
+        { $match: { 'yearSections.semesterSubjects.semester': semester } },
+        // pwede din ilipat dito ung filtering ng semester
+        // tapos i unwind ang semesterSubjects
+        // {
+        //   $lookup: {
+        //     from: 'subjects',
+        //     localField: 'yearSections.semesterSubjects.subjects._id',
+        //     foreignField: '_id',
+        //     pipeline: [
+        //       {
+        //         $project: {
+        //           _id: 1, 
+        //           code: 1,
+        //           name: 1,
+        //           units: 1,
+        //           assignedTeachers: 1,
+        //           // semesterSubjects:"$$semesterSubjects",
+        //         },
+        //       },
+        //     ],
+        //     as: "yearSections.subjects"
+        //   },
+        // },
+
         {
           $lookup: {
             from: 'subjects',
+            let: { semesterSubjects: '$yearSections.semesterSubjects' },
             localField: 'yearSections.semesterSubjects.subjects._id',
             foreignField: '_id',
             pipeline: [
@@ -251,6 +279,7 @@ class Course extends Model {
                   name: 1,
                   units: 1,
                   assignedTeachers: 1,
+                  // semesterSubjects:"$$semesterSubjects",
                 },
               },
               {
@@ -276,6 +305,12 @@ class Course extends Model {
                         localField: '_id',
                         foreignField: 'teacher',
                         pipeline: [
+                          // match schedules by semester but exdluded the special
+                          {
+                            $match: {
+                              semester: { $in: [semester, 'special'] },
+                            },
+                          },
                           {
                             $project: {
                               course: 1,
