@@ -120,7 +120,7 @@ class Room extends Model {
   async getRoomSchedules({ roomCode, semester }) {
     try {
       const matchSemester = semester
-        ? { emester: { $in: [semester, 'special'] } }
+        ? { semester: { $in: [semester, 'special'] } }
         : {};
       const pipeline = [
         // get specific room
