@@ -211,7 +211,7 @@ export default function CourseForm({
                           <TabPanel>
                             <MultiComboBox
                               placeholder="Enter subject code or name"
-                              name={`yearSections[${index}].semesterSubjects[1].subjects`}
+                              name={`yearSections[${index}].semesterSubjects[2].subjects`}
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
@@ -222,7 +222,7 @@ export default function CourseForm({
                           <TabPanel>
                             <MultiComboBox
                               placeholder="Enter subject code or name"
-                              name={`yearSections[${index}].semesterSubjects[1].subjects`}
+                              name={`yearSections[${index}].semesterSubjects[3].subjects`}
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
