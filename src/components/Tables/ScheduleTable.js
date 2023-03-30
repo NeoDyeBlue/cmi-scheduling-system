@@ -98,61 +98,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         accessor: 'time',
         fixed: 'left',
       },
-      // {
-      //   Header: "Days",
-      //   fixed: "top",
-      //   columns: [
-      //     {
-      //       Header: "Monday",
-      //       // id: "monday",
-      //       dayIndex: 1,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "monday"),
-      //     },
-      //     {
-      //       Header: "Tuesday",
-      //       // id: "tuesday",
-      //       dayIndex: 2,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "tuesday"),
-      //     },
-      //     {
-      //       Header: "Wednesday",
-      //       // id: "wednesday",
-      //       dayIndex: 3,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "wednesday"),
-      //     },
-      //     {
-      //       Header: "Thursday",
-      //       // id: "thursday",
-      //       dayIndex: 4,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "thursday"),
-      //     },
-      //     {
-      //       Header: "Friday",
-      //       // id: "friday",
-      //       dayIndex: 5,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "friday"),
-      //     },
-      //     {
-      //       Header: "Saturday",
-      //       // id: "saturday",
-      //       dayIndex: 6,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "saturday"),
-      //     },
-      //     {
-      //       Header: "Sunday",
-      //       // id: "sunday",
-      //       dayIndex: 7,
-      //       enableRowSpan: true,
-      //       accessor: () => findSchedule(data, "sunday"),
-      //     },
-      //   ],
-      // },
       {
         Header: 'Monday',
         // id: "monday",
@@ -237,8 +182,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
       (timePairs) => timePairs[1] == slot.time.end
     );
 
-    console.log(timeEndIndex + 1 - timeStartIndex);
-
     return (
       <td
         key={cellIndex}
@@ -256,7 +199,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
             maxHeight: `${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px`,
           }}
           className={classNames(
-            'relative flex flex-col items-center justify-center gap-1 overflow-hidden p-4'
+            'relative flex flex-col items-center justify-center gap-1 overflow-hidden p-4 text-center'
             // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
           )}
         >
@@ -291,6 +234,10 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
             </p>
           )}
+          <div>
+            <p className="uppercase">{slot?.subject?.code}</p>
+            <p className="text-xs">{slot?.subject?.name}</p>
+          </div>
           {type !== 'courses' && (
             <p className="font-bold uppercase">
               {slot?.course?.code} {slot?.course?.year}

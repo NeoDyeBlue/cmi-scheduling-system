@@ -124,7 +124,7 @@ export default function Schedule() {
                     `${time.course.code}${time.course.year}${time.course.section}` &&
                   time.subject.code == subject.code
                 ) {
-                  subjectTimes.push(time);
+                  subjectTimes.push({ start: time.start, end: time.end });
                 }
               });
 
@@ -252,8 +252,8 @@ export default function Schedule() {
   ));
 
   function checkForChanges() {
-    const hasChanges = _.isEqual(formData, oldSchedsData);
-    if (!hasChanges && oldSchedsData) {
+    const hasChanges = _.isEqual(subjectScheds, oldSchedsData);
+    if (!hasChanges && oldSchedsData.length) {
       setIsCancelConfirmOpen(true);
     } else {
       router.push('/scheduler');
@@ -279,7 +279,7 @@ export default function Schedule() {
       const result = await res.json();
       if (result?.success) {
         toast.success('Schedules saved');
-        setOldSchedsData({ course, subjectScheds });
+        setOldSchedsData(subjectScheds);
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
@@ -325,6 +325,9 @@ export default function Schedule() {
 
     setRemoveRoom(true);
   }
+
+  console.log('old', oldSchedsData);
+  console.log('new', subjectScheds);
 
   return (
     <>

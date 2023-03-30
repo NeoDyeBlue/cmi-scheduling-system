@@ -8,7 +8,7 @@ const initialState = {
   selectedRooms: [],
   subjectScheds: [],
   roomsSubjSchedsLayouts: [],
-  oldSchedsData: null,
+  oldSchedsData: [],
 };
 
 const useSchedulerStore = create((set, get) => ({
