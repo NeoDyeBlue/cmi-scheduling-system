@@ -1,3 +1,71 @@
+const roomSampleDataForFetchingPerSemScheds = [
+  {
+    semester: '1',
+    schedules: [
+      {
+        teacher: {
+          _id: '6424d33e95a8a0e1a611508c',
+          firstName: 'Venti',
+          lastName: 'Bartobas',
+          teacherId: '11-1111',
+        },
+        subject: {
+          _id: '6424d38595a8a0e1a61150ab',
+          code: 'swirl',
+          name: 'Swirl',
+          units: 3,
+        },
+        course: {
+          code: 'bsgi',
+          name: 'Bachelor of Science in Genshin Impact',
+          year: 1,
+          section: 'A',
+        },
+        dayTimes: [
+          {
+            day: 1,
+            //room can be omitted
+            room: {
+              _id: '6424d89f95a8a0e1a61150fe',
+              code: 'cb205',
+            },
+            times: [
+              {
+                start: '8:00 AM',
+                end: '9:00 AM',
+                _id: '642537e0eaca9cecb03b0c22',
+              },
+            ],
+            _id: '642537e0eaca9cecb03b0c21',
+          },
+          {
+            day: 3,
+            //room can be omitted
+            room: {
+              _id: '6424d89f95a8a0e1a61150fe',
+              code: 'cb205',
+            },
+            times: [
+              {
+                start: '9:00 AM',
+                end: '10:00 AM',
+                _id: '642537e0eaca9cecb03b0c24',
+              },
+            ],
+            _id: '642537e0eaca9cecb03b0c23',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    semester: '2',
+    schedules: [
+      //...same as above
+    ],
+  },
+];
+
 const rooms = [
   {
     code: 'CB205',
