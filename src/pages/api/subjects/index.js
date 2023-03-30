@@ -23,7 +23,12 @@ export const handler = async (req, res) => {
       // const limit = 2;
       // const page = 1;
       const { limit, page, type, semester } = req.query;
-      const data = await subject.getSubjectsPagination({ limit, page });
+      const data = await subject.getSubjectsPagination({
+        limit,
+        page,
+        type,
+        semester,
+      });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);

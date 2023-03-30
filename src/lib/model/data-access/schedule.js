@@ -105,6 +105,7 @@ class Schedule extends Model {
                   teacherId: 1,
                   firstName: 1,
                   lastName: 1,
+                  type: 1,
                   preferredDayTimes: 1,
                 },
               },

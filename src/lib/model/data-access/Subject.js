@@ -26,10 +26,16 @@ class Subject extends Model {
       throw error;
     }
   }
-  async getSubjectsPagination({ limit, page }) {
+  async getSubjectsPagination({ limit, page, type, semester }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
       const pipeline = [
+        {
+          $match: {
+            type: type,
+            semester: semester,
+          },
+        },
         {
           $lookup: {
             from: 'teachers',
