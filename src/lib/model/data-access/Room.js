@@ -119,7 +119,9 @@ class Room extends Model {
 
   async getRoomSchedules({ roomCode, semester }) {
     try {
-      const matchSemester = semester ? { semester: semester } : {};
+      const matchSemester = semester
+        ? { emester: { $in: [semester, 'special'] } }
+        : {};
       const pipeline = [
         // get specific room
         {
@@ -221,7 +223,7 @@ class Room extends Model {
                 $project: {
                   yearSec: 1,
                   dayTimes: '$schedules',
-                  semester:1,
+                  semester: 1,
                   teacher: {
                     $arrayElemAt: ['$teacher', 0],
                   },
@@ -239,7 +241,7 @@ class Room extends Model {
                   subject: 1,
                   teacher: 1,
                   existingSchedules: 1,
-                  semester:"$semester",
+                  semester: '$semester',
                   dayTimes: {
                     $filter: {
                       input: '$dayTimes',
@@ -264,7 +266,7 @@ class Room extends Model {
             _id: 1,
             code: 1,
             name: 1,
-            semester:1,
+            semester: 1,
             schedules: 1,
           },
         },
@@ -297,7 +299,7 @@ class Room extends Model {
             pipeline: [
               {
                 $match: {
-                  semester: parseInt(semester),
+                  semester: { $in: [semester, 'special'] },
                 },
               },
               {

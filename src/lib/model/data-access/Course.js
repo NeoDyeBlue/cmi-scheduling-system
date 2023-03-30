@@ -242,29 +242,6 @@ class Course extends Model {
         { $unwind: '$yearSections' },
         { $unwind: '$yearSections.semesterSubjects' },
         { $match: { 'yearSections.semesterSubjects.semester': semester } },
-        // pwede din ilipat dito ung filtering ng semester
-        // tapos i unwind ang semesterSubjects
-        // {
-        //   $lookup: {
-        //     from: 'subjects',
-        //     localField: 'yearSections.semesterSubjects.subjects._id',
-        //     foreignField: '_id',
-        //     pipeline: [
-        //       {
-        //         $project: {
-        //           _id: 1, 
-        //           code: 1,
-        //           name: 1,
-        //           units: 1,
-        //           assignedTeachers: 1,
-        //           // semesterSubjects:"$$semesterSubjects",
-        //         },
-        //       },
-        //     ],
-        //     as: "yearSections.subjects"
-        //   },
-        // },
-
         {
           $lookup: {
             from: 'subjects',
