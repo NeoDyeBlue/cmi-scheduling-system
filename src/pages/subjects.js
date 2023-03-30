@@ -1,20 +1,9 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
-import { SearchForm, SubjectForm } from '@/components/Forms';
-import { useState } from 'react';
-import { CreateButton } from '@/components/Buttons';
-import { Modal } from '@/components/Modals';
-import { SubjectTable } from '@/components/Tables';
-import usePaginate from '@/hooks/usePaginate';
-import ReactPaginate from 'react-paginate';
-import { SpinnerLoader } from '@/components/Loaders';
+import { PerTypeSubjectTable } from '@/components/Tables';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 export default function Subjects() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: '/api/subjects',
-    limit: 10,
-  });
   return (
     <>
       <Head>
@@ -24,59 +13,23 @@ export default function Subjects() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
-        <Modal
-          label="New Subject"
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        >
-          <SubjectForm
-            onCancel={() => setIsModalOpen(false)}
-            onAfterSubmit={() => {
-              setIsModalOpen(false);
-              mutate();
-            }}
-          />
-        </Modal>
-        <div className="flex items-center justify-between gap-4">
-          <div className="w-full max-w-[350px]">
-            <SearchForm placeholder="Search subjects" />
-          </div>
-          <CreateButton
-            onClick={() => setIsModalOpen(true)}
-            text="New Subject"
-          />
-        </div>
-        <div className="flex flex-col gap-4">
-          {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
-          {!isLoading && !docs.length ? (
-            <p className="mx-auto py-6 text-center text-ship-gray-500">
-              Nothing to show
-            </p>
-          ) : null}
-          {!isLoading && docs.length ? (
-            <>
-              <div className="overflow-x-auto">
-                <SubjectTable data={docs} mutate={() => mutate()} />
-              </div>
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel="next >"
-                onPageChange={({ selected }) => setPageIndex(selected + 1)}
-                pageRangeDisplayed={5}
-                pageCount={Math.ceil(pageData?.totalPages) || 0}
-                previousLabel="< prev"
-                renderOnZeroPageCount={null}
-                containerClassName="paginate-container"
-                previousLinkClassName="paginate-button"
-                nextLinkClassName="paginate-button"
-                pageLinkClassName="paginate-link"
-                activeLinkClassName="paginate-link-active"
-                breakLinkClassName="paginate-break"
-                disabledLinkClassName="paginate-link-disabled"
-              />
-            </>
-          ) : null}
-        </div>
+        <Tabs className="flex flex-col">
+          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto">
+            <Tab selectedClassName="tab-active" className="tab">
+              College
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Senior High
+            </Tab>
+          </TabList>
+
+          <TabPanel>
+            <PerTypeSubjectTable type={'college'} />
+          </TabPanel>
+          <TabPanel>
+            <PerTypeSubjectTable type={'shs'} />
+          </TabPanel>
+        </Tabs>
       </div>
     </>
   );

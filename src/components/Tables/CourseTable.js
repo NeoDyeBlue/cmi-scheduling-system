@@ -1,6 +1,6 @@
 import { useTable } from 'react-table';
 import { useMemo, useState } from 'react';
-import { ActionButton } from '../Buttons';
+import { ActionButton, CreateButton } from '../Buttons';
 import { MdDelete, MdEdit } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
 import { Modal, Confirmation } from '../Modals';
-import { CourseForm } from '../Forms';
+import { CourseForm, SearchForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
 import { SpinnerLoader } from '../Loaders';
@@ -131,19 +131,29 @@ export default function CourseTable({ type }) {
         onConfirm={deleteItem}
       />
       <Modal
-        label="Edit Course"
+        label={toEditTeacherData ? 'Edit Course' : 'New Course'}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setToEditTeacherData(null);
+        }}
       >
         <CourseForm
-          initialData={toEditTeacherData}
+          initialData={toEditTeacherData || null}
           onCancel={() => setIsModalOpen(false)}
           onAfterSubmit={() => {
             setIsModalOpen(false);
+            setToEditTeacherData(null);
             mutate();
           }}
         />
       </Modal>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="w-full max-w-[350px]">
+          <SearchForm placeholder={`Search ${type} courses`} />
+        </div>
+        <CreateButton onClick={() => setIsModalOpen(true)} text="New Course" />
+      </div>
       {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
       {!isLoading && !docs.length ? (
         <p className="mx-auto py-6 text-center text-ship-gray-500">
@@ -177,9 +187,9 @@ export default function CourseTable({ type }) {
                 {rows.map((row, index) => {
                   prepareRow(row);
                   return (
-                    <React.Fragment key={index}>
+                    <React.Fragment key={row.original._id}>
                       <tr
-                        key={index}
+                        // key={row.original._id}
                         {...row.getRowProps()}
                         onClick={() =>
                           router.push(

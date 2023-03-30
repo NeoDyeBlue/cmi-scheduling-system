@@ -17,9 +17,8 @@ import { Confirmation } from '@/components/Modals';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader, PopupLoader } from '@/components/Loaders';
-import useSWRImmutable from 'swr/immutable';
 import useSWR from 'swr';
-import _, { remove } from 'lodash';
+import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 
 export default function Schedule() {

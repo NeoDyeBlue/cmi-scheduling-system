@@ -1,14 +1,12 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { ActionButton } from '../Buttons';
-import ScheduleTable from './ScheduleTable';
 import PerSemScheduleTable from './PerSemScheduleTable';
 import {
   MdDelete,
   MdEdit,
   MdArrowDropDown,
   MdArrowRight,
-  MdDownload,
 } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -26,7 +24,6 @@ export default function RoomTable({ data, mutate = () => {} }) {
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const rooms = useMemo(() => data, [data]);
-  const toPrintRefs = useRef([]);
 
   const columns = useMemo(
     () => [

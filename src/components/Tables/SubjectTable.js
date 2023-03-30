@@ -1,15 +1,15 @@
-import { useTable } from 'react-table';
-import { useMemo, useState } from 'react';
-import { ActionButton } from '../Buttons';
 import { MdDelete, MdEdit, MdDownload } from 'react-icons/md';
+import { ActionButton } from '../Buttons';
+import { useTable } from 'react-table';
+import { SubjectForm } from '../Forms';
+import { PopupLoader } from '../Loaders';
+import { Modal, Confirmation } from '../Modals';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
-import classNames from 'classnames';
-import { Modal, Confirmation } from '../Modals';
-import { SubjectForm } from '../Forms';
-import { PopupLoader } from '../Loaders';
+import { useState, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import classNames from 'classnames';
 
 export default function SubjectTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
@@ -18,6 +18,7 @@ export default function SubjectTable({ data, mutate = () => {} }) {
   const [toEditData, setToEditData] = useState(null);
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
   const subjects = useMemo(() => data, [data]);
 
   const columns = useMemo(
@@ -122,70 +123,76 @@ export default function SubjectTable({ data, mutate = () => {} }) {
         onConfirm={deleteItem}
       />
       <Modal
-        label="Edit Subject"
+        label={'Edit Subject'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
         <SubjectForm
           initialData={toEditData}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={() => {
+            setIsModalOpen(false);
+            setToEditData(null);
+          }}
           onAfterSubmit={() => {
             setIsModalOpen(false);
+            setToEditData(null);
             mutate();
           }}
         />
       </Modal>
-      <table {...getTableProps()} className="w-full">
-        <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-          {headerGroups.map((headerGroup, index) => (
-            <tr
-              key={index}
-              {...headerGroup.getHeaderGroupProps()}
-              className="border-b border-gray-300"
-            >
-              {headerGroup.headers.map((column, index) => (
-                <th
-                  key={index}
-                  {...column.getHeaderProps()}
-                  className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
-                >
-                  {column.render('Header')}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, index) => {
-            prepareRow(row);
-            return (
-              <React.Fragment key={index}>
-                <tr
-                  key={index}
-                  {...row.getRowProps()}
-                  className={classNames(
-                    'border-y border-gray-200 transition-colors'
-                  )}
-                >
-                  {row.cells.map((cell, index) => {
-                    return (
-                      <td
-                        key={index}
-                        {...cell.getCellProps()}
-                        className={classNames('p-4', {
-                          'font-semibold uppercase': index == 0,
-                        })}
-                      >
-                        {cell.render('Cell')}
-                      </td>
-                    );
-                  })}
-                </tr>
-              </React.Fragment>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="flex flex-col gap-4">
+        <table {...getTableProps()} className="w-full">
+          <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+            {headerGroups.map((headerGroup, index) => (
+              <tr
+                key={index}
+                {...headerGroup.getHeaderGroupProps()}
+                className="border-b border-gray-300"
+              >
+                {headerGroup.headers.map((column, index) => (
+                  <th
+                    key={index}
+                    {...column.getHeaderProps()}
+                    className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                  >
+                    {column.render('Header')}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, index) => {
+              prepareRow(row);
+              return (
+                <React.Fragment key={index}>
+                  <tr
+                    key={index}
+                    {...row.getRowProps()}
+                    className={classNames(
+                      'border-y border-gray-200 transition-colors'
+                    )}
+                  >
+                    {row.cells.map((cell, index) => {
+                      return (
+                        <td
+                          key={index}
+                          {...cell.getCellProps()}
+                          className={classNames('p-4', {
+                            'font-semibold uppercase': index == 0,
+                          })}
+                        >
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }

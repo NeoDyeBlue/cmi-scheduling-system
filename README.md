@@ -57,3 +57,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
 - [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
 - [ ] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
+- [ ] add where the subject is offered, if its for shs or college (f,b)
