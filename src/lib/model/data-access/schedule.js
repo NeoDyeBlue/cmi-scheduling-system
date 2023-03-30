@@ -51,7 +51,7 @@ class Schedule extends Model {
       const currentSchedules = await this.Schedule.find({
         course: course._id,
         yearSec: {
-          course: course.year,
+          year: course.year,
           section: course.section,
         },
       }).exec();
@@ -62,18 +62,24 @@ class Schedule extends Model {
           return sched.subject === currentSched.subject;
         });
       });
-
+      console.log('course', course);
+      console.log('currentSchedules', currentSchedules);
       console.log('toDeleteItems', toDeleteItems);
-      const toDeleteSchedsOptions = schedules.map((schedule) => {
+      const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
         return {
           deleteMany: {
             filter: {
-              _id: schedule._id,
+              _id: schedule._id.toString(),
             },
           },
         };
       });
-      // await this.Schedule.bulkWrite(toDeleteSchedsOptions);
+      const deletedSchedules = await this.Schedule.bulkWrite(
+        toDeleteSchedsOptions
+      );
+      console.log('deletedSchedules', deletedSchedules);
+
+      // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       return data;
     } catch (error) {

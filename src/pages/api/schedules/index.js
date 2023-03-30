@@ -4,7 +4,6 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
-      console.log('req.body', req.body);
       const courseSubjectScheds = req.body;
       const schedules = [];
       for (let courseScheds of courseSubjectScheds.subjectScheds) {
@@ -21,7 +20,7 @@ export const handler = async (req, res) => {
         };
         schedules.push(scheds);
       }
-      console.log('schedules', JSON.stringify(schedules));
+
       const data = await schedule.createSchedule({
         schedules,
         courseSubjectScheds,
@@ -41,13 +40,6 @@ export const handler = async (req, res) => {
         teacher,
       });
       return successResponse(req, res, data);
-    } catch (error) {
-      return errorResponse(req, res, error.message, 400, error.name);
-    }
-  }
-  if (req.method === 'DELETE') {
-    try {
-      //
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
     }
