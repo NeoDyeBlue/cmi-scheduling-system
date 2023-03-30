@@ -112,7 +112,11 @@ export default function CourseTable({ type }) {
                         className={classNames(
                           'bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg',
                           {
-                            'text-center': columnIndex == 3 || columnIndex == 4,
+                            'text-center':
+                              columnIndex == 3 ||
+                              columnIndex == 4 ||
+                              columnIndex == 5 ||
+                              columnIndex == 6,
                           }
                         )}
                       >
@@ -148,7 +152,9 @@ export default function CourseTable({ type }) {
                         {row.cells.map((cell, index) => {
                           if (
                             cell.column.Header == '1st sem' ||
-                            cell.column.Header == '2nd sem'
+                            cell.column.Header == '2nd sem' ||
+                            cell.column.Header == 'Special' ||
+                            cell.column.Header == 'Summer'
                           ) {
                             return (
                               <td

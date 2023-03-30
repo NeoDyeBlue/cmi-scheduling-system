@@ -39,19 +39,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 ## Todo
 
-- [ ] Dashboard
-- [ ] Table searches
-- [x] Fix subject teachers not updating in form
-- [x] Fix year sections count not showing in updating of courses
-- [x] add sem tabs in viewing of course schedules
-- [ ] fix scheduler initial schedules for showing the confirmation modal
-- [x] fix room schedules not updating when room is removed
-- [ ] fix onClick is triggering the restrictions and when dragged does not trigger them
-- [ ] add scheduler course statuses
-- [ ] show info on row click or layout item click
-- [x] add special and summer semesters
-- [ ] show schedules on tables
-- [ ] fix scheduler bugs
-- [ ] pagination problem in subjects
-- [ ] some subjects does not appear on search
-- [ ] fix on course, room, teacher, and subject delete should also update the schedules collection
+- [ ] Dashboard (f,b)
+- [ ] Table searches (f,b)
+- [x] Fix subject teachers not updating in form (b)
+- [x] Fix year sections count not showing in updating of courses (b)
+- [x] add sem tabs in viewing of course schedules (f)
+- [ ] fix scheduler initial schedules for showing the confirmation modal (f)
+- [x] fix room schedules not updating when room is removed (f)
+- [ ] fix onClick is triggering the restrictions and when dragged does not trigger them (f)
+- [ ] add scheduler course statuses (b)
+- [ ] show info on row click or layout item click (f)
+- [x] add special and summer semesters (f,b)
+- [ ] show schedules on tables (b)
+- [ ] fix scheduler bugs (f,b)
+- [ ] pagination problem in subjects (f,b)
+- [ ] some subjects does not appear on search (f,b)
+- [ ] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
+- [ ] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
