@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { bscs } from '@/lib/test_data/courses';
 import { PerSemScheduleTable } from '@/components/Tables';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { addOrdinalSuffix } from '@/utils/number-utils';
@@ -71,6 +70,9 @@ export default function Course() {
               <div className="overflow-x-auto">
                 <PerSemScheduleTable
                   editable={true}
+                  title={`${courseData?.code.toUpperCase()}: ${
+                    courseData?.name
+                  } ${yearSection.year}${section}`}
                   courseData={{
                     code: courseData?.code,
                     year: yearSection.year,

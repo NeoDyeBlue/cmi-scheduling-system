@@ -53,9 +53,13 @@ export default function MultiComboBox({
     }
   }, [inputValue, searchUrl, filter]);
 
-  useEffect(() => {
-    helpers.setValue(selectedItems);
-  }, [selectedItems]);
+  useEffect(
+    () => {
+      helpers.setValue(selectedItems);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedItems]
+  );
 
   // useMultipleSelection
   const { getSelectedItemProps, getDropdownProps, removeSelectedItem } =
@@ -193,7 +197,7 @@ export default function MultiComboBox({
         {...getItemProps({ item, index })}
       >
         <div className="flex w-full flex-col overflow-hidden">
-          <p className="font-dsiplay text-ellipsis whitespace-nowrap font-medium">
+          <p className="font-dsiplay text-ellipsis whitespace-nowrap font-medium uppercase">
             {item.code}
           </p>
           <p className="text-sm">{item.name}</p>
@@ -228,7 +232,7 @@ export default function MultiComboBox({
                     'bg-success-100':
                       selectionType == 'teacher' &&
                       selectedItemForRender.type == 'full-time',
-                    'bg-primary-200': selectionType !== 'teacher',
+                    'bg-primary-200 uppercase': selectionType !== 'teacher',
                   }
                 )}
                 key={`selected-item-${index}`}
