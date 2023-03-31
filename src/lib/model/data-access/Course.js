@@ -570,12 +570,11 @@ class Course extends Model {
             pipeline: [
               {
                 $project: {
+                  isCompleted: 1,
+                  _id: 1,
                   course: 1,
-                  semester: 1,
                   subject: 1,
-                  teacher: 1,
                   yearSec: 1,
-                  schedules: 1,
                 },
               },
             ],
@@ -602,128 +601,216 @@ class Course extends Model {
           },
         },
         {
-          $project: {
-            schedules: 0
-          }
-        }
+          $addFields: {
+            totalSchedules: { $size: '$sectionSchedules' },
+            totalSubjects: { $size: '$yearSections.semesterSubjects' },
+            completedSchedulesCount: {
+              $reduce: {
+                input: '$sectionSchedules.isCompleted',
+                initialValue: 0,
+                in: {
+                  $cond: {
+                    if: { $eq: ['$$this', true] },
+                    then: { $add: ['$$value', 1] },
+                    else: '$$value',
+                  },
+                },
+              },
+            },
+          },
+        },
 
-        // { $unwind: '$yearSections.semesterSubjects' },
-        // {
-        //   $group: {
-        //     _id: {
-        //       code: '$code',
-        //       name: '$name',
-        //     },
-        //     firstSemPerYearSec: {
-        //       $push: {
-        //         $cond: {
-        //           if: { $eq: ['$yearSections.semesterSubjects.semester', '1'] },
-        //           then: {
-        //             year: '$yearSections.year',
-        //             section: '$yearSections.section',
-        //             status: 'unscheduled', // should be dynamic.
-        //             // subjects: "$yearSections.semesterSubjects.subjects", // using this we can check if all subje are scheduled.
-        //           },
-        //           else: null,
-        //         },
-        //       },
-        //     },
-        //     secondSemPerYearSec: {
-        //       $push: {
-        //         $cond: {
-        //           if: { $eq: ['$yearSections.semesterSubjects.semester', '2'] },
-        //           then: {
-        //             year: '$yearSections.year',
-        //             section: '$yearSections.section',
-        //             status: 'unscheduled', // should be dynamic
-        //           },
-        //           else: null,
-        //         },
-        //       },
-        //     },
-        //     specialSemPerYearSec: {
-        //       $push: {
-        //         $cond: {
-        //           if: {
-        //             $eq: ['$yearSections.semesterSubjects.semester', 'special'],
-        //           },
-        //           then: {
-        //             year: '$yearSections.year',
-        //             section: '$yearSections.section',
-        //             status: 'unscheduled', // should be dynamic
-        //           },
-        //           else: null,
-        //         },
-        //       },
-        //     },
-        //     summerSemPerYearSec: {
-        //       $push: {
-        //         $cond: {
-        //           if: {
-        //             $eq: ['$yearSections.semesterSubjects.semester', 'summer'],
-        //           },
-        //           then: {
-        //             year: '$yearSections.year',
-        //             section: '$yearSections.section',
-        //             status: 'unscheduled', // should be dynamic
-        //           },
-        //           else: null,
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
-        // {
-        //   $project: {
-        //     _id: 0,
-        //     code: '$_id.code',
-        //     name: '$_id.name',
-        //     schedCompletionStatus: {
-        //       firstSem: {
-        //         perYearSec: {
-        //           $filter: {
-        //             input: '$firstSemPerYearSec',
-        //             as: 'course',
-        //             cond: { $ne: ['$$course', null] },
-        //           },
-        //         },
-        //       },
-        //       secondSem: {
-        //         isCompleted: true,
-        //         perYearSec: {
-        //           $filter: {
-        //             input: '$secondSemPerYearSec',
-        //             as: 'course',
-        //             cond: { $ne: ['$$course', null] },
-        //           },
-        //         },
-        //       },
-        //       special: {
-        //         isCompleted: true,
-        //         perYearSec: {
-        //           $filter: {
-        //             input: '$specialSemPerYearSec',
-        //             as: 'course',
-        //             cond: { $ne: ['$$course', null] },
-        //           },
-        //         },
-        //       },
-        //       summer: {
-        //         isCompleted: true,
-        //         perYearSec: {
-        //           $filter: {
-        //             input: '$summerSemPerYearSec',
-        //             as: 'course',
-        //             cond: { $ne: ['$$course', null] },
-        //           },
-        //         },
-        //       },
-        //     },
-        //   },
-        // },
-        // {
-        //   $sort: { name: 1, code: 1 },
-        // },
+        {
+          $project: {
+            schedules: 0,
+          },
+        },
+        { $unwind: '$yearSections.semesterSubjects' },
+        {
+          $group: {
+            _id: {
+              code: '$code',
+              name: '$name',
+            },
+            firstSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: { $eq: ['$yearSections.semesterSubjects.semester', '1'] },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: {
+                      $cond: {
+                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        then: 'unscheduled',
+                        else: {
+                          $cond: {
+                            if: {
+                              $eq: [
+                                '$completedSchedulesCount',
+                                '$totalSubjects',
+                              ],
+                            },
+                            then: 'completed',
+                            else: 'incomplete',
+                          },
+                        },
+                      },
+                    },
+                    // should be dynamic.
+                    // subjects: "$yearSections.semesterSubjects.subjects", // using this we can check if all subje are scheduled.
+                  },
+                  else: null,
+                },
+              },
+            },
+            secondSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: { $eq: ['$yearSections.semesterSubjects.semester', '2'] },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: {
+                      $cond: {
+                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        then: 'unscheduled',
+                        else: {
+                          $cond: {
+                            if: {
+                              $eq: [
+                                '$completedSchedulesCount',
+                                '$totalSubjects',
+                              ],
+                            },
+                            then: 'completed',
+                            else: 'incomplete',
+                          },
+                        },
+                      },
+                    }, // should be dynamic
+                  },
+                  else: null,
+                },
+              },
+            },
+            specialSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: {
+                    $eq: ['$yearSections.semesterSubjects.semester', 'special'],
+                  },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: {
+                      $cond: {
+                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        then: 'unscheduled',
+                        else: {
+                          $cond: {
+                            if: {
+                              $eq: [
+                                '$completedSchedulesCount',
+                                '$totalSubjects',
+                              ],
+                            },
+                            then: 'completed',
+                            else: 'incomplete',
+                          },
+                        },
+                      },
+                    }, // should be dynamic
+                  },
+                  else: null,
+                },
+              },
+            },
+            summerSemPerYearSec: {
+              $push: {
+                $cond: {
+                  if: {
+                    $eq: ['$yearSections.semesterSubjects.semester', 'summer'],
+                  },
+                  then: {
+                    year: '$yearSections.year',
+                    section: '$yearSections.section',
+                    status: {
+                      $cond: {
+                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        then: 'unscheduled',
+                        else: {
+                          $cond: {
+                            if: {
+                              $eq: [
+                                '$completedSchedulesCount',
+                                '$totalSubjects',
+                              ],
+                            },
+                            then: 'completed',
+                            else: 'incomplete',
+                          },
+                        },
+                      },
+                    }, // should be dynamic
+                  },
+                  else: null,
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            code: '$_id.code',
+            name: '$_id.name',
+            schedCompletionStatus: {
+              firstSem: {
+                perYearSec: {
+                  $filter: {
+                    input: '$firstSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+              secondSem: {
+                isCompleted: true,
+                perYearSec: {
+                  $filter: {
+                    input: '$secondSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+              special: {
+                isCompleted: true,
+                perYearSec: {
+                  $filter: {
+                    input: '$specialSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+              summer: {
+                isCompleted: true,
+                perYearSec: {
+                  $filter: {
+                    input: '$summerSemPerYearSec',
+                    as: 'course',
+                    cond: { $ne: ['$$course', null] },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          $sort: { name: 1, code: 1 },
+        },
       ];
       const courseAggregation = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
