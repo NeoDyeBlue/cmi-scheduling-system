@@ -87,6 +87,14 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async deleteSchedulesBySubject({ subject_id }) {
+    try {
+      const data = await this.Schedule.deleteMany({ subject: subject_id });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   // to view all schedules by room
   async getSchedulesBy({ roomCode, teacher, course, section, year }) {
     try {
