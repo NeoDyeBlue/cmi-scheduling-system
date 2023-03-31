@@ -603,7 +603,7 @@ class Course extends Model {
         {
           $addFields: {
             totalSchedules: { $size: '$sectionSchedules' },
-            totalSubjects: { $size: '$yearSections.semesterSubjects' },
+
             completedSchedulesCount: {
               $reduce: {
                 input: '$sectionSchedules.isCompleted',
@@ -626,6 +626,11 @@ class Course extends Model {
           },
         },
         { $unwind: '$yearSections.semesterSubjects' },
+        {
+          $addFields: {
+            totalSubjects: { $size: '$yearSections.semesterSubjects.subjects' }, // wrong.
+          },
+        },
         {
           $group: {
             _id: {
