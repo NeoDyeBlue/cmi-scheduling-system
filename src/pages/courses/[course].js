@@ -41,12 +41,20 @@ export default function Course() {
     );
   }
 
-  const tabs = courseData.yearSections.map((yearSection) => (
-    <Tab key={yearSection.year} selectedClassName="tab-active" className="tab">
-      {addOrdinalSuffix(yearSection.year)}
-    </Tab>
-  ));
-  const tabPanels = courseData.yearSections.map((yearSection, yrSecIndex) => (
+  const tabs = courseData?.yearSections
+    .sort(function (a, b) {
+      return a.year - b.year;
+    })
+    .map((yearSection) => (
+      <Tab
+        key={yearSection.year}
+        selectedClassName="tab-active"
+        className="tab"
+      >
+        {addOrdinalSuffix(yearSection.year)}
+      </Tab>
+    ));
+  const tabPanels = courseData?.yearSections.map((yearSection, yrSecIndex) => (
     <TabPanel key={yrSecIndex}>
       <div className="flex flex-col gap-4">
         <h2 className="border-b border-gray-200 pb-4 font-display text-3xl font-semibold">
@@ -62,6 +70,12 @@ export default function Course() {
               </div>
               <div className="overflow-x-auto">
                 <PerSemScheduleTable
+                  editable={true}
+                  courseData={{
+                    code: courseData?.code,
+                    year: yearSection.year,
+                    section,
+                  }}
                   type="courses"
                   fetchQuery={{
                     course: courseData?.course_oid,

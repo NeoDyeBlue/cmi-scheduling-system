@@ -58,4 +58,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
 - [ ] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
 - [x] add where the subject is offered, if its for shs or college (f,b)
-- [ ] course schedules page
+- [x] course schedules page
+- [ ] fix room code update should not affect schedules

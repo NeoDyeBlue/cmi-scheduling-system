@@ -2,19 +2,23 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ScheduleTable from './ScheduleTable';
 import { useState } from 'react';
 import ReactToPrint from 'react-to-print';
-import { MdDownload } from 'react-icons/md';
+import { MdDownload, MdEdit } from 'react-icons/md';
 import { ActionButton } from '../Buttons';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import { useRef } from 'react';
 import useSWR from 'swr';
 import { SpinnerLoader } from '../Loaders';
+import { useRouter } from 'next/router';
 
 export default function PerSemScheduleTable({
   type = '',
   fetchQuery,
   title = '',
+  courseData,
+  editable = false,
 }) {
+  const router = useRouter();
   const { theme } = resolveConfig(tailwindConfig);
   const tabs = ['1', '2', 'special', 'summer'];
   const [activeTab, setActiveTab] = useState(tabs[0]);
@@ -63,27 +67,42 @@ export default function PerSemScheduleTable({
                 Summer
               </Tab>
             </TabList>
-            <ReactToPrint
-              trigger={() => (
+            <div className="item-center flex gap-2">
+              {editable && (
                 <ActionButton
-                  icon={<MdDownload size={16} className="text-white" />}
+                  icon={<MdEdit size={16} className="text-white" />}
                   buttonColor={theme.colors.primary[400]}
-                  toolTipId="export"
-                  toolTipContent="Export"
+                  toolTipId="edit"
+                  toolTipContent="Edit"
+                  onClick={() =>
+                    router.push(
+                      `/scheduler/schedule/${courseData?.code}?semester=${activeTab}&year=${courseData?.year}&section=${courseData.section}`
+                    )
+                  }
                 />
               )}
-              content={() => {
-                if (activeTab == tabs[0]) {
-                  return firstSemTableRef?.current;
-                } else if (activeTab == tabs[1]) {
-                  return secondSemTableRef?.current;
-                } else if (activeTab == tabs[2]) {
-                  return specialSemTableRef?.current;
-                } else if (activeTab == tabs[3]) {
-                  return summerSemTableRef?.current;
-                }
-              }}
-            />
+              <ReactToPrint
+                trigger={() => (
+                  <ActionButton
+                    icon={<MdDownload size={16} className="text-white" />}
+                    buttonColor={theme.colors.primary[400]}
+                    toolTipId="export"
+                    toolTipContent="Export"
+                  />
+                )}
+                content={() => {
+                  if (activeTab == tabs[0]) {
+                    return firstSemTableRef?.current;
+                  } else if (activeTab == tabs[1]) {
+                    return secondSemTableRef?.current;
+                  } else if (activeTab == tabs[2]) {
+                    return specialSemTableRef?.current;
+                  } else if (activeTab == tabs[3]) {
+                    return summerSemTableRef?.current;
+                  }
+                }}
+              />
+            </div>
           </div>
           <TabPanel>
             <div className="overflow-x-auto">
