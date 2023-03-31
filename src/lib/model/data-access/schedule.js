@@ -26,6 +26,7 @@ class Schedule extends Model {
             update: {
               $set: {
                 schedules: schedule.schedules,
+                isCompleted: schedule.isCompleted
               },
             },
             upsert: true,
