@@ -250,17 +250,6 @@ export default function Scheduler({
         const roomSubjectScheds = [];
         //for each subject schedule
         roomData?.schedules?.forEach((subjSchedule) => {
-          //for each schedule day times of the subject
-          // console.log(
-          //   `${course.code}${course.year}${course.section}`,
-          //   `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
-          //   courseSubjects,
-          //   subjSchedule.subject.code,
-          //   !courseSubjects.some(
-          //     (subject) => subject.code == subjSchedule.subject.code
-          //   )
-          // );
-
           subjSchedule.dayTimes.forEach((dayTime) => {
             //for each times of the day
             dayTime.times.forEach((time) => {
@@ -560,6 +549,8 @@ export default function Scheduler({
     const subjectData = subjectsData.find(
       (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
     )?.data;
+
+    // console.log(subjectData);
 
     //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
