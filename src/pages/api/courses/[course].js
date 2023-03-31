@@ -30,7 +30,7 @@ export const handler = async (req, res) => {
   }
   if ((req.method === 'GET', p === 'basic')) {
     try {
-      const { course, type } = req.query;
+      const { course } = req.query;
 
       const data = await Course.courseYearSecInfo({ course, type });
       return successResponse(req, res, data);

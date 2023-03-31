@@ -226,7 +226,6 @@ class Course extends Model {
         {
           $match: {
             code: course,
-            type: type,
           },
         },
         { $unwind: '$yearSections' },
