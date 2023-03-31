@@ -28,8 +28,15 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error);
     }
   }
-  if(req.method === 'GET', p=== 'info'){
-    
+  if ((req.method === 'GET', p === 'basic')) {
+    try {
+      const { course, type } = req.query;
+
+      const data = await Course.courseYearSecInfo({ course, type });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error);
+    }
   }
 };
 

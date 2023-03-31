@@ -220,6 +220,63 @@ class Course extends Model {
       throw error;
     }
   }
+  async courseYearSecInfo({ course, type }) {
+    try {
+      const pipeline = [
+        {
+          $match: {
+            code: course,
+            type: type,
+          },
+        },
+        { $unwind: '$yearSections' },
+        {
+          $group: {
+            _id: '$yearSections.year',
+            course_oid: { $first: '$_id' },
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            type: { $first: '$type' },
+            year: { $first: '$yearSections.year' },
+            sections: {
+              $push: '$yearSections.section',
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$code',
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            type: { $first: '$type' },
+            course_oid: { $first: '$course_oid' },
+            yearSections: {
+              $addToSet: {
+                year: '$year',
+                sections: '$sections',
+              },
+            },
+          },
+        },
+        // {
+        //   $project: {
+        //     code: 1,
+        //     name: 1,
+        //     type: 1,
+        //     yearSections: {
+        //       year: "$year",
+        //       sections: "$sections",
+        //     },
+        //   },
+        // },
+      ];
+
+      const data = await this.Course.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   // ----------------------------------------------------
   async getCourseSubjectTeachers({ courseCode, semester, year, section }) {
     try {
