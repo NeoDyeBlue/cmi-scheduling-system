@@ -12,6 +12,7 @@ export const handler = async (req, res) => {
           subject: courseScheds.subject._id,
           course: courseSubjectScheds.course._id,
           semester: parseInt(courseSubjectScheds.semester),
+          isCompleted: courseSubjectScheds.isCompleted,
           yearSec: {
             year: courseSubjectScheds.course.year,
             section: courseSubjectScheds.course.section,

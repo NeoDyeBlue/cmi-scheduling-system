@@ -1,5 +1,7 @@
 import subject from '@/lib/model/data-access/Subject';
 import { successResponse, errorResponse } from '@/utils/response.utils';
+import schedule from '@/lib/model/data-access/Schedule';
+import course from '@/lib/model/data-access/Course';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
@@ -38,6 +40,13 @@ export const handler = async (req, res) => {
     try {
       const { id } = req.query;
       const data = await subject.deleteSubject({ id });
+
+      // await schedule.deleteSchedulesBySubject({
+      //   subject_id: id,
+      // });
+
+      await course.removeSubjectFromCourses({ subject_id: id });
+
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
