@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
+import { createTimePairs } from '@/utils/time-utils';
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -38,6 +39,7 @@ export default function Scheduler({
     setSubjectScheds,
     setRoomSubjSchedsLayout,
     setAllRoomSubjSchedsLayout,
+    oldSchedsData,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -59,30 +61,10 @@ export default function Scheduler({
   );
 
   // memos
-  const timeData = useMemo(() => {
-    const start = parse(startTime, 'hh:mm a', new Date());
-    const end = parse(endTime, 'hh:mm a', new Date());
-
-    let current = start;
-    const times = [];
-
-    while (current <= end) {
-      times.push(format(current, 'h:mm a'));
-      current = addMinutes(current, interval);
-    }
-
-    const pairedTimes = times.reduce(
-      (accumulator, currentItem, currentIndex) => {
-        if (currentIndex !== times.length - 1) {
-          return [...accumulator, [currentItem, times[currentIndex + 1]]];
-        }
-        return accumulator;
-      },
-      []
-    );
-
-    return pairedTimes;
-  }, [startTime, endTime, interval]);
+  const timeData = useMemo(
+    () => createTimePairs(startTime, endTime, interval),
+    [startTime, endTime, interval]
+  );
 
   //layouts
   const headers = useMemo(
@@ -239,56 +221,58 @@ export default function Scheduler({
     const existingRoomLayout =
       roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
         ?.layout || [];
+    console.log(existingRoomLayout);
     //if there is an existing room layout
     if (existingRoomLayout.length) {
       setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
-    } else {
-      const roomSubjectsLayout = [];
-      const roomSubjectScheds = [];
-      //for each subject schedule
-      roomData?.schedules?.forEach((subjSchedule) => {
-        subjSchedule.dayTimes.forEach((dayTime) => {
-          //for each times of the day
-          dayTime.times.forEach((time) => {
-            const yStart =
-              timeData.findIndex((timePairs) => timePairs[0] == time.start) + 1;
-            const yEnd =
-              timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
-            roomSubjectsLayout.push({
-              i: `${subjSchedule.subject.code}~${
-                subjSchedule.teacher.teacherId
-              }~${subjSchedule.course.code}${subjSchedule.course.year}${
-                subjSchedule.course.section
-              }~${nanoid(10)}`,
-              x: dayTime.day,
-              w: 1,
-              y: yStart,
-              minH: 1,
-              h: Math.abs(yEnd - yStart) + 1,
-              maxW: 1,
-              /**
-               * will be static only if:
-               * - subject is not in the courseSubjects
-               * - if subject is in the courseSubjects, check if it has the same year and section
-               */
-              static:
-                !courseSubjects.some(
-                  (subject) => subject.code == subjSchedule.subject.code
-                ) ||
-                `${course.code}${course.year}${course.section}` !==
-                  `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
-            });
-          });
-        });
-        roomSubjectScheds.push({
-          subjectCode: subjSchedule.subject.code,
-          teacherId: subjSchedule.teacher.id,
-          schedules: subjSchedule.dayTimes,
-        });
-      });
-      // setSubjectsData(roomSubjectsData);
-      setLayout([...headers, ...roomSubjectsLayout, ...timeLayout.flat()]);
     }
+    // else {
+    //   const roomSubjectsLayout = [];
+    //   // const roomSubjectScheds = [];
+    //   //for each subject schedule
+    //   roomData?.schedules?.forEach((subjSchedule) => {
+    //     subjSchedule.dayTimes.forEach((dayTime) => {
+    //       //for each times of the day
+    //       dayTime.times.forEach((time) => {
+    //         const yStart =
+    //           timeData.findIndex((timePairs) => timePairs[0] == time.start) + 1;
+    //         const yEnd =
+    //           timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
+    //         roomSubjectsLayout.push({
+    //           i: `${subjSchedule.subject.code}~${
+    //             subjSchedule.teacher.teacherId
+    //           }~${subjSchedule.course.code}${subjSchedule.course.year}${
+    //             subjSchedule.course.section
+    //           }~${nanoid(10)}`,
+    //           x: dayTime.day,
+    //           w: 1,
+    //           y: yStart,
+    //           minH: 1,
+    //           h: Math.abs(yEnd - yStart) + 1,
+    //           maxW: 1,
+    //           /**
+    //            * will be static only if:
+    //            * - subject is not in the courseSubjects
+    //            * - if subject is in the courseSubjects, check if it has the same year and section
+    //            */
+    //           static:
+    //             !courseSubjects.some(
+    //               (subject) => subject.code == subjSchedule.subject.code
+    //             ) ||
+    //             `${course.code}${course.year}${course.section}` !==
+    //               `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
+    //         });
+    //       });
+    //     });
+    //     // roomSubjectScheds.push({
+    //     //   subjectCode: subjSchedule.subject.code,
+    //     //   teacherId: subjSchedule.teacher.id,
+    //     //   schedules: subjSchedule.dayTimes,
+    //     // });
+    //   });
+    //   // setSubjectsData(roomSubjectsData);
+    //   setLayout([...headers, ...roomSubjectsLayout, ...timeLayout.flat()]);
+    // }
   }, []);
 
   useEffect(
@@ -320,9 +304,9 @@ export default function Scheduler({
       setSubjectScheds(courseSchedsData);
       setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
 
-      // if (!oldSchedsData) {
-      //   setOldSchedsData({ course, subjectScheds: courseSchedsData });
-      // }
+      if (!oldSchedsData) {
+        setOldSchedsData({ course, subjectScheds: courseSchedsData });
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -943,8 +927,6 @@ export default function Scheduler({
     }
   }
 
-  // console.log(layout);
-
   function onDropDragOver() {
     //set item dragging item maxH and minH
     if (draggingSubject) {
@@ -999,9 +981,9 @@ export default function Scheduler({
   function onDragStop(newLayout, layoutItem) {
     const mergedItemsLayout = mergeYAdjacentSubjScheds(newLayout, layoutItem);
     updateSubjSchedsMaxH(mergedItemsLayout, layoutItem.i);
-    if (!isDraggingFromOutside) {
-      removeRestrictions();
-    }
+    // if (!isDraggingFromOutside) {
+    removeRestrictions();
+    // }
     setIsDragging(false);
   }
 

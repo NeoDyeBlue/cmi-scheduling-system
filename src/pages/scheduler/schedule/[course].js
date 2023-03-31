@@ -21,9 +21,12 @@ import useSWR from 'swr';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
+import { createTimePairs } from '@/utils/time-utils';
+import { nanoid } from 'nanoid';
 
 export default function Schedule() {
   const router = useRouter();
+  const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
   const {
     course,
     subjectsData,
@@ -38,6 +41,7 @@ export default function Schedule() {
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
+    setRoomSubjSchedsLayout,
     setOldSchedsData,
     reset,
   } = useSchedulerStore(
@@ -57,6 +61,7 @@ export default function Schedule() {
         setSelectedRooms: state.setSelectedRooms,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
         setOldSchedsData: state.setOldSchedsData,
+        setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
         reset: state.reset,
       }),
       []
@@ -103,60 +108,71 @@ export default function Schedule() {
     () => {
       if (schedulerData && !subjectsData.length) {
         const courseSubjectsData = [];
-        const initialSubjectScheds = [];
-        schedulerData?.subjects?.forEach((subject) => {
-          subject?.assignedTeachers?.forEach((teacher) => {
-            //add to course subjects data
-            const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
-            const { teachers, ...newData } = subject;
-            courseSubjectsData.push({
-              id: dataId,
-              data: { ...newData, teacher, course: schedulerData?.course },
-            });
+        // const initialSubjectScheds = [];
+        // schedulerData?.subjects?.forEach((subject) => {
+        //   subject?.assignedTeachers?.forEach((teacher) => {
+        //     //add to course subjects data
+        //     const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
+        //     const { teachers, ...newData } = subject;
+        //     courseSubjectsData.push({
+        //       id: dataId,
+        //       data: { ...newData, teacher, course: schedulerData?.course },
+        //     });
 
-            //check if addable to initial subject scheds
-            if (teacher.existingSchedules.length) {
-              const courseSubjectSchedules = [];
-              teacher.existingSchedules.forEach((dayTimes) => {
-                const subjectTimes = [];
+        //     //check if addable to initial subject scheds
+        //     if (teacher.existingSchedules.length) {
+        //       const courseSubjectSchedules = [];
+        //       teacher.existingSchedules.forEach((dayTimes) => {
+        //         const subjectTimes = [];
 
-                dayTimes.times.forEach((time) => {
-                  if (
-                    `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
-                      `${time.course.code}${time.course.year}${time.course.section}` &&
-                    time.subject.code == subject.code
-                  ) {
-                    subjectTimes.push({ start: time.start, end: time.end });
-                  }
-                });
+        //         dayTimes.times.forEach((time) => {
+        //           if (
+        //             `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
+        //               `${time.course.code}${time.course.year}${time.course.section}` &&
+        //             time.subject.code == subject.code
+        //           ) {
+        //             subjectTimes.push({ start: time.start, end: time.end });
+        //           }
+        //         });
 
-                if (subjectTimes.length) {
-                  courseSubjectSchedules.push({
-                    day: dayTimes.day,
-                    room: dayTimes.room,
-                    times: subjectTimes,
-                  });
-                }
-              });
+        //         if (subjectTimes.length) {
+        //           courseSubjectSchedules.push({
+        //             day: dayTimes.day,
+        //             room: dayTimes.room,
+        //             times: subjectTimes,
+        //           });
+        //         }
+        //       });
 
-              if (courseSubjectSchedules.length) {
-                initialSubjectScheds.push({
-                  subject: {
-                    _id: subject._id,
-                    code: subject.code,
-                  },
-                  teacher: {
-                    _id: teacher._id,
-                    teacherId: teacher.teacherId,
-                  },
-                  schedules: courseSubjectSchedules,
-                });
-              }
-            }
-          });
+        //       if (courseSubjectSchedules.length) {
+        //         initialSubjectScheds.push({
+        //           subject: {
+        //             _id: subject._id,
+        //             code: subject.code,
+        //           },
+        //           teacher: {
+        //             _id: teacher._id,
+        //             teacherId: teacher.teacherId,
+        //           },
+        //           schedules: courseSubjectSchedules,
+        //         });
+        //       }
+        //     }
+        //   });
+        // });
+        const roomLayouts = [];
+        schedulerData?.rooms.forEach((room) => {
+          const roomLayout = createInitialRoomLayout(
+            room.schedules,
+            schedulerData?.course,
+            schedulerData?.subjects
+          );
+          roomLayouts.push({ roomCode: room.code, layout: roomLayout });
         });
-        setSubjectScheds(initialSubjectScheds);
-        setOldSchedsData(initialSubjectScheds);
+        console.log(roomLayouts);
+        setAllRoomSubjSchedsLayout(roomLayouts);
+        // setSubjectScheds(initialSubjectScheds);
+        // setOldSchedsData(initialSubjectScheds);
         setCourseSubjects(schedulerData?.subjects);
         setCourse(schedulerData?.course);
         setSubjectsData(courseSubjectsData);
@@ -214,7 +230,52 @@ export default function Schedule() {
     [removeRoom]
   );
 
-  // console.log(formData);
+  function createInitialRoomLayout(
+    roomSchedules,
+    courseData,
+    toCheckCourseSubjects
+  ) {
+    //get the existing room layout
+    const roomSubjectsLayout = [];
+    //for each subject schedule
+    roomSchedules?.forEach((subjSchedule) => {
+      subjSchedule.dayTimes.forEach((dayTime) => {
+        //for each times of the day
+        dayTime.times.forEach((time) => {
+          const yStart =
+            timeData.findIndex((timePairs) => timePairs[0] == time.start) + 1;
+          const yEnd =
+            timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
+          roomSubjectsLayout.push({
+            i: `${subjSchedule.subject.code}~${
+              subjSchedule.teacher.teacherId
+            }~${subjSchedule.course.code}${subjSchedule.course.year}${
+              subjSchedule.course.section
+            }~${nanoid(10)}`,
+            x: dayTime.day,
+            w: 1,
+            y: yStart,
+            minH: 1,
+            h: Math.abs(yEnd - yStart) + 1,
+            maxW: 1,
+            /**
+             * will be static only if:
+             * - subject is not in the courseSubjects
+             * - if subject is in the courseSubjects, check if it has the same year and section
+             */
+            static:
+              !toCheckCourseSubjects.some(
+                (subject) => subject.code == subjSchedule.subject.code
+              ) ||
+              `${courseData.code}${courseData.year}${courseData.section}` !==
+                `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
+          });
+        });
+      });
+    });
+    // setSubjectsData(roomSubjectsData);
+    return roomSubjectsLayout;
+  }
 
   if (!schedulerData && isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
@@ -288,30 +349,32 @@ export default function Schedule() {
     console.log({
       ...formData,
       semester: schedulerData?.semester,
+      oldSchedsData,
+      subjectScheds,
     });
-    try {
-      setIsSubmitting(true);
-      const res = await fetch('/api/schedules', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...formData,
-          semester: schedulerData?.semester,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const result = await res.json();
-      if (result?.success) {
-        toast.success('Schedules saved');
-        setOldSchedsData(subjectScheds);
-      } else if (!result.success) {
-        toast.error("Can't save schedules");
-      }
-      setIsSubmitting(false);
-    } catch (error) {
-      console.log(error);
-      setIsSubmitting(false);
-      toast.error("Can't save schedules");
-    }
+    // try {
+    //   setIsSubmitting(true);
+    //   const res = await fetch('/api/schedules', {
+    //     method: 'POST',
+    //     body: JSON.stringify({
+    //       ...formData,
+    //       semester: schedulerData?.semester,
+    //     }),
+    //     headers: { 'Content-Type': 'application/json' },
+    //   });
+    //   const result = await res.json();
+    //   if (result?.success) {
+    //     toast.success('Schedules saved');
+    //     setOldSchedsData(subjectScheds);
+    //   } else if (!result.success) {
+    //     toast.error("Can't save schedules");
+    //   }
+    //   setIsSubmitting(false);
+    // } catch (error) {
+    //   console.log(error);
+    //   setIsSubmitting(false);
+    //   toast.error("Can't save schedules");
+    // }
   }
 
   function onConfirmReset() {
