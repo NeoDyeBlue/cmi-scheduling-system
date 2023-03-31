@@ -70,7 +70,6 @@ class Schedule extends Model {
           deleteMany: {
             filter: {
               _id: schedule._id.toString(),
-              
             },
           },
         };
@@ -89,7 +88,7 @@ class Schedule extends Model {
     }
   }
   // to view all schedules by room
-  async getSchedulesBy({ roomCode, teacher }) {
+  async getSchedulesBy({ roomCode, teacher, course, section, year }) {
     try {
       let matchBy = {};
       if (roomCode) {
@@ -99,6 +98,14 @@ class Schedule extends Model {
       } else if (teacher) {
         matchBy = {
           teacher: mongoose.Types.ObjectId(teacher),
+        };
+      } else if (course && year && section) {
+        matchBy = {
+          course: mongoose.Types.ObjectId(course),
+          yearSec: {
+            year: parseInt(year),
+            section: section,
+          },
         };
       }
       const pipeline = [
