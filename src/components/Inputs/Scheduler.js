@@ -40,6 +40,7 @@ export default function Scheduler({
     setRoomSubjSchedsLayout,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
+    setOldSchedsData,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -216,16 +217,16 @@ export default function Scheduler({
     });
 
   //effects
+
+  //for setting initial layout
   useEffect(() => {
     //get the existing room layout
+    console.log('ini');
     const existingRoomLayout =
       roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
         ?.layout || [];
-    console.log(existingRoomLayout);
-    //if there is an existing room layout
-    if (existingRoomLayout.length) {
-      setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
-    }
+
+    setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
     // else {
     //   const roomSubjectsLayout = [];
     //   // const roomSubjectScheds = [];
@@ -275,6 +276,7 @@ export default function Scheduler({
     // }
   }, []);
 
+  //create restrictions if dragging from outside
   useEffect(
     () => {
       if (draggingSubject) {
@@ -289,10 +291,33 @@ export default function Scheduler({
     [draggingSubject]
   );
 
+  //for changing subject scheds
   useEffect(
     () => {
+      console.log('scheds');
       const subjSchedIds = subjectsData.map((data) => data.id);
-      const courseSchedsData = createCourseSubjectSchedules(subjSchedIds);
+
+      const courseSchedsData = createCourseSubjectSchedules(
+        subjSchedIds,
+        layout.filter((item) => {
+          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+            item.i
+          );
+          return (
+            subjSchedIds.includes(
+              `${subjectCode}~${teacherId}~${courseYearSec}`
+            ) && !item.static
+          );
+        })
+      );
+      console.log(courseSchedsData);
+      // roomsSubjSchedsLayouts.forEach((roomLayout) => {
+      //   if (roomLayout.roomCode !== roomData.code) {
+      //     console.log(
+      //       createCourseSubjectSchedules(subjSchedIds, roomData.layout)
+      //     );
+      //   }
+      // });
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
           item.i
@@ -302,35 +327,24 @@ export default function Scheduler({
         );
       });
       setSubjectScheds(courseSchedsData);
+      // console.log(subjSchedItems, subjSchedIds, subjectsData);
       setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
 
-      if (!oldSchedsData) {
-        setOldSchedsData({ course, subjectScheds: courseSchedsData });
+      if (!oldSchedsData.length) {
+        setOldSchedsData(courseSchedsData);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      layout,
-      subjectsData,
-      timeData,
-      setSubjectScheds,
-      setRoomSubjSchedsLayout,
-      roomData.code,
-    ]
+    [layout, subjectsData, timeData, roomData]
   );
 
   //other funcs
-  function createCourseSubjectSchedules(subjSchedIds = []) {
-    const subjSchedItems = layout.filter((item) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        item.i
-      );
-      return (
-        subjSchedIds.includes(`${subjectCode}~${teacherId}~${courseYearSec}`) &&
-        !item.static
-      );
-    });
 
+  // prob di nag uupdate ung kung ilan pa ung hours n natitira on initial load pero pag nag room change magseset
+  function createCourseSubjectSchedules(
+    subjSchedIds = [],
+    subjSchedItems = []
+  ) {
     //remove subjSchedIds that has no layout item
     const filteredSubjSchedIds = subjSchedIds.filter((id) =>
       subjSchedItems.some((item) => {
@@ -727,6 +741,8 @@ export default function Scheduler({
             (existingSchedule) => existingSchedule.day == x
           )) ||
         [];
+
+      console.log(subjectScheds);
       const inSchedulerDayTimes = subjectScheds
         .filter(
           (subjSched) =>
@@ -738,6 +754,8 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
+
+      // console.log(existingSchedules, inSchedulerDayTimes, subjectScheds);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
