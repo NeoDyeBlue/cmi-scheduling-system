@@ -38,6 +38,7 @@ export default function TeacherForm({
     'Monday',
     'Tuesday',
     'Wednesday',
+    'Thursday',
     'Friday',
     'Saturday',
     'Sunday',

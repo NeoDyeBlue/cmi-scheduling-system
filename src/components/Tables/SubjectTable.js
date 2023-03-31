@@ -63,12 +63,6 @@ export default function SubjectTable({ data, mutate = () => {} }) {
                 setIsConfirmationOpen(true);
               }}
             />
-            <ActionButton
-              icon={<MdDownload size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="export"
-              toolTipContent="Export"
-            />
           </div>
         ),
       },

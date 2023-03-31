@@ -10,6 +10,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { PopupLoader } from '../Loaders';
+import _ from 'lodash';
 
 export default function CourseForm({
   initialData,
@@ -38,7 +39,17 @@ export default function CourseForm({
       name: initialData?.name || '',
       type: initialData?.type || 'college',
       yearSections: initialData?.yearSections?.length
-        ? initialData?.yearSections
+        ? _.sortBy(
+            [
+              ...initialData?.yearSections.map((yearSection) => ({
+                ...yearSection,
+                semesterSubjects: _.sortBy(yearSection.semesterSubjects, [
+                  'semester',
+                ]),
+              })),
+            ],
+            ['year']
+          )
         : initialYearSections,
     },
     onSubmit: handleSubmit,

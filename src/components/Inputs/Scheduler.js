@@ -309,41 +309,49 @@ export default function Scheduler({
     []
   );
 
-  useEffect(() => {
-    if (draggingSubject) {
-      createRestrictions(layout, draggingSubject);
-      setIsDraggingFromOutside(true);
-    } else {
-      removeRestrictions();
-      setIsDraggingFromOutside(false);
-    }
-  }, [draggingSubject]);
+  useEffect(
+    () => {
+      if (draggingSubject) {
+        createRestrictions(layout, draggingSubject);
+        setIsDraggingFromOutside(true);
+      } else {
+        removeRestrictions();
+        setIsDraggingFromOutside(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [draggingSubject]
+  );
 
-  useEffect(() => {
-    const subjSchedIds = subjectsData.map((data) => data.id);
-    const courseSchedsData = createCourseSubjectSchedules(subjSchedIds);
-    const subjSchedItems = layout.filter((item) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        item.i
-      );
-      return subjSchedIds.includes(
-        `${subjectCode}~${teacherId}~${courseYearSec}`
-      );
-    });
-    setSubjectScheds(courseSchedsData);
-    setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
+  useEffect(
+    () => {
+      const subjSchedIds = subjectsData.map((data) => data.id);
+      const courseSchedsData = createCourseSubjectSchedules(subjSchedIds);
+      const subjSchedItems = layout.filter((item) => {
+        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+          item.i
+        );
+        return subjSchedIds.includes(
+          `${subjectCode}~${teacherId}~${courseYearSec}`
+        );
+      });
+      setSubjectScheds(courseSchedsData);
+      setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
 
-    // if (!oldSchedsData) {
-    //   setOldSchedsData({ course, subjectScheds: courseSchedsData });
-    // }
-  }, [
-    layout,
-    subjectsData,
-    timeData,
-    setSubjectScheds,
-    setRoomSubjSchedsLayout,
-    roomData.code,
-  ]);
+      // if (!oldSchedsData) {
+      //   setOldSchedsData({ course, subjectScheds: courseSchedsData });
+      // }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      layout,
+      subjectsData,
+      timeData,
+      setSubjectScheds,
+      setRoomSubjSchedsLayout,
+      roomData.code,
+    ]
+  );
 
   //other funcs
   function createCourseSubjectSchedules(subjSchedIds = []) {
