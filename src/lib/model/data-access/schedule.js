@@ -70,6 +70,7 @@ class Schedule extends Model {
           deleteMany: {
             filter: {
               _id: schedule._id.toString(),
+              
             },
           },
         };

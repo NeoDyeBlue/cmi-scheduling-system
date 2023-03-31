@@ -13,9 +13,8 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'GET') {
     try {
-      const limit = 2;
-      const page = 1;
-      // const { limit, page } = req.query;
+
+      const { limit, page } = req.query;
       const data = await room.getRoomsPaginate({ limit, page });
       return successResponse(req, res, data);
     } catch (error) {

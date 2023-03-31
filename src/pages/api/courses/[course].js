@@ -28,6 +28,9 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error);
     }
   }
+  if(req.method === 'GET', p=== 'info'){
+    
+  }
 };
 
 export default handler;
