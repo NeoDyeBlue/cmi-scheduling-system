@@ -99,108 +99,120 @@ export default function Schedule() {
     [result]
   );
 
-  useEffect(() => {
-    if (schedulerData) {
-      const courseSubjectsData = [];
-      const initialSubjectScheds = [];
-      schedulerData?.subjects?.forEach((subject) => {
-        subject?.assignedTeachers?.forEach((teacher) => {
-          //add to course subjects data
-          const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
-          const { teachers, ...newData } = subject;
-          courseSubjectsData.push({
-            id: dataId,
-            data: { ...newData, teacher, course: schedulerData?.course },
-          });
+  useEffect(
+    () => {
+      if (schedulerData) {
+        const courseSubjectsData = [];
+        const initialSubjectScheds = [];
+        schedulerData?.subjects?.forEach((subject) => {
+          subject?.assignedTeachers?.forEach((teacher) => {
+            //add to course subjects data
+            const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
+            const { teachers, ...newData } = subject;
+            courseSubjectsData.push({
+              id: dataId,
+              data: { ...newData, teacher, course: schedulerData?.course },
+            });
 
-          //check if addable to initial subject scheds
-          if (teacher.existingSchedules.length) {
-            const courseSubjectSchedules = [];
-            teacher.existingSchedules.forEach((dayTimes) => {
-              const subjectTimes = [];
+            //check if addable to initial subject scheds
+            if (teacher.existingSchedules.length) {
+              const courseSubjectSchedules = [];
+              teacher.existingSchedules.forEach((dayTimes) => {
+                const subjectTimes = [];
 
-              dayTimes.times.forEach((time) => {
-                if (
-                  `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
-                    `${time.course.code}${time.course.year}${time.course.section}` &&
-                  time.subject.code == subject.code
-                ) {
-                  subjectTimes.push({ start: time.start, end: time.end });
+                dayTimes.times.forEach((time) => {
+                  if (
+                    `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
+                      `${time.course.code}${time.course.year}${time.course.section}` &&
+                    time.subject.code == subject.code
+                  ) {
+                    subjectTimes.push({ start: time.start, end: time.end });
+                  }
+                });
+
+                if (subjectTimes.length) {
+                  courseSubjectSchedules.push({
+                    day: dayTimes.day,
+                    room: dayTimes.room,
+                    times: subjectTimes,
+                  });
                 }
               });
 
-              if (subjectTimes.length) {
-                courseSubjectSchedules.push({
-                  day: dayTimes.day,
-                  room: dayTimes.room,
-                  times: subjectTimes,
+              if (courseSubjectSchedules.length) {
+                initialSubjectScheds.push({
+                  subject: {
+                    _id: subject._id,
+                    code: subject.code,
+                  },
+                  teacher: {
+                    _id: teacher._id,
+                    teacherId: teacher.teacherId,
+                  },
+                  schedules: courseSubjectSchedules,
                 });
               }
-            });
+            }
+          });
+        });
+        setSubjectScheds(initialSubjectScheds);
+        setOldSchedsData(initialSubjectScheds);
+        setCourseSubjects(schedulerData?.subjects);
+        setCourse(schedulerData?.course);
+        setSubjectsData(courseSubjectsData);
+        setSelectedRooms(schedulerData?.rooms);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [setCourseSubjects, setSubjectsData, setCourse, result]
+  );
 
-            if (courseSubjectSchedules.length) {
-              initialSubjectScheds.push({
-                subject: {
-                  _id: subject._id,
-                  code: subject.code,
+  useEffect(
+    () => {
+      if (subjectsData.length) {
+        const roomSubjectsData = [];
+        selectedRooms.forEach((room) => {
+          room.schedules.forEach((schedule) => {
+            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
+            if (
+              !subjectsData.some((data) => data.id == dataId) &&
+              !roomSubjectsData.some((data) => data.id == dataId)
+            ) {
+              roomSubjectsData.push({
+                id: dataId,
+                data: {
+                  ...schedule.subject,
+                  teacher: schedule.teacher,
+                  course: schedule.course,
                 },
-                teacher: {
-                  _id: teacher._id,
-                  teacherId: teacher.teacherId,
-                },
-                schedules: courseSubjectSchedules,
               });
             }
-          }
+          });
         });
-      });
-      setSubjectScheds(initialSubjectScheds);
-      setOldSchedsData(initialSubjectScheds);
-      setCourseSubjects(schedulerData?.subjects);
-      setCourse(schedulerData?.course);
-      setSubjectsData(courseSubjectsData);
-      setSelectedRooms(schedulerData?.rooms);
-    }
-  }, [setCourseSubjects, setSubjectsData, setCourse, result]);
-
-  useEffect(() => {
-    if (subjectsData.length) {
-      const roomSubjectsData = [];
-      selectedRooms.forEach((room) => {
-        room.schedules.forEach((schedule) => {
-          const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
-          if (
-            !subjectsData.some((data) => data.id == dataId) &&
-            !roomSubjectsData.some((data) => data.id == dataId)
-          ) {
-            roomSubjectsData.push({
-              id: dataId,
-              data: {
-                ...schedule.subject,
-                teacher: schedule.teacher,
-                course: schedule.course,
-              },
-            });
-          }
-        });
-      });
-      setSubjectsData([...subjectsData, ...roomSubjectsData]);
-    }
-  }, [selectedRooms]);
+        setSubjectsData([...subjectsData, ...roomSubjectsData]);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedRooms]
+  );
 
   useEffect(() => {
     setFormData({ course, subjectScheds });
   }, [course, subjectScheds]);
 
-  useEffect(() => {
-    if (removeRoom) {
-      submitChanges().then(() => {
-        setToRemoveRoom('');
-        setIsRemoveRoomConfirmOpen(false);
-        setRemoveRoom(false);
-      });
-    }
-  }, [removeRoom]);
+  useEffect(
+    () => {
+      if (removeRoom) {
+        submitChanges().then(() => {
+          setToRemoveRoom('');
+          setIsRemoveRoomConfirmOpen(false);
+          setRemoveRoom(false);
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [removeRoom]
+  );
 
   // console.log(formData);
 

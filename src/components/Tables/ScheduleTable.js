@@ -210,7 +210,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               alt="teacher image"
               width={42}
               height={42}
-              fallbackSrc={'/images/teachers/default.jpg'}
+              fallbackSrc="/images/default-teacher.jpg"
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
@@ -235,11 +235,11 @@ const ScheduleTable = forwardRef(function ScheduleTable(
             </p>
           )}
           <div>
-            <p className="uppercase">{slot?.subject?.code}</p>
+            <p className="text-lg font-bold uppercase">{slot?.subject?.code}</p>
             <p className="text-xs">{slot?.subject?.name}</p>
           </div>
           {type !== 'courses' && (
-            <p className="font-bold uppercase">
+            <p className="font-semibold uppercase">
               {slot?.course?.code} {slot?.course?.year}
               {slot?.course?.section}
             </p>
@@ -259,7 +259,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         <table
           id={id}
           {...getTableProps()}
-          className="w-full border border-gray-200 lg:table-fixed"
+          className="w-full border border-gray-300 lg:table-fixed"
         >
           <thead className="p-4 text-center font-display text-xs font-semibold">
             {headerGroups.map((headerGroup, index) => (
@@ -272,7 +272,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                   <th
                     key={index}
                     {...column.getHeaderProps()}
-                    className="border border-gray-200 px-4 py-3"
+                    className="border border-gray-300 px-4 py-3"
                   >
                     {column.render('Header')}
                   </th>
@@ -321,7 +321,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                 <tr
                   key={rowIndex}
                   {...row.getRowProps()}
-                  className="h-[40px] max-h-[40px] border border-gray-200"
+                  className="h-[40px] max-h-[40px] border border-gray-300"
                 >
                   {row.cells.map((cell, cellIndex) => {
                     if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
@@ -329,7 +329,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                         <td
                           key={cellIndex}
                           {...cell.getCellProps()}
-                          className={`h-[40px] max-h-[40px] border border-gray-200 text-center text-xs`}
+                          className={`h-[40px] max-h-[40px] border border-gray-300 text-center text-xs`}
                         >
                           <div
                             className={classNames(
@@ -361,7 +361,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                           <td
                             key={cellIndex}
                             {...cell.getCellProps()}
-                            className={`min-w-[150px] border border-gray-200 px-4 py-3 text-center text-xs`}
+                            className={`min-w-[150px] border border-gray-300 px-4 py-3 text-center text-xs`}
                           ></td>
                         );
                       }

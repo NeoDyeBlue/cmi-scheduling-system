@@ -208,7 +208,7 @@ export default function Scheduler({
             width={36}
             height={36}
             draggable={false}
-            fallbackSrc="/images/teachers/default.jpg"
+            fallbackSrc="/images/default-teacher.jpg"
             className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
           />
           <div className="flex flex-col text-center">
@@ -305,7 +305,7 @@ export default function Scheduler({
         setLayout([...headers, ...roomSubjectsLayout, ...timeLayout.flat()]);
       }
     },
-    // [roomData?.schedules?, timeData, headers]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

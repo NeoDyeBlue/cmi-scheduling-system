@@ -266,7 +266,7 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                             alt="teacher image"
                             width={42}
                             height={42}
-                            fallbackSrc="/images/teachers/default.jpg"
+                            fallbackSrc="/images/default-teacher.jpg"
                             className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
                           />
                         )}
