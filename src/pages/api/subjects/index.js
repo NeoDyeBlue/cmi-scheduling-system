@@ -40,11 +40,9 @@ export const handler = async (req, res) => {
     try {
       const { id } = req.query;
       const data = await subject.deleteSubject({ id });
-
-      // await schedule.deleteSchedulesBySubject({
-      //   subject_id: id,
-      // });
-
+      await schedule.deleteSchedulesBySubject({
+        subject_id: id,
+      });
       await course.removeSubjectFromCourses({ subject_id: id });
 
       return successResponse(req, res, data);

@@ -23,6 +23,7 @@ class Course extends Model {
       throw error;
     }
   }
+
   async removeSubjectFromCourses({ subject_id }) {
     try {
       const data = await this.Course.updateMany(
@@ -31,18 +32,13 @@ class Course extends Model {
         },
         {
           $pull: {
-            'yearSections.semesterSubjects.subjects._id': subject_id,
+            'yearSections.$[].semesterSubjects.$[].subjects': {
+              _id: subject_id,
+            },
           },
         }
       ).exec();
 
-      // for(let courses of data){
-      //   let {yearSections} = courses;
-      //   // const semesterSubjects = yearSections.semesterSubjects.filter(subject => subject.)
-      //   for(let semSubject of yearSections.semesterSubjects){
-
-      //   }
-      // }
       return data;
     } catch (error) {
       console.log('error', error);
