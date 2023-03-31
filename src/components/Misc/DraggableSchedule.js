@@ -89,7 +89,7 @@ export default function DraggableSchedule({ data }) {
   return (
     <li
       className={classNames(
-        `flex w-full flex-col gap-4 rounded-md 
+        `flex w-full flex-col gap-4 overflow-hidden rounded-md
         border border-gray-300 bg-white p-4 transition-all`,
         {
           'group cursor-grab hover:border-primary-400 hover:bg-primary-400 hover:text-white hover:shadow-lg':
@@ -106,13 +106,11 @@ export default function DraggableSchedule({ data }) {
         setDraggingSubject(data);
       }}
     >
-      <div className="flex flex-col">
-        <p className="text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
+      <div className="flex flex-col overflow-hidden">
+        <p className="overflow-hidden text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
           {data.code}
         </p>
-        <p className="mb-1 text-ellipsis whitespace-nowrap text-xs">
-          {data.name}
-        </p>
+        <p className="mb-1 text-xs">{data.name}</p>
       </div>
       <div className="flex flex-col text-ship-gray-600 group-hover:text-white">
         <p className="text-sm">
@@ -131,7 +129,7 @@ export default function DraggableSchedule({ data }) {
           )}
         </p>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 overflow-hidden">
         <ImageWithFallback
           src={data?.teacher?.image}
           alt="teacher image"
@@ -141,8 +139,8 @@ export default function DraggableSchedule({ data }) {
           fallbackSrc="/images/teachers/default.jpg"
           className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
         />
-        <div className="flex flex-col">
-          <p className="text-ellipsis whitespace-nowrap font-medium">
+        <div className="flex flex-col overflow-hidden">
+          <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">
             {data?.teacher?.firstName} {data?.teacher?.lastName}
           </p>
           <TeacherTypeBadge isPartTime={data?.teacher?.type == 'part-time'} />

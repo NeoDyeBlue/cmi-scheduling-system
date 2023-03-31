@@ -101,7 +101,7 @@ export default function Schedule() {
 
   useEffect(
     () => {
-      if (schedulerData) {
+      if (schedulerData && !subjectsData.length) {
         const courseSubjectsData = [];
         const initialSubjectScheds = [];
         schedulerData?.subjects?.forEach((subject) => {
@@ -164,7 +164,7 @@ export default function Schedule() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setCourseSubjects, setSubjectsData, setCourse, result]
+    [schedulerData]
   );
 
   useEffect(
@@ -175,7 +175,7 @@ export default function Schedule() {
           room.schedules.forEach((schedule) => {
             const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
             if (
-              !subjectsData.some((data) => data.id == dataId) &&
+              !subjectsData.some((data) => data.id == dataId) ||
               !roomSubjectsData.some((data) => data.id == dataId)
             ) {
               roomSubjectsData.push({

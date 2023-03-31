@@ -19,7 +19,5 @@ export const subjectSchema = yup.object().shape({
           .oneOf(['part-time', 'full-time'])
           .required('Required'),
       })
-    )
-    .min(1, 'Add at least one teacher')
-    .required('Required'),
+    ),
 });
