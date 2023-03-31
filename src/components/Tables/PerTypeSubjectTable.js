@@ -67,52 +67,55 @@ export default function PerTypeSubjectTable({ type }) {
               Nothing to show
             </p>
           ) : null}
-          {!isLoading && docs.length ? (
-            <>
-              <TabPanel>
-                <div className="flex flex-col gap-4">
+          <>
+            <TabPanel>
+              <div className="flex flex-col gap-4">
+                {!isLoading && docs.length ? (
                   <SubjectTable data={docs} mutate={mutate} />
-                  <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={({ selected }) => setPageIndex(selected + 1)}
-                    pageRangeDisplayed={5}
-                    pageCount={Math.ceil(pageData?.totalPages) || 0}
-                    previousLabel="< prev"
-                    renderOnZeroPageCount={null}
-                    containerClassName="paginate-container"
-                    previousLinkClassName="paginate-button"
-                    nextLinkClassName="paginate-button"
-                    pageLinkClassName="paginate-link"
-                    activeLinkClassName="paginate-link-active"
-                    breakLinkClassName="paginate-break"
-                    disabledLinkClassName="paginate-link-disabled"
-                  />
-                </div>
-              </TabPanel>
-              <TabPanel>
-                <div className="flex flex-col gap-4">
+                ) : null}
+                <ReactPaginate
+                  breakLabel="..."
+                  nextLabel="next >"
+                  onPageChange={({ selected }) => setPageIndex(selected + 1)}
+                  pageRangeDisplayed={5}
+                  pageCount={Math.ceil(pageData?.totalPages) || 0}
+                  previousLabel="< prev"
+                  renderOnZeroPageCount={null}
+                  containerClassName="paginate-container"
+                  previousLinkClassName="paginate-button"
+                  nextLinkClassName="paginate-button"
+                  pageLinkClassName="paginate-link"
+                  activeLinkClassName="paginate-link-active"
+                  breakLinkClassName="paginate-break"
+                  disabledLinkClassName="paginate-link-disabled"
+                />
+              </div>
+            </TabPanel>
+            <TabPanel>
+              <div className="flex flex-col gap-4">
+                {!isLoading && docs.length ? (
                   <SubjectTable data={docs} mutate={mutate} />
-                  <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={({ selected }) => setPageIndex(selected + 1)}
-                    pageRangeDisplayed={5}
-                    pageCount={Math.ceil(pageData?.totalPages) || 0}
-                    previousLabel="< prev"
-                    renderOnZeroPageCount={null}
-                    containerClassName="paginate-container"
-                    previousLinkClassName="paginate-button"
-                    nextLinkClassName="paginate-button"
-                    pageLinkClassName="paginate-link"
-                    activeLinkClassName="paginate-link-active"
-                    breakLinkClassName="paginate-break"
-                    disabledLinkClassName="paginate-link-disabled"
-                  />
-                </div>
-              </TabPanel>
-            </>
-          ) : null}
+                ) : null}
+
+                <ReactPaginate
+                  breakLabel="..."
+                  nextLabel="next >"
+                  onPageChange={({ selected }) => setPageIndex(selected + 1)}
+                  pageRangeDisplayed={5}
+                  pageCount={Math.ceil(pageData?.totalPages) || 0}
+                  previousLabel="< prev"
+                  renderOnZeroPageCount={null}
+                  containerClassName="paginate-container"
+                  previousLinkClassName="paginate-button"
+                  nextLinkClassName="paginate-button"
+                  pageLinkClassName="paginate-link"
+                  activeLinkClassName="paginate-link-active"
+                  breakLinkClassName="paginate-break"
+                  disabledLinkClassName="paginate-link-disabled"
+                />
+              </div>
+            </TabPanel>
+          </>
         </div>
         {/* <TabPanel>
             <CourseTable data={collegeCourses} type="college" />

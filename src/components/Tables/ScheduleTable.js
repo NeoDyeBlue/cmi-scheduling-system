@@ -87,7 +87,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
     return newData;
   }, [data, weekDays]);
 
-  console.log(groupedByDay);
+  // console.log(groupedByDay);
 
   const columns = useMemo(
     () => [
@@ -223,7 +223,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               >
                 {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
               </p>
-              <p className="font-medium">{slot?.room?.code}</p>
+              <p className="font-medium uppercase">{slot?.room?.code}</p>
             </>
           ) : null}
           {type == 'teachers' && (

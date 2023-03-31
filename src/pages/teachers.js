@@ -63,24 +63,24 @@ export default function Teachers() {
               <div className="overflow-x-auto">
                 <TeacherTable data={docs} mutate={() => mutate()} />
               </div>
-              <ReactPaginate
-                breakLabel="..."
-                nextLabel="next >"
-                onPageChange={({ selected }) => setPageIndex(selected + 1)}
-                pageRangeDisplayed={5}
-                pageCount={Math.ceil(pageData?.totalPages) || 0}
-                previousLabel="< prev"
-                renderOnZeroPageCount={null}
-                containerClassName="paginate-container"
-                previousLinkClassName="paginate-button"
-                nextLinkClassName="paginate-button"
-                pageLinkClassName="paginate-link"
-                activeLinkClassName="paginate-link-active"
-                breakLinkClassName="paginate-break"
-                disabledLinkClassName="paginate-link-disabled"
-              />
             </>
           ) : null}
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
+          />
         </div>
       </div>
     </>

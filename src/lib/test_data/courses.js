@@ -1,5 +1,12 @@
 const courseSampleData = {
   //course fields here only more importantly how many years
+
+  yearSections: [
+    {
+      year: 1,
+      sections: ['A', 'B'],
+    },
+  ],
 };
 
 //for on tab change
