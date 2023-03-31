@@ -64,7 +64,7 @@ export default function Course() {
                 <PerSemScheduleTable
                   type="courses"
                   fetchQuery={{
-                    course: courseData?.code,
+                    course: courseData?.course_oid,
                     year: yearSection.year,
                     section,
                   }}
