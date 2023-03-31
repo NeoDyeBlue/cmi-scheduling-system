@@ -32,7 +32,7 @@ export const handler = async (req, res) => {
     try {
       const { course } = req.query;
 
-      const data = await Course.courseYearSecInfo({ course, type });
+      const data = await Course.courseYearSecInfo({ course });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error);

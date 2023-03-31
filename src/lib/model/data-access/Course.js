@@ -220,7 +220,7 @@ class Course extends Model {
       throw error;
     }
   }
-  async courseYearSecInfo({ course, type }) {
+  async courseYearSecInfo({ course }) {
     try {
       const pipeline = [
         {
@@ -257,21 +257,11 @@ class Course extends Model {
             },
           },
         },
-        // {
-        //   $project: {
-        //     code: 1,
-        //     name: 1,
-        //     type: 1,
-        //     yearSections: {
-        //       year: "$year",
-        //       sections: "$sections",
-        //     },
-        //   },
-        // },
+       
       ];
-
+      
       const data = await this.Course.aggregate(pipeline);
-      return data;
+      return data[0];
     } catch (error) {
       throw error;
     }
