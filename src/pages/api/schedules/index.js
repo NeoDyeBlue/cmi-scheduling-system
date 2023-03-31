@@ -33,11 +33,14 @@ export const handler = async (req, res) => {
   if (req.method === 'GET') {
     try {
       // teacher is teacher _id.
-      const { roomcode: roomCode, teacher } = req.query;
+      const { roomcode: roomCode, teacher, course, year, section } = req.query;
 
       const data = await schedule.getSchedulesBy({
         roomCode,
         teacher,
+        course,
+        year,
+        section,
       });
       return successResponse(req, res, data);
     } catch (error) {
