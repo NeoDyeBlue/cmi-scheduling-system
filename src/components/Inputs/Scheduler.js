@@ -1,12 +1,13 @@
 import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { parse, format, addMinutes } from 'date-fns';
+import { parse, format, addMinutes, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import { MdRemove } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
+import { subtractDuration } from '@/utils/time-utils';
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -400,6 +401,31 @@ export default function Scheduler({
         },
       }));
 
+      //check if completed or not
+      let totalMinutesDuration = 0;
+      let isNotCompleted = true;
+      schedules?.forEach((sched) => {
+        const start = parse(sched.time.start, 'hh:mm a', new Date());
+        const end = parse(sched.time.end, 'hh:mm a', new Date());
+
+        totalMinutesDuration += differenceInMinutes(end, start);
+      });
+
+      const hoursDuration = Math.floor(totalMinutesDuration / 60);
+      const minutesDuration = totalMinutesDuration % 60;
+
+      const { hours, minutes } = subtractDuration(
+        { hours: subjectData.data.units, minutes: 0 },
+        {
+          hours: hoursDuration,
+          minutes: minutesDuration,
+        }
+      );
+
+      if (hours <= 0 && minutes <= 0) {
+        isNotCompleted = false;
+      }
+
       //group by day
       const groupedByDay = [];
       for (let day = 1; day <= 7; day++) {
@@ -430,6 +456,7 @@ export default function Scheduler({
           _id: subjectData.data.teacher._id,
           teacherId: subjectData.data.teacher.teacherId,
         },
+        isCompleted: !isNotCompleted,
         schedules: [...groupedByDay],
       });
     });

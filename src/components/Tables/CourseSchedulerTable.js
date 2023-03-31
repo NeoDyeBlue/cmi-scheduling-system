@@ -239,8 +239,11 @@ export default function CourseTable({ type }) {
                                   courseCode={row.original.code}
                                   semester={'1'}
                                   data={
-                                    row.original.schedCompletionStatus.firstSem
-                                      .perYearSec || []
+                                    row.original.schedCompletionStatus.firstSem.perYearSec.sort(
+                                      (a, b) => {
+                                        return a.year - b.year;
+                                      }
+                                    ) || []
                                   }
                                 />
                               </TabPanel>
@@ -249,8 +252,11 @@ export default function CourseTable({ type }) {
                                   courseCode={row.original.code}
                                   semester={'2'}
                                   data={
-                                    row.original.schedCompletionStatus.secondSem
-                                      .perYearSec || []
+                                    row.original.schedCompletionStatus.secondSem.perYearSec.sort(
+                                      (a, b) => {
+                                        return a.year - b.year;
+                                      }
+                                    ) || []
                                   }
                                 />
                               </TabPanel>
@@ -259,8 +265,11 @@ export default function CourseTable({ type }) {
                                   courseCode={row.original.code}
                                   semester={'special'}
                                   data={
-                                    row.original.schedCompletionStatus.special
-                                      .perYearSec || []
+                                    row.original.schedCompletionStatus.special.perYearSec.sort(
+                                      (a, b) => {
+                                        return a.year - b.year;
+                                      }
+                                    ) || []
                                   }
                                 />
                               </TabPanel>
@@ -269,8 +278,11 @@ export default function CourseTable({ type }) {
                                   courseCode={row.original.code}
                                   semester={'summer'}
                                   data={
-                                    row.original.schedCompletionStatus.summer
-                                      .perYearSec || []
+                                    row.original.schedCompletionStatus.summer.perYearSec.sort(
+                                      (a, b) => {
+                                        return a.year - b.year;
+                                      }
+                                    ) || []
                                   }
                                 />
                               </TabPanel>
