@@ -296,6 +296,8 @@ export default function Scheduler({
     () => {
       const subjSchedIds = subjectsData.map((data) => data.id);
 
+      console.log(layout);
+
       const courseSchedsData = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
@@ -313,6 +315,21 @@ export default function Scheduler({
           code: roomData.code,
         }
       );
+
+      console.log(
+        layout.filter((item) => {
+          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+            item.i
+          );
+          return (
+            subjSchedIds.includes(
+              `${subjectCode}~${teacherId}~${courseYearSec}`
+            ) && !item.static
+          );
+        })
+      );
+
+      console.log(courseSchedsData);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
@@ -337,6 +354,8 @@ export default function Scheduler({
           );
         }
       });
+
+      console.log(otherRoomScheds);
 
       let mergedScheds = [...courseSchedsData];
       if (otherRoomScheds.length) {
@@ -374,8 +393,6 @@ export default function Scheduler({
           }
         });
       }
-
-      // console.log(otherRoomScheds, courseSchedsData);
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
           item.i
@@ -414,6 +431,8 @@ export default function Scheduler({
       })
     );
 
+    console.log(filteredSubjSchedIds, roomData.code);
+
     const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
       const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(id);
       return { code: subjectCode, teacher: teacherId, courseYearSec };
@@ -436,6 +455,7 @@ export default function Scheduler({
           courseYearSec == itemCourseYearSec
         );
       });
+
       const subjectData = subjectsData.find(
         (data) => data.id == `${code}~${teacher}~${courseYearSec}`
       );
@@ -507,51 +527,53 @@ export default function Scheduler({
 
     let newScheds = [];
 
-    if (subjectScheds.length) {
-      subjectScheds.forEach((subjSched) => {
-        const newSubjSched = newRoomSubjectScheds.find(
-          (newRoomSubjSched) =>
-            subjSched.subject.code == newRoomSubjSched.subject.code &&
-            subjSched.teacher.teacherId == newRoomSubjSched.teacher.teacherId
-        );
+    // if (subjectScheds.length) {
+    //   subjectScheds.forEach((subjSched) => {
+    //     const newSubjSched = newRoomSubjectScheds.find(
+    //       (newRoomSubjSched) =>
+    //         subjSched.subject.code == newRoomSubjSched.subject.code &&
+    //         subjSched.teacher.teacherId == newRoomSubjSched.teacher.teacherId
+    //     );
 
-        //check if new sched exists then update the new room scheds
-        if (newSubjSched) {
-          newScheds.push({
-            ...newSubjSched,
-            schedules: [
-              ...subjSched.schedules.filter(
-                (sched) => sched.room.code !== room.code
-              ),
-              ...newSubjSched.schedules,
-            ],
-          });
-        } else {
-          newScheds.push({
-            ...subjSched,
-            schedules: [
-              ...subjSched.schedules.filter(
-                (sched) => sched.room.code !== room.code
-              ),
-            ],
-          });
-        }
-      });
-    } else {
-      newScheds = newRoomSubjectScheds;
-    }
+    //     //check if new sched exists then update the new room scheds
+    //     if (newSubjSched) {
+    //       newScheds.push({
+    //         ...newSubjSched,
+    //         schedules: [
+    //           ...subjSched.schedules.filter(
+    //             (sched) => sched.room.code !== room.code
+    //           ),
+    //           ...newSubjSched.schedules,
+    //         ],
+    //       });
+    //     } else {
+    //       newScheds.push({
+    //         ...subjSched,
+    //         schedules: [
+    //           ...subjSched.schedules.filter(
+    //             (sched) => sched.room.code !== room.code
+    //           ),
+    //         ],
+    //       });
+    //     }
+    //   });
+    // } else {
+    //   newScheds = newRoomSubjectScheds;
+    // }
 
-    return [
-      ...newScheds.filter((newSched) => newSched.schedules.length),
-      ...newRoomSubjectScheds.filter(
-        (sched) =>
-          !newScheds.some(
-            (newSched) =>
-              sched.subject.code == newSched.subject.code &&
-              sched.teacher.teacherId == newSched.teacher.teacherId
-          )
-      ),
-    ];
+    return newRoomSubjectScheds;
+
+    // return [
+    //   ...newScheds.filter((newSched) => newSched.schedules.length),
+    //   ...newRoomSubjectScheds.filter(
+    //     (sched) =>
+    //       !newScheds.some(
+    //         (newSched) =>
+    //           sched.subject.code == newSched.subject.code &&
+    //           sched.teacher.teacherId == newSched.teacher.teacherId
+    //       )
+    //   ),
+    // ];
   }
 
   function parseSubjSchedId(id, separator = '~') {

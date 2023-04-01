@@ -282,7 +282,7 @@ export default function MultiComboBox({
         )}
       </div>
       <ul
-        className={`absolute mt-1 max-h-[200px] w-full overflow-y-auto rounded-md bg-white p-0 shadow-md ${
+        className={`absolute z-50 mt-1 max-h-[200px] w-full overflow-y-auto rounded-md bg-white p-0 shadow-md ${
           !(isOpen && searchedItems.length) && 'hidden'
         }`}
         {...getMenuProps()}
