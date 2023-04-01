@@ -9,6 +9,7 @@ import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
+import { rooms } from '@/lib/test_data/rooms';
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -221,7 +222,6 @@ export default function Scheduler({
   //for setting initial layout
   useEffect(() => {
     //get the existing room layout
-    console.log('ini');
     const existingRoomLayout =
       roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
         ?.layout || [];
@@ -294,7 +294,6 @@ export default function Scheduler({
   //for changing subject scheds
   useEffect(
     () => {
-      console.log('scheds');
       const subjSchedIds = subjectsData.map((data) => data.id);
 
       const courseSchedsData = createCourseSubjectSchedules(
@@ -341,34 +340,39 @@ export default function Scheduler({
 
       let mergedScheds = [...courseSchedsData];
       if (otherRoomScheds.length) {
-        otherRoomScheds.forEach((schedule) => {
+        otherRoomScheds.forEach((roomSched) => {
           const existingSched = mergedScheds.find(
             (mergedSched) =>
-              mergedSched.subject.code == schedule.subject.code &&
-              mergedSched.teacher.teacherId == schedule.teacher.teacherId
+              mergedSched.subject.code == roomSched.subject.code &&
+              mergedSched.teacher.teacherId == roomSched.teacher.teacherId
           );
 
           if (!existingSched) {
-            mergedScheds.push(schedule);
+            mergedScheds.push(roomSched);
           } else {
             const merged = {
               ...existingSched,
-              schedules: [...existingSched.schedules, ...schedule.schedules],
+              schedules: [
+                ...existingSched.schedules.filter(
+                  (exist) => exist.room.code == roomData.code
+                ),
+                ...roomSched.schedules.filter(
+                  (sched) => sched.room.code !== roomData.code
+                ),
+              ],
             };
 
             mergedScheds = [
-              ...mergedScheds.filter(
-                (mergedSched) =>
-                  mergedSched.subject.code !== existingSched.subject.code &&
-                  mergedSched.teacher.teacherId !==
-                    existingSched.teacher.teacherId
-              ),
+              ...mergedScheds.filter((mergedSched) => {
+                return (
+                  mergedSched.subject.code !== merged.subject.code &&
+                  mergedSched.teacher.teacherId !== merged.teacher.teacherId
+                );
+              }),
               merged,
             ];
           }
         });
-
-        console.log(mergedScheds);
       }
 
       // console.log(otherRoomScheds, courseSchedsData);
@@ -384,7 +388,7 @@ export default function Scheduler({
       // console.log(subjSchedItems, subjSchedIds, subjectsData);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
-      if (!oldSchedsData.length) {
+      if (!oldSchedsData.length && mergedScheds.length) {
         setOldSchedsData(mergedScheds);
       }
     },
@@ -636,6 +640,7 @@ export default function Scheduler({
       // update the layout items of other rooms
       const updatedRoomLayouts = otherRoomLayouts.map((roomLayout) => ({
         roomCode: roomLayout.roomCode,
+        roomId: roomLayout.roomId,
         layout: [
           ...roomLayout.layout.filter(
             (item) =>
@@ -651,6 +656,7 @@ export default function Scheduler({
 
       const newRoomLayout = {
         roomCode: roomData.code,
+        roomId: roomData._id,
         layout: [
           ...roomSubjSchedItems.filter(
             (item) =>
