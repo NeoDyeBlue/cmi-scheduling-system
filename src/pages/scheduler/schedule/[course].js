@@ -167,7 +167,11 @@ export default function Schedule() {
             schedulerData?.course,
             schedulerData?.subjects
           );
-          roomLayouts.push({ roomCode: room.code, layout: roomLayout });
+          roomLayouts.push({
+            roomCode: room.code,
+            roomId: room._id,
+            layout: roomLayout,
+          });
         });
         console.log(roomLayouts);
         setAllRoomSubjSchedsLayout(roomLayouts);

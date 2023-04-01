@@ -42,12 +42,15 @@ const useSchedulerStore = create((set, get) => ({
       roomsSubjSchedsLayouts: payload,
     }));
   },
-  setRoomSubjSchedsLayout: (roomCode, layout) => {
+  setRoomSubjSchedsLayout: (roomCode, roomId, layout) => {
     const filteredLayouts = get().roomsSubjSchedsLayouts.filter(
       (layoutObj) => layoutObj.roomCode !== roomCode
     );
     set(() => ({
-      roomsSubjSchedsLayouts: [...filteredLayouts, { roomCode, layout }],
+      roomsSubjSchedsLayouts: [
+        ...filteredLayouts,
+        { roomCode, roomId, layout },
+      ],
     }));
   },
   setOldSchedsData: (payload) => {
