@@ -82,6 +82,7 @@ class Room extends Model {
       throw error;
     }
   }
+  
   async isRoomCodeUsed({ id, code }) {
     try {
       const data = await this.Room.find({

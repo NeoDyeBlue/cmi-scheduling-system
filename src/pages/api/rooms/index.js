@@ -1,5 +1,6 @@
 import room from '@/lib/model/data-access/Room';
 import { successResponse, errorResponse } from '@/utils/response.utils';
+import schedule from '@/lib/model/data-access/Schedule';
 
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
@@ -13,7 +14,6 @@ export const handler = async (req, res) => {
   }
   if (req.method === 'GET') {
     try {
-
       const { limit, page } = req.query;
       const data = await room.getRoomsPaginate({ limit, page });
       return successResponse(req, res, data);
@@ -25,6 +25,7 @@ export const handler = async (req, res) => {
     try {
       const { id } = req.query;
       const data = await room.deleteRoom({ id });
+      await schedule.deleteScheduleByRoom({ room_id: id });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);

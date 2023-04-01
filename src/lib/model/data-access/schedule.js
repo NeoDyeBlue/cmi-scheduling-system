@@ -26,7 +26,7 @@ class Schedule extends Model {
             update: {
               $set: {
                 schedules: schedule.schedules,
-                isCompleted: schedule.isCompleted
+                isCompleted: schedule.isCompleted,
               },
             },
             upsert: true,
@@ -57,6 +57,11 @@ class Schedule extends Model {
         },
       }).exec();
 
+      // delete schedules that has value empty array
+      await this.Schedule.deleteMany({
+        schedules: { $size: 0 },
+      });
+
       // if elements of currentSchedules is not exists in schedules it will remove.
       const toDeleteItems = currentSchedules.filter((currentSched) => {
         return !schedules.some((sched) => {
@@ -78,7 +83,6 @@ class Schedule extends Model {
       const deletedSchedules = await this.Schedule.bulkWrite(
         toDeleteSchedsOptions
       );
-      console.log('deletedSchedules', deletedSchedules);
 
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
@@ -91,6 +95,24 @@ class Schedule extends Model {
   async deleteSchedulesBySubject({ subject_id }) {
     try {
       const data = await this.Schedule.deleteMany({ subject: subject_id });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async deleteScheduleByCourse({ course_id }) {
+    try {
+      const data = await this.Schedule.deleteMany({ course: course_id });
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async deleteScheduleByRoom({ room_id }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        'schedules.room._id': room_id,
+      });
       return data;
     } catch (error) {
       throw error;

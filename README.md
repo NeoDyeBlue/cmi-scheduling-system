@@ -52,7 +52,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] add special and summer semesters (f,b)
 - [x] show schedules on tables (b)
 - [ ] fix scheduler bugs (f,b)
-- [ ] pagination problem in subjects (f,b)
+- [x] pagination problem in subjects (f,b)
 - [x] some subjects does not appear on search (f,b)
 - [ ] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
 - [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
