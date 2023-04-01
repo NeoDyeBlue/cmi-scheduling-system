@@ -222,7 +222,6 @@ export default function Scheduler({
   //for setting initial layout
   useEffect(() => {
     //get the existing room layout
-    console.log('ini');
     const existingRoomLayout =
       roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
         ?.layout || [];
@@ -295,7 +294,6 @@ export default function Scheduler({
   //for changing subject scheds
   useEffect(
     () => {
-      console.log('scheds');
       const subjSchedIds = subjectsData.map((data) => data.id);
 
       const courseSchedsData = createCourseSubjectSchedules(
@@ -340,8 +338,6 @@ export default function Scheduler({
         }
       });
 
-      console.log(otherRoomScheds);
-
       let mergedScheds = [...courseSchedsData];
       if (otherRoomScheds.length) {
         otherRoomScheds.forEach((roomSched) => {
@@ -350,8 +346,6 @@ export default function Scheduler({
               mergedSched.subject.code == roomSched.subject.code &&
               mergedSched.teacher.teacherId == roomSched.teacher.teacherId
           );
-
-          console.log(existingSched);
 
           if (!existingSched) {
             mergedScheds.push(roomSched);
@@ -367,7 +361,6 @@ export default function Scheduler({
                 ),
               ],
             };
-            console.log(merged);
 
             mergedScheds = [
               ...mergedScheds.filter((mergedSched) => {
@@ -395,7 +388,7 @@ export default function Scheduler({
       // console.log(subjSchedItems, subjSchedIds, subjectsData);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
-      if (!oldSchedsData.length) {
+      if (!oldSchedsData.length && mergedScheds.length) {
         setOldSchedsData(mergedScheds);
       }
     },
