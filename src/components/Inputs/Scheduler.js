@@ -40,6 +40,7 @@ export default function Scheduler({
     setRoomSubjSchedsLayout,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
+    setOldSchedsData,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -216,16 +217,16 @@ export default function Scheduler({
     });
 
   //effects
+
+  //for setting initial layout
   useEffect(() => {
     //get the existing room layout
+    console.log('ini');
     const existingRoomLayout =
       roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
         ?.layout || [];
-    console.log(existingRoomLayout);
-    //if there is an existing room layout
-    if (existingRoomLayout.length) {
-      setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
-    }
+
+    setLayout([...headers, ...existingRoomLayout, ...timeLayout.flat()]);
     // else {
     //   const roomSubjectsLayout = [];
     //   // const roomSubjectScheds = [];
@@ -275,6 +276,7 @@ export default function Scheduler({
     // }
   }, []);
 
+  //create restrictions if dragging from outside
   useEffect(
     () => {
       if (draggingSubject) {
@@ -289,10 +291,87 @@ export default function Scheduler({
     [draggingSubject]
   );
 
+  //for changing subject scheds
   useEffect(
     () => {
+      console.log('scheds');
       const subjSchedIds = subjectsData.map((data) => data.id);
-      const courseSchedsData = createCourseSubjectSchedules(subjSchedIds);
+
+      const courseSchedsData = createCourseSubjectSchedules(
+        subjSchedIds,
+        layout.filter((item) => {
+          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+            item.i
+          );
+          return (
+            subjSchedIds.includes(
+              `${subjectCode}~${teacherId}~${courseYearSec}`
+            ) && !item.static
+          );
+        }),
+        {
+          _id: roomData._id,
+          code: roomData.code,
+        }
+      );
+
+      const otherRoomScheds = [];
+      roomsSubjSchedsLayouts.forEach((roomLayout) => {
+        if (roomLayout.roomCode !== roomData.code) {
+          otherRoomScheds.push(
+            ...createCourseSubjectSchedules(
+              subjSchedIds,
+              roomLayout.layout.filter((item) => {
+                const { subjectCode, teacherId, courseYearSec } =
+                  parseSubjSchedId(item.i);
+                return (
+                  subjSchedIds.includes(
+                    `${subjectCode}~${teacherId}~${courseYearSec}`
+                  ) && !item.static
+                );
+              }),
+              {
+                _id: roomLayout.roomId,
+                code: roomLayout.roomCode,
+              }
+            )
+          );
+        }
+      });
+
+      let mergedScheds = [...courseSchedsData];
+      if (otherRoomScheds.length) {
+        otherRoomScheds.forEach((schedule) => {
+          const existingSched = mergedScheds.find(
+            (mergedSched) =>
+              mergedSched.subject.code == schedule.subject.code &&
+              mergedSched.teacher.teacherId == schedule.teacher.teacherId
+          );
+
+          if (!existingSched) {
+            mergedScheds.push(schedule);
+          } else {
+            const merged = {
+              ...existingSched,
+              schedules: [...existingSched.schedules, ...schedule.schedules],
+            };
+
+            mergedScheds = [
+              ...mergedScheds.filter(
+                (mergedSched) =>
+                  mergedSched.subject.code !== existingSched.subject.code &&
+                  mergedSched.teacher.teacherId !==
+                    existingSched.teacher.teacherId
+              ),
+              merged,
+            ];
+          }
+        });
+
+        console.log(mergedScheds);
+      }
+
+      // console.log(otherRoomScheds, courseSchedsData);
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
           item.i
@@ -301,36 +380,26 @@ export default function Scheduler({
           `${subjectCode}~${teacherId}~${courseYearSec}`
         );
       });
-      setSubjectScheds(courseSchedsData);
-      setRoomSubjSchedsLayout(roomData.code, subjSchedItems);
+      setSubjectScheds(mergedScheds);
+      // console.log(subjSchedItems, subjSchedIds, subjectsData);
+      setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
-      if (!oldSchedsData) {
-        setOldSchedsData({ course, subjectScheds: courseSchedsData });
+      if (!oldSchedsData.length) {
+        setOldSchedsData(mergedScheds);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      layout,
-      subjectsData,
-      timeData,
-      setSubjectScheds,
-      setRoomSubjSchedsLayout,
-      roomData.code,
-    ]
+    [layout, subjectsData, timeData, roomData]
   );
 
   //other funcs
-  function createCourseSubjectSchedules(subjSchedIds = []) {
-    const subjSchedItems = layout.filter((item) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        item.i
-      );
-      return (
-        subjSchedIds.includes(`${subjectCode}~${teacherId}~${courseYearSec}`) &&
-        !item.static
-      );
-    });
 
+  // prob di nag uupdate ung kung ilan pa ung hours n natitira on initial load pero pag nag room change magseset
+  function createCourseSubjectSchedules(
+    subjSchedIds = [],
+    subjSchedItems = [],
+    room = { _id: '', code: '' }
+  ) {
     //remove subjSchedIds that has no layout item
     const filteredSubjSchedIds = subjSchedIds.filter((id) =>
       subjSchedItems.some((item) => {
@@ -409,10 +478,7 @@ export default function Scheduler({
         if (daySchedules.length) {
           groupedByDay.push({
             day,
-            room: {
-              _id: roomData._id,
-              code: roomData.code,
-            },
+            room,
             times: daySchedules.map((daySchedule) => ({
               start: daySchedule.time.start,
               end: daySchedule.time.end,
@@ -451,7 +517,7 @@ export default function Scheduler({
             ...newSubjSched,
             schedules: [
               ...subjSched.schedules.filter(
-                (sched) => sched.room.code !== roomData.code
+                (sched) => sched.room.code !== room.code
               ),
               ...newSubjSched.schedules,
             ],
@@ -461,7 +527,7 @@ export default function Scheduler({
             ...subjSched,
             schedules: [
               ...subjSched.schedules.filter(
-                (sched) => sched.room.code !== roomData.code
+                (sched) => sched.room.code !== room.code
               ),
             ],
           });
@@ -727,6 +793,8 @@ export default function Scheduler({
             (existingSchedule) => existingSchedule.day == x
           )) ||
         [];
+
+      console.log(subjectScheds);
       const inSchedulerDayTimes = subjectScheds
         .filter(
           (subjSched) =>
@@ -738,6 +806,8 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
+
+      // console.log(existingSchedules, inSchedulerDayTimes, subjectScheds);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(

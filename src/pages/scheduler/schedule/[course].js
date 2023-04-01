@@ -109,57 +109,57 @@ export default function Schedule() {
       if (schedulerData && !subjectsData.length) {
         const courseSubjectsData = [];
         // const initialSubjectScheds = [];
-        // schedulerData?.subjects?.forEach((subject) => {
-        //   subject?.assignedTeachers?.forEach((teacher) => {
-        //     //add to course subjects data
-        //     const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
-        //     const { teachers, ...newData } = subject;
-        //     courseSubjectsData.push({
-        //       id: dataId,
-        //       data: { ...newData, teacher, course: schedulerData?.course },
-        //     });
+        schedulerData?.subjects?.forEach((subject) => {
+          subject?.assignedTeachers?.forEach((teacher) => {
+            //add to course subjects data
+            const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
+            const { teachers, ...newData } = subject;
+            courseSubjectsData.push({
+              id: dataId,
+              data: { ...newData, teacher, course: schedulerData?.course },
+            });
 
-        //     //check if addable to initial subject scheds
-        //     if (teacher.existingSchedules.length) {
-        //       const courseSubjectSchedules = [];
-        //       teacher.existingSchedules.forEach((dayTimes) => {
-        //         const subjectTimes = [];
+            //check if addable to initial subject scheds
+            // if (teacher.existingSchedules.length) {
+            //   const courseSubjectSchedules = [];
+            //   teacher.existingSchedules.forEach((dayTimes) => {
+            //     const subjectTimes = [];
 
-        //         dayTimes.times.forEach((time) => {
-        //           if (
-        //             `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
-        //               `${time.course.code}${time.course.year}${time.course.section}` &&
-        //             time.subject.code == subject.code
-        //           ) {
-        //             subjectTimes.push({ start: time.start, end: time.end });
-        //           }
-        //         });
+            //     dayTimes.times.forEach((time) => {
+            //       if (
+            //         `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
+            //           `${time.course.code}${time.course.year}${time.course.section}` &&
+            //         time.subject.code == subject.code
+            //       ) {
+            //         subjectTimes.push({ start: time.start, end: time.end });
+            //       }
+            //     });
 
-        //         if (subjectTimes.length) {
-        //           courseSubjectSchedules.push({
-        //             day: dayTimes.day,
-        //             room: dayTimes.room,
-        //             times: subjectTimes,
-        //           });
-        //         }
-        //       });
+            //     if (subjectTimes.length) {
+            //       courseSubjectSchedules.push({
+            //         day: dayTimes.day,
+            //         room: dayTimes.room,
+            //         times: subjectTimes,
+            //       });
+            //     }
+            //   });
 
-        //       if (courseSubjectSchedules.length) {
-        //         initialSubjectScheds.push({
-        //           subject: {
-        //             _id: subject._id,
-        //             code: subject.code,
-        //           },
-        //           teacher: {
-        //             _id: teacher._id,
-        //             teacherId: teacher.teacherId,
-        //           },
-        //           schedules: courseSubjectSchedules,
-        //         });
-        //       }
-        //     }
-        //   });
-        // });
+            //   if (courseSubjectSchedules.length) {
+            //     initialSubjectScheds.push({
+            //       subject: {
+            //         _id: subject._id,
+            //         code: subject.code,
+            //       },
+            //       teacher: {
+            //         _id: teacher._id,
+            //         teacherId: teacher.teacherId,
+            //       },
+            //       schedules: courseSubjectSchedules,
+            //     });
+            //   }
+            // }
+          });
+        });
         const roomLayouts = [];
         schedulerData?.rooms.forEach((room) => {
           const roomLayout = createInitialRoomLayout(
@@ -167,7 +167,11 @@ export default function Schedule() {
             schedulerData?.course,
             schedulerData?.subjects
           );
-          roomLayouts.push({ roomCode: room.code, layout: roomLayout });
+          roomLayouts.push({
+            roomCode: room.code,
+            roomId: room._id,
+            layout: roomLayout,
+          });
         });
         console.log(roomLayouts);
         setAllRoomSubjSchedsLayout(roomLayouts);
@@ -191,7 +195,7 @@ export default function Schedule() {
           room.schedules.forEach((schedule) => {
             const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
             if (
-              !subjectsData.some((data) => data.id == dataId) ||
+              !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)
             ) {
               roomSubjectsData.push({
@@ -347,34 +351,34 @@ export default function Schedule() {
 
   async function submitChanges() {
     console.log({
-      ...formData,
-      semester: schedulerData?.semester,
+      // ...formData,
+      // semester: schedulerData?.semester,
       oldSchedsData,
       subjectScheds,
     });
-    // try {
-    //   setIsSubmitting(true);
-    //   const res = await fetch('/api/schedules', {
-    //     method: 'POST',
-    //     body: JSON.stringify({
-    //       ...formData,
-    //       semester: schedulerData?.semester,
-    //     }),
-    //     headers: { 'Content-Type': 'application/json' },
-    //   });
-    //   const result = await res.json();
-    //   if (result?.success) {
-    //     toast.success('Schedules saved');
-    //     setOldSchedsData(subjectScheds);
-    //   } else if (!result.success) {
-    //     toast.error("Can't save schedules");
-    //   }
-    //   setIsSubmitting(false);
-    // } catch (error) {
-    //   console.log(error);
-    //   setIsSubmitting(false);
-    //   toast.error("Can't save schedules");
-    // }
+    try {
+      setIsSubmitting(true);
+      const res = await fetch('/api/schedules', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...formData,
+          semester: schedulerData?.semester,
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result?.success) {
+        toast.success('Schedules saved');
+        setOldSchedsData(subjectScheds);
+      } else if (!result.success) {
+        toast.error("Can't save schedules");
+      }
+      setIsSubmitting(false);
+    } catch (error) {
+      console.log(error);
+      setIsSubmitting(false);
+      toast.error("Can't save schedules");
+    }
   }
 
   function onConfirmReset() {
@@ -490,7 +494,7 @@ export default function Schedule() {
             <Button
               small
               onClick={submitChanges}
-              disabled={!(!_.isEqual(formData, oldSchedsData) && oldSchedsData)}
+              disabled={_.isEqual(subjectScheds, oldSchedsData)}
             >
               Done
             </Button>
