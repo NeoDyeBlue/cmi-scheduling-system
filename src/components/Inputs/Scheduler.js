@@ -296,8 +296,6 @@ export default function Scheduler({
     () => {
       const subjSchedIds = subjectsData.map((data) => data.id);
 
-      console.log(layout);
-
       const courseSchedsData = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
@@ -315,21 +313,6 @@ export default function Scheduler({
           code: roomData.code,
         }
       );
-
-      console.log(
-        layout.filter((item) => {
-          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-            item.i
-          );
-          return (
-            subjSchedIds.includes(
-              `${subjectCode}~${teacherId}~${courseYearSec}`
-            ) && !item.static
-          );
-        })
-      );
-
-      console.log(courseSchedsData);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
@@ -354,8 +337,6 @@ export default function Scheduler({
           );
         }
       });
-
-      console.log(otherRoomScheds);
 
       let mergedScheds = [...courseSchedsData];
       if (otherRoomScheds.length) {
@@ -414,8 +395,6 @@ export default function Scheduler({
   );
 
   //other funcs
-
-  // prob di nag uupdate ung kung ilan pa ung hours n natitira on initial load pero pag nag room change magseset
   function createCourseSubjectSchedules(
     subjSchedIds = [],
     subjSchedItems = [],
