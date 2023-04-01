@@ -8,7 +8,7 @@
 import course from '@/lib/model/data-access/Course';
 import generateChar from '@/utils/generate.char.util';
 import { successResponse, errorResponse } from '@/utils/response.utils';
-
+import schedule from '@/lib/model/data-access/Schedule';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
@@ -43,6 +43,7 @@ export const handler = async (req, res) => {
       // const type = 'college';
       const { page, limit, type } = req.query;
       const data = await course.getCourses({ page, limit, type });
+
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
@@ -52,6 +53,7 @@ export const handler = async (req, res) => {
     try {
       const { id } = req.query;
       const data = await course.deleteCourse({ id });
+      await schedule.deleteScheduleByCourse({ course_id: id });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
@@ -60,7 +62,7 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { _id: id, ...fields } = req.body;
-      console.log("req.body;",JSON.stringify(req.body))
+      console.log('req.body;', JSON.stringify(req.body));
       const sectionNames = generateChar(20);
       const sections = [];
       for (let yearIndex in fields.yearSections) {
@@ -82,6 +84,5 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
-  
 };
 export default handler;
