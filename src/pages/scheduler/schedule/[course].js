@@ -218,14 +218,14 @@ export default function Schedule() {
   );
 
   useEffect(() => {
-    const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
+    // const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
     setFormData({
       course,
       subjectScheds,
-      rooms,
+      // rooms,
       semester: schedulerData?.semester,
     });
-  }, [course, subjectScheds, roomsSubjSchedsLayouts, schedulerData?.semester]);
+  }, [course, subjectScheds, schedulerData?.semester]);
 
   useEffect(
     () => {
@@ -405,7 +405,11 @@ export default function Schedule() {
         ],
       }))
       .filter((items) => items.schedules.length);
-    setFormData({ course, subjectScheds: newSubjScheds });
+    setFormData({
+      course,
+      subjectScheds: newSubjScheds,
+      semester: schedulerData?.semester,
+    });
     setSubjectScheds(newSubjScheds);
     setSelectedRooms(
       selectedRooms.filter((room) => room.code !== toRemoveRoom)
