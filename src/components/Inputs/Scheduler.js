@@ -171,6 +171,7 @@ export default function Scheduler({
       return (
         <div
           key={schedule.i}
+          data-grid={schedule}
           className={classNames(
             'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
             {
@@ -198,12 +199,7 @@ export default function Scheduler({
             })}
           >
             {!schedule.static && data.course.section !== course.section && (
-              <SchedulerLayoutItemButton
-                // onClick={(e) => {
-                //   removeLayoutItem(schedule.i);
-                // }}
-                icon={<MdMergeType size={16} />}
-              />
+              <SchedulerLayoutItemButton icon={<MdMergeType size={16} />} />
             )}
             {!schedule.static && (
               <SchedulerLayoutItemButton
@@ -498,55 +494,7 @@ export default function Scheduler({
       });
     });
 
-    let newScheds = [];
-
-    // if (subjectScheds.length) {
-    //   subjectScheds.forEach((subjSched) => {
-    //     const newSubjSched = newRoomSubjectScheds.find(
-    //       (newRoomSubjSched) =>
-    //         subjSched.subject.code == newRoomSubjSched.subject.code &&
-    //         subjSched.teacher.teacherId == newRoomSubjSched.teacher.teacherId
-    //     );
-
-    //     //check if new sched exists then update the new room scheds
-    //     if (newSubjSched) {
-    //       newScheds.push({
-    //         ...newSubjSched,
-    //         schedules: [
-    //           ...subjSched.schedules.filter(
-    //             (sched) => sched.room.code !== room.code
-    //           ),
-    //           ...newSubjSched.schedules,
-    //         ],
-    //       });
-    //     } else {
-    //       newScheds.push({
-    //         ...subjSched,
-    //         schedules: [
-    //           ...subjSched.schedules.filter(
-    //             (sched) => sched.room.code !== room.code
-    //           ),
-    //         ],
-    //       });
-    //     }
-    //   });
-    // } else {
-    //   newScheds = newRoomSubjectScheds;
-    // }
-
     return newRoomSubjectScheds;
-
-    // return [
-    //   ...newScheds.filter((newSched) => newSched.schedules.length),
-    //   ...newRoomSubjectScheds.filter(
-    //     (sched) =>
-    //       !newScheds.some(
-    //         (newSched) =>
-    //           sched.subject.code == newSched.subject.code &&
-    //           sched.teacher.teacherId == newSched.teacher.teacherId
-    //       )
-    //   ),
-    // ];
   }
 
   function parseSubjSchedId(id, separator = '~') {
@@ -955,6 +903,8 @@ export default function Scheduler({
    * removes the restrictions
    */
 
+  console.log(layout);
+
   function removeRestrictions() {
     setLayout((prev) =>
       prev.filter((layoutItem) => {
@@ -1075,7 +1025,7 @@ export default function Scheduler({
   }
 
   return (
-    <>
+    <div className="min-w-[720px]">
       <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}
       </div>
@@ -1105,6 +1055,6 @@ export default function Scheduler({
         {timeRows}
         {cellRestrictions}
       </ResponsiveGridLayout>
-    </>
+    </div>
   );
 }

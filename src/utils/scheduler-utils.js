@@ -31,6 +31,9 @@ export function createInitialRoomLayout(
           minH: 1,
           h: Math.abs(yEnd - yStart) + 1,
           maxW: 1,
+          data: {
+            test: 1,
+          },
           /**
            * will be static only if:
            * - subject is not in the courseSubjects
