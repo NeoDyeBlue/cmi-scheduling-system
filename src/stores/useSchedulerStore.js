@@ -46,7 +46,6 @@ const useSchedulerStore = create((set, get) => ({
     const filteredLayouts = get().roomsSubjSchedsLayouts.filter(
       (layoutObj) => layoutObj.roomCode !== roomCode
     );
-    console.log(roomCode, roomId, layout);
     set(() => ({
       roomsSubjSchedsLayouts: [
         ...filteredLayouts,

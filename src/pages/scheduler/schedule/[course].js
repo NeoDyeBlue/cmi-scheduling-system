@@ -454,9 +454,11 @@ export default function Schedule() {
           </button>
           <div>
             <p className="text-sm">
-              Creating{' '}
-              {schedulerData?.semester == '1' ? '1st semester' : '2nd semester'}{' '}
-              schedules for:
+              Creating {schedulerData?.semester == '1' ? '1st semester' : ''}
+              {schedulerData?.semester == '2' ? '2nd semester' : ''}
+              {schedulerData?.semester == 'special' ? 'special' : ''}
+              {schedulerData?.semester == 'summer' ? 'summer' : ''} schedules
+              for:
             </p>
             <h1 className="font-display text-xl font-semibold">
               {schedulerData?.course.code.toUpperCase()}:{' '}

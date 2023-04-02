@@ -13,10 +13,12 @@ export function createInitialRoomLayout(
     subjSchedule.dayTimes.forEach((dayTime) => {
       //for each times of the day
       dayTime.times.forEach((time) => {
-        const yStart =
-          timeData.findIndex((timePairs) => timePairs[0] == time.start) + 1;
-        const yEnd =
-          timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
+        const yStart = timeData.findIndex(
+          (timePairs) => timePairs[0] == time.start
+        );
+        const yEnd = timeData.findIndex(
+          (timePairs) => timePairs[1] == time.end
+        );
         roomSubjectsLayout.push({
           i: `${subjSchedule.subject.code}~${subjSchedule.teacher.teacherId}~${
             subjSchedule.course.code
