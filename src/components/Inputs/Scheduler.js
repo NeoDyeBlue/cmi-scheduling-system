@@ -2,14 +2,13 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { parse, format, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { MdRemove } from 'react-icons/md';
+import { MdRemove, MdMerge } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
-import SchedulerLayoutItem from './SchedulerLayoutItem';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
 export default function Scheduler({
@@ -18,7 +17,6 @@ export default function Scheduler({
   interval = 30,
   roomData,
   semester,
-  allowMerging = false,
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -842,7 +840,7 @@ export default function Scheduler({
           }
         }
       } else if (subjectData?.teacher?.type == 'full-time') {
-        availableTimesY = [...Array(timeData.length + 1).keys()].slice(1);
+        availableTimesY = [...Array(timeData.length).keys()];
       }
 
       //get all the unavailable time indexes of the teacher based on available times
