@@ -22,7 +22,7 @@ import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
-import { nanoid } from 'nanoid';
+import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
 export default function Schedule() {
   const router = useRouter();
@@ -167,7 +167,8 @@ export default function Schedule() {
           const roomLayout = createInitialRoomLayout(
             room.schedules,
             schedulerData?.course,
-            schedulerData?.subjects
+            schedulerData?.subjects,
+            timeData
           );
           roomLayouts.push({
             roomCode: room.code,
@@ -209,17 +210,6 @@ export default function Schedule() {
               });
             }
           });
-          if (
-            !roomsSubjSchedsLayouts.some(
-              (roomLayout) => roomLayout.roomId == room._id
-            )
-          ) {
-            setRoomSubjSchedsLayout(
-              room.code,
-              room._id,
-              createInitialRoomLayout(room.schedules, course, courseSubjects)
-            );
-          }
         });
         setSubjectsData([...subjectsData, ...roomSubjectsData]);
       }
@@ -262,53 +252,6 @@ export default function Schedule() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [resetScheduler]
   );
-
-  function createInitialRoomLayout(
-    roomSchedules,
-    courseData,
-    toCheckCourseSubjects
-  ) {
-    //get the existing room layout
-    const roomSubjectsLayout = [];
-    //for each subject schedule
-    roomSchedules?.forEach((subjSchedule) => {
-      subjSchedule.dayTimes.forEach((dayTime) => {
-        //for each times of the day
-        dayTime.times.forEach((time) => {
-          const yStart =
-            timeData.findIndex((timePairs) => timePairs[0] == time.start) + 1;
-          const yEnd =
-            timeData.findIndex((timePairs) => timePairs[1] == time.end) + 1;
-          roomSubjectsLayout.push({
-            i: `${subjSchedule.subject.code}~${
-              subjSchedule.teacher.teacherId
-            }~${subjSchedule.course.code}${subjSchedule.course.year}${
-              subjSchedule.course.section
-            }~${nanoid(10)}`,
-            x: dayTime.day,
-            w: 1,
-            y: yStart,
-            minH: 1,
-            h: Math.abs(yEnd - yStart) + 1,
-            maxW: 1,
-            /**
-             * will be static only if:
-             * - subject is not in the courseSubjects
-             * - if subject is in the courseSubjects, check if it has the same year and section
-             */
-            static:
-              !toCheckCourseSubjects.some(
-                (subject) => subject.code == subjSchedule.subject.code
-              ) ||
-              `${courseData.code}${courseData.year}${courseData.section}` !==
-                `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
-          });
-        });
-      });
-    });
-    // setSubjectsData(roomSubjectsData);
-    return roomSubjectsLayout;
-  }
 
   if (!schedulerData && isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
