@@ -539,6 +539,12 @@ class Course extends Model {
       throw error;
     }
   }
+
+  /* FROM HERE IS THE DISASTER 
+  - GET STATUSES OF EVERY SECTION OF THE COURSE FOR FIRST, SECOND SPECIAL, SUMMER SEMESTER.
+  - EVERY SECTION SHOULD CONTAINS STATUS (unscheduled, incomplete, completed)
+  - AND ALSO SHOULD CONTAIN STATUS FOR EVERY SEM IF ALL SECTION OF THAT SEM COMPLETED THEN THE SEMESTER SHOULD ALSO BE COMPLETED.
+  */
   async getCoursesStatus({ type, limit, page }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
@@ -571,12 +577,31 @@ class Course extends Model {
                   course: 1,
                   subject: 1,
                   yearSec: 1,
+                  semester: 1,
+                },
+              },
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        name: 1,
+                        code: 1,
+                      },
+                    },
+                  ],
+                  as: 'course',
                 },
               },
             ],
             as: 'schedules',
           },
         },
+
+        // filter schedules by section
         {
           $addFields: {
             sectionSchedules: {
@@ -596,6 +621,7 @@ class Course extends Model {
             },
           },
         },
+        //
         {
           $addFields: {
             totalSchedules: { $size: '$sectionSchedules' },
@@ -622,6 +648,7 @@ class Course extends Model {
           },
         },
         { $unwind: '$yearSections.semesterSubjects' },
+        // is it per section totalSubjects? not really sure😂
         {
           $addFields: {
             totalSubjects: { $size: '$yearSections.semesterSubjects.subjects' }, // wrong.
@@ -633,6 +660,7 @@ class Course extends Model {
               code: '$code',
               name: '$name',
             },
+            // FIRSTSEM -------------------------------------
             firstSemPerYearSec: {
               $push: {
                 $cond: {
@@ -642,14 +670,74 @@ class Course extends Model {
                     section: '$yearSections.section',
                     status: {
                       $cond: {
-                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        if: {
+                          $eq: [
+                            // for unschedule,  completed of sectionSchedules shoud be count by semester too.
+                            {
+                              $reduce: {
+                                input: {
+                                  $filter: {
+                                    input: '$sectionSchedules',
+                                    as: 'sectionScheds',
+                                    cond: {
+                                      $eq: ['$$sectionScheds.semester', '1'],
+                                    },
+                                  },
+                                },
+                                initialValue: 0,
+                                in: {
+                                  $cond: {
+                                    if: {
+                                      $eq: ['$$this.isCompleted', true],
+                                    },
+                                    then: { $add: ['$$value', 1] },
+                                    else: '$$value',
+                                  },
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
                         then: 'unscheduled',
                         else: {
                           $cond: {
                             if: {
                               $eq: [
-                                '$completedSchedulesCount',
-                                '$totalSubjects',
+                                // '$completedSchedulesCount',
+                                // get all semester schedules
+                                // count the completed schedules
+                                {
+                                  $reduce: {
+                                    input: {
+                                      $filter: {
+                                        input: '$sectionSchedules',
+                                        as: 'sectionScheds',
+                                        cond: {
+                                          $eq: [
+                                            '$$sectionScheds.semester',
+                                            '1',
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    initialValue: 0,
+                                    in: {
+                                      $cond: {
+                                        if: {
+                                          $eq: ['$$this.isCompleted', true],
+                                        },
+                                        then: { $add: ['$$value', 1] },
+                                        else: '$$value',
+                                      },
+                                    },
+                                  },
+                                },
+                                // get total subjects of section by semester
+                                {
+                                  $size:
+                                    '$yearSections.semesterSubjects.subjects',
+                                },
                               ],
                             },
                             then: 'completed',
@@ -665,6 +753,7 @@ class Course extends Model {
                 },
               },
             },
+            // SECONDSEM ---------------------------------
             secondSemPerYearSec: {
               $push: {
                 $cond: {
@@ -674,14 +763,74 @@ class Course extends Model {
                     section: '$yearSections.section',
                     status: {
                       $cond: {
-                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        if: {
+                          $eq: [
+                            // for unschedule,  completed of sectionSchedules shoud be count by semester too.
+                            {
+                              $reduce: {
+                                input: {
+                                  $filter: {
+                                    input: '$sectionSchedules',
+                                    as: 'sectionScheds',
+                                    cond: {
+                                      $eq: ['$$sectionScheds.semester', '2'],
+                                    },
+                                  },
+                                },
+                                initialValue: 0,
+                                in: {
+                                  $cond: {
+                                    if: {
+                                      $eq: ['$$this.isCompleted', true],
+                                    },
+                                    then: { $add: ['$$value', 1] },
+                                    else: '$$value',
+                                  },
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
                         then: 'unscheduled',
                         else: {
                           $cond: {
                             if: {
                               $eq: [
-                                '$completedSchedulesCount',
-                                '$totalSubjects',
+                                // '$completedSchedulesCount',
+                                // get all semester schedules
+                                // count the completed schedules
+                                {
+                                  $reduce: {
+                                    input: {
+                                      $filter: {
+                                        input: '$sectionSchedules',
+                                        as: 'sectionScheds',
+                                        cond: {
+                                          $eq: [
+                                            '$$sectionScheds.semester',
+                                            '2',
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    initialValue: 0,
+                                    in: {
+                                      $cond: {
+                                        if: {
+                                          $eq: ['$$this.isCompleted', true],
+                                        },
+                                        then: { $add: ['$$value', 1] },
+                                        else: '$$value',
+                                      },
+                                    },
+                                  },
+                                },
+                                // get total subjects of section by semester
+                                {
+                                  $size:
+                                    '$yearSections.semesterSubjects.subjects',
+                                },
                               ],
                             },
                             then: 'completed',
@@ -695,6 +844,7 @@ class Course extends Model {
                 },
               },
             },
+            // SPECIAL -------------------
             specialSemPerYearSec: {
               $push: {
                 $cond: {
@@ -706,14 +856,73 @@ class Course extends Model {
                     section: '$yearSections.section',
                     status: {
                       $cond: {
-                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        if: {
+                          $eq: [
+                            {
+                              $reduce: {
+                                input: {
+                                  $filter: {
+                                    input: '$sectionSchedules',
+                                    as: 'sectionScheds',
+                                    cond: {
+                                      $eq: [
+                                        '$$sectionScheds.semester',
+                                        'special',
+                                      ],
+                                    },
+                                  },
+                                },
+                                initialValue: 0,
+                                in: {
+                                  $cond: {
+                                    if: {
+                                      $eq: ['$$this.isCompleted', true],
+                                    },
+                                    then: { $add: ['$$value', 1] },
+                                    else: '$$value',
+                                  },
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
                         then: 'unscheduled',
                         else: {
                           $cond: {
                             if: {
                               $eq: [
-                                '$completedSchedulesCount',
-                                '$totalSubjects',
+                                {
+                                  $reduce: {
+                                    input: {
+                                      $filter: {
+                                        input: '$sectionSchedules',
+                                        as: 'sectionScheds',
+                                        cond: {
+                                          $eq: [
+                                            '$$sectionScheds.semester',
+                                            'special',
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    initialValue: 0,
+                                    in: {
+                                      $cond: {
+                                        if: {
+                                          $eq: ['$$this.isCompleted', true],
+                                        },
+                                        then: { $add: ['$$value', 1] },
+                                        else: '$$value',
+                                      },
+                                    },
+                                  },
+                                },
+                                // get total subjects of section by semester
+                                {
+                                  $size:
+                                    '$yearSections.semesterSubjects.subjects',
+                                },
                               ],
                             },
                             then: 'completed',
@@ -738,14 +947,73 @@ class Course extends Model {
                     section: '$yearSections.section',
                     status: {
                       $cond: {
-                        if: { $eq: ['$completedSchedulesCount', 0] },
+                        if: {
+                          $eq: [
+                            {
+                              $reduce: {
+                                input: {
+                                  $filter: {
+                                    input: '$sectionSchedules',
+                                    as: 'sectionScheds',
+                                    cond: {
+                                      $eq: [
+                                        '$$sectionScheds.semester',
+                                        'summer',
+                                      ],
+                                    },
+                                  },
+                                },
+                                initialValue: 0,
+                                in: {
+                                  $cond: {
+                                    if: {
+                                      $eq: ['$$this.isCompleted', true],
+                                    },
+                                    then: { $add: ['$$value', 1] },
+                                    else: '$$value',
+                                  },
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
                         then: 'unscheduled',
                         else: {
                           $cond: {
                             if: {
                               $eq: [
-                                '$completedSchedulesCount',
-                                '$totalSubjects',
+                                {
+                                  $reduce: {
+                                    input: {
+                                      $filter: {
+                                        input: '$sectionSchedules',
+                                        as: 'sectionScheds',
+                                        cond: {
+                                          $eq: [
+                                            '$$sectionScheds.semester',
+                                            'summer',
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    initialValue: 0,
+                                    in: {
+                                      $cond: {
+                                        if: {
+                                          $eq: ['$$this.isCompleted', true],
+                                        },
+                                        then: { $add: ['$$value', 1] },
+                                        else: '$$value',
+                                      },
+                                    },
+                                  },
+                                },
+                                // get total subjects of section by semester
+                                {
+                                  $size:
+                                    '$yearSections.semesterSubjects.subjects',
+                                },
                               ],
                             },
                             then: 'completed',
@@ -775,9 +1043,38 @@ class Course extends Model {
                     cond: { $ne: ['$$course', null] },
                   },
                 },
+                isCompleted: {
+                  $cond: {
+                    if: {
+                      $eq: [
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$firstSemPerYearSec',
+                              as: 'perYearSec',
+                              cond: {
+                                $eq: ['$$perYearSec.status', 'completed'],
+                              },
+                            },
+                          },
+                        },
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$firstSemPerYearSec',
+                              as: 'yearSec',
+                              cond: { $ne: ['$$yearSec', null] },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    then: true,
+                    else: false,
+                  },
+                },
               },
               secondSem: {
-                isCompleted: true,
                 perYearSec: {
                   $filter: {
                     input: '$secondSemPerYearSec',
@@ -785,9 +1082,38 @@ class Course extends Model {
                     cond: { $ne: ['$$course', null] },
                   },
                 },
+                isCompleted: {
+                  $cond: {
+                    if: {
+                      $eq: [
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$secondSemPerYearSec',
+                              as: 'perYearSec',
+                              cond: {
+                                $eq: ['$$perYearSec.status', 'completed'],
+                              },
+                            },
+                          },
+                        },
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$secondSemPerYearSec',
+                              as: 'yearSec',
+                              cond: { $ne: ['$$yearSec', null] },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    then: true,
+                    else: false,
+                  },
+                },
               },
               special: {
-                isCompleted: true,
                 perYearSec: {
                   $filter: {
                     input: '$specialSemPerYearSec',
@@ -795,14 +1121,73 @@ class Course extends Model {
                     cond: { $ne: ['$$course', null] },
                   },
                 },
+                isCompleted: {
+                  $cond: {
+                    if: {
+                      $eq: [
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$specialSemPerYearSec',
+                              as: 'perYearSec',
+                              cond: {
+                                $eq: ['$$perYearSec.status', 'completed'],
+                              },
+                            },
+                          },
+                        },
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$specialSemPerYearSec',
+                              as: 'yearSec',
+                              cond: { $ne: ['$$yearSec', null] },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    then: true,
+                    else: false,
+                  },
+                },
               },
               summer: {
-                isCompleted: true,
                 perYearSec: {
                   $filter: {
                     input: '$summerSemPerYearSec',
                     as: 'course',
                     cond: { $ne: ['$$course', null] },
+                  },
+                },
+                isCompleted: {
+                  $cond: {
+                    if: {
+                      $eq: [
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$summerSemPerYearSec',
+                              as: 'perYearSec',
+                              cond: {
+                                $eq: ['$$perYearSec.status', 'completed'],
+                              },
+                            },
+                          },
+                        },
+                        {
+                          $size: {
+                            $filter: {
+                              input: '$summerSemPerYearSec',
+                              as: 'yearSec',
+                              cond: { $ne: ['$$yearSec', null] },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    then: true,
+                    else: false,
                   },
                 },
               },

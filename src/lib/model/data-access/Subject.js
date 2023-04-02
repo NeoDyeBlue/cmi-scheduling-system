@@ -26,6 +26,25 @@ class Subject extends Model {
       throw error;
     }
   }
+  async removeTeacherFromSubjects({ teacher_id }) {
+    try {
+      const data = await this.Subject.updateMany(
+        {
+          'assignedTeachers.teacher': teacher_id,
+        },
+        {
+          $pull: {
+            assignedTeachers: { teacher: teacher_id },
+          },
+        },
+        { returnOriginal: false }
+      ).exec();
+      return data;
+    } catch (error) {
+      console.log('[error from deleting subject Subject.js]', error);
+      throw error;
+    }
+  }
   async getSubjectsPagination({ limit, page, type, semester }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };

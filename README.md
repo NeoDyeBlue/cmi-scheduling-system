@@ -47,16 +47,18 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] fix scheduler initial schedules for showing the confirmation modal (f)
 - [x] fix room schedules not updating when room is removed (f)
 - [ ] fix onClick is triggering the restrictions and when dragged does not trigger them (f)
-- [ ] add scheduler course statuses (b)
+- [x] add scheduler course statuses (b)
 - [ ] show info on row click or layout item click (f)
 - [x] add special and summer semesters (f,b)
 - [x] show schedules on tables (b)
 - [ ] fix scheduler bugs (f,b)
 - [x] pagination problem in subjects (f,b)
 - [x] some subjects does not appear on search (f,b)
-- [ ] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
+- [x] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
 - [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
 - [ ] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
 - [x] add where the subject is offered, if its for shs or college (f,b)
 - [x] course schedules page
 - [ ] fix room code update should not affect schedules
+- [ ] Filter room by year and secion of schedulerData.rooms
+- [ ] Fix fetching of room schedules.

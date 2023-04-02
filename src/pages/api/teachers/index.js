@@ -1,7 +1,9 @@
 import teacher from '@/lib/model/data-access/Teacher';
+import schedule from '@/lib/model/data-access/Schedule';
 import imageUploadLocal, { deleteImageLocal } from '@/utils/image.upload.local';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 import mongoose from 'mongoose';
+import subject from '@/lib/model/data-access/Subject';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     const { image, firstName, ...payload } = req.body;
@@ -53,6 +55,12 @@ export const handler = async (req, res) => {
           category: 'teachers',
         });
       }
+      // remove teacher from subjects
+      await subject.removeTeacherFromSubjects({ teacher_id: id });
+
+      // remove schedules that contain teacher_id and subject.
+      await schedule.deleteSchedulesContainTeacher({ teacher_id: id });
+
       console.log('deleted-----------', data);
       return successResponse(req, res, data);
     } catch (error) {

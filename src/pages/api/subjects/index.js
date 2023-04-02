@@ -43,7 +43,11 @@ export const handler = async (req, res) => {
       await schedule.deleteSchedulesBySubject({
         subject_id: id,
       });
+      // remove subject from course
       await course.removeSubjectFromCourses({ subject_id: id });
+
+      // remove also schedules that has same section and subject.
+      await schedule.deleteSchedulesContainSubject({ subject_id: id });
 
       return successResponse(req, res, data);
     } catch (error) {

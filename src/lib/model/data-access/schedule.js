@@ -118,6 +118,27 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async deleteSchedulesContainTeacher({ teacher_id }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        teacher: teacher_id,
+      }).exec();
+      return data;
+    } catch (error) {
+      console.log('error deleting schedules contain teacher', error);
+      throw error;
+    }
+  }
+  async deleteSchedulesContainSubject({ subject_id }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        subject: subject_id,
+      }).exec();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   // to view all schedules by room
   async getSchedulesBy({ roomCode, teacher, course, section, year }) {
     try {
