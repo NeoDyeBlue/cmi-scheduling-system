@@ -73,6 +73,7 @@ export default function Schedule() {
   const [isRemoveRoomConfirmOpen, setIsRemoveRoomConfirmOpen] = useState(false);
   const [toRemoveRoom, setToRemoveRoom] = useState('');
   const [removeRoom, setRemoveRoom] = useState(false);
+  const [resetScheduler, setResetScheduler] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -174,7 +175,6 @@ export default function Schedule() {
             layout: roomLayout,
           });
         });
-        console.log(roomLayouts);
         setAllRoomSubjSchedsLayout(roomLayouts);
         // setSubjectScheds(initialSubjectScheds);
         // setOldSchedsData(initialSubjectScheds);
@@ -209,6 +209,17 @@ export default function Schedule() {
               });
             }
           });
+          if (
+            !roomsSubjSchedsLayouts.some(
+              (roomLayout) => roomLayout.roomId == room._id
+            )
+          ) {
+            setRoomSubjSchedsLayout(
+              room.code,
+              room._id,
+              createInitialRoomLayout(room.schedules, course, courseSubjects)
+            );
+          }
         });
         setSubjectsData([...subjectsData, ...roomSubjectsData]);
       }
@@ -239,6 +250,17 @@ export default function Schedule() {
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [removeRoom]
+  );
+
+  useEffect(
+    () => {
+      if (resetScheduler) {
+        setIsResetConfirmOpen(false);
+        submitChanges();
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resetScheduler]
   );
 
   function createInitialRoomLayout(
@@ -384,17 +406,22 @@ export default function Schedule() {
     }
   }
 
-  function onConfirmReset() {
-    setAllRoomSubjSchedsLayout(
-      roomsSubjSchedsLayouts.map((roomLayout) => ({
-        roomCode: roomLayout.roomCode,
-        layout: roomLayout.layout.filter((item) => item.static),
-      }))
-    );
+  async function onConfirmReset() {
+    setIsResetConfirmOpen(false);
+    setAllRoomSubjSchedsLayout([]);
+    setSelectedRooms([]);
     setSubjectScheds([]);
+    setFormData({
+      course,
+      subjectScheds: [],
+      semester: schedulerData?.semester,
+    });
+
+    setResetScheduler(true);
   }
 
   function onConfirmRemoveRoom() {
+    setIsRemoveRoomConfirmOpen(false);
     const newSubjScheds = subjectScheds
       .map((subjectSched) => ({
         ...subjectSched,
