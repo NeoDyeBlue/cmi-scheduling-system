@@ -82,7 +82,7 @@ class Room extends Model {
       throw error;
     }
   }
-  
+
   async isRoomCodeUsed({ id, code }) {
     try {
       const data = await this.Room.find({
@@ -280,9 +280,8 @@ class Room extends Model {
     }
   }
 
-
   // this is used to get schedules of rooms and also used for specific room's schedule.
-  async getAllRoomSchedules({ semester, courseCode }) {
+  async getAllRoomSchedules({ semester, courseCode, year, section }) {
     try {
       const pipeline = [
         {
@@ -302,6 +301,10 @@ class Room extends Model {
               {
                 $match: {
                   semester: { $in: [semester, 'special'] },
+                  // yearSec: {
+                  //   year: parseInt(year),
+                  //   section: section,
+                  // },
                 },
               },
               {
@@ -408,7 +411,6 @@ class Room extends Model {
                 $project: {
                   subject: 1,
                   teacher: 1,
-                  existingSchedules: 1,
                   dayTimes: {
                     $filter: {
                       input: '$dayTimes',
@@ -431,21 +433,45 @@ class Room extends Model {
         {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
         },
-        {
-          $project: { _id: 1, code: 1, name: 1, schedules: 1 },
-        },
+
+        // { $unwind: '$schedules' },
 
         // {
-        //   $project: {
-        //     schedules: {
-        //       $filter: {
-        //         input: '$schedules',
-        //         as: 'scheds',
-        //         cond: { $ne: ['$$scheds', []] },
-        //       },
-        //     },
+        //   $match: {
+        //     'schedules.course.year': parseInt(year),
+        //     'schedules.course.section': section,
         //   },
         // },
+        // {
+        //   $group: {
+        //     _id: '$_id',
+        //     code: { $first: '$code' },
+        //     year: { $first: '$year' },
+        //     schedules: { $push: '$schedules' },
+        //   },
+        // },
+
+        {
+          $project: {
+            _id: 1,
+            code: 1,
+            name: 1,
+            schedules: 1,
+            // {
+            //   $filter: {
+            //     input: '$schedules',
+            //     as: 'scheds',
+            //     cond: {
+            //       $and: [
+            //         { $eq: ['$$scheds.course.year', parseInt(year)] },
+            //         { $eq: ['$$scheds.course.section', section] },
+            //       ],
+            //     },
+            //   },
+            // },
+          },
+        },
+
       ];
       // if courseCode exists, then filter it by courseCode.
       if (courseCode) {

@@ -60,5 +60,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] add where the subject is offered, if its for shs or college (f,b)
 - [x] course schedules page
 - [ ] fix room code update should not affect schedules
-- [ ] Filter room by year and secion of schedulerData.rooms
+- [ ] Filter room by year and secion of schedulerData.rooms (I figured it out the if we remove schedules on that room it the section wont seeing the scheduels on that room)
 - [ ] Fix fetching of room schedules.
