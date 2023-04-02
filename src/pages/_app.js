@@ -1,24 +1,25 @@
-import "@/styles/globals.css";
-import "react-tooltip/dist/react-tooltip.css";
-import { SWRConfig } from "swr";
-import { Karla, Poppins } from "@next/font/google";
-import { Toaster } from "react-hot-toast";
+import '@/styles/globals.css';
+import '/node_modules/react-grid-layout/css/styles.css';
+import '/node_modules/react-resizable/css/styles.css';
+import 'react-tooltip/dist/react-tooltip.css';
+import { SWRConfig } from 'swr';
+import { Karla, Poppins } from '@next/font/google';
+import { Toaster } from 'react-hot-toast';
 
 const karla = Karla({
-  subsets: ["latin"],
-  variable: "--font-karla",
+  subsets: ['latin'],
+  variable: '--font-karla',
 });
 
 const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-poppins",
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-poppins',
 });
 
 export default function App({ Component, pageProps }) {
   const getLayout = Component.getLayout || ((page) => page);
   const layout = getLayout(<Component {...pageProps} />);
-
   return (
     <>
       <style jsx global>
@@ -48,10 +49,10 @@ export default function App({ Component, pageProps }) {
           toastOptions={{
             duration: 5000,
             className:
-              "max-w-[200px] font-body text-white rounded-md shadow-md p-3",
+              'max-w-[200px] font-body text-white rounded-md shadow-md p-3',
             style: {
-              background: "#3c3744",
-              color: "#fff",
+              background: '#3c3744',
+              color: '#fff',
             },
           }}
         />

@@ -1,20 +1,30 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo } from 'react';
-import TableActionButton from '../Buttons/TableActionButton';
-import RoomTableSchedule from './RoomTableSchedule';
+import { useMemo, useState } from 'react';
+import { ActionButton } from '../Buttons';
+import PerSemScheduleTable from './PerSemScheduleTable';
 import {
   MdDelete,
   MdEdit,
   MdArrowDropDown,
   MdArrowRight,
-  MdDownload,
 } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
-
-export default function RoomTable({ data }) {
+import classNames from 'classnames';
+import { Modal, Confirmation } from '../Modals';
+import { RoomForm } from '../Forms';
+import { PopupLoader } from '../Loaders';
+import { toast } from 'react-hot-toast';
+export default function RoomTable({ data, mutate = () => {} }) {
   const { theme } = resolveConfig(tailwindConfig);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [toEditData, setToEditData] = useState(null);
+  const [toDeleteId, setToDeleteId] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const rooms = useMemo(() => data, [data]);
+
   const columns = useMemo(
     () => [
       {
@@ -45,29 +55,42 @@ export default function RoomTable({ data }) {
       {
         Header: () => null,
         id: 'actions',
-        Cell: () => (
+        Cell: ({ cell, row }) => (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            <TableActionButton
+            <ActionButton
               icon={<MdEdit size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
+              onClick={() => {
+                setToEditData(cell.row.original);
+                setIsModalOpen(true);
+              }}
             />
-            <TableActionButton
+            <ActionButton
               icon={<MdDelete size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="delete"
               toolTipContent="Delete"
+              onClick={() => {
+                setToDeleteId(cell.row.original._id);
+                setIsConfirmationOpen(true);
+              }}
             />
-            <TableActionButton
-              icon={<MdDownload size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="export"
-              toolTipContent="Export"
-            />
+            {/* <ReactToPrint
+              trigger={() => (
+                <ActionButton
+                  icon={<MdDownload size={16} className="text-white" />}
+                  buttonColor={theme.colors.primary[400]}
+                  toolTipId="export"
+                  toolTipContent="Export"
+                />
+              )}
+              content={() => toPrintRefs.current[row.index]}
+            /> */}
           </div>
         ),
       },
@@ -83,80 +106,131 @@ export default function RoomTable({ data }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data }, useExpanded);
+  } = useTable({ columns, data: rooms }, useExpanded);
+
+  async function deleteItem() {
+    try {
+      setIsDeleting(true);
+      setIsConfirmationOpen(false);
+      const res = await fetch(`/api/rooms?id=${toDeleteId}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+
+      if (result?.success) {
+        toast.success('Room deleted');
+        mutate();
+      } else if (!result?.success) {
+        toast.error('Delete failed');
+      }
+      setToDeleteId('');
+      setIsDeleting(false);
+    } catch (error) {
+      setIsDeleting(false);
+      setToDeleteId('');
+      toast.error('Delete failed');
+    }
+  }
 
   return (
-    <table {...getTableProps()} className="w-full">
-      <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-        {headerGroups.map((headerGroup, index) => (
-          <tr
-            key={index}
-            {...headerGroup.getHeaderGroupProps()}
-            className="border-b border-gray-300"
-          >
-            {headerGroup.headers.map((column, index) => (
-              <th
-                key={index}
-                {...column.getHeaderProps()}
-                className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
-              >
-                {column.render('Header')}
-              </th>
-            ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map((row, index) => {
-          prepareRow(row);
-          return (
-            <React.Fragment key={index}>
+    <>
+      <PopupLoader isOpen={isDeleting} message="Deleting room" />
+      <Confirmation
+        isOpen={isConfirmationOpen}
+        label="Delete Room?"
+        message="All schedules in this room will also be removed."
+        onCancel={() => {
+          setIsConfirmationOpen(false);
+        }}
+        onConfirm={deleteItem}
+      />
+      <Modal
+        label="Edit Room"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      >
+        <RoomForm
+          initialData={toEditData}
+          onCancel={() => setIsModalOpen(false)}
+          onAfterSubmit={() => {
+            setIsModalOpen(false);
+            mutate();
+          }}
+        />
+      </Modal>
+      <div className="flex flex-col gap-2">
+        <table {...getTableProps()} className="w-full">
+          <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+            {headerGroups.map((headerGroup, index) => (
               <tr
                 key={index}
-                {...row.getRowProps()}
-                {...row.getToggleRowExpandedProps({ title: '' })}
-                className={`cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50
-                ${
-                  row.isExpanded
-                    ? 'bg-primary-900 text-white hover:bg-primary-900'
-                    : ''
-                }`}
+                {...headerGroup.getHeaderGroupProps()}
+                className="border-b border-gray-300"
               >
-                {row.cells.map((cell, index) => {
-                  return (
-                    <td
-                      key={index}
-                      {...cell.getCellProps()}
-                      className={`p-4 ${
-                        index == 1 ? 'font-semibold uppercase' : ''
-                      }`}
-                    >
-                      {cell.render('Cell')}
-                    </td>
-                  );
-                })}
+                {headerGroup.headers.map((column, index) => (
+                  <th
+                    key={index}
+                    {...column.getHeaderProps()}
+                    className="bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg "
+                  >
+                    {column.render('Header')}
+                  </th>
+                ))}
               </tr>
-              {row.isExpanded ? (
-                <tr>
-                  <td colSpan={visibleColumns.length}>
-                    <div className="max-h-[400px] overflow-auto">
-                      {/* <p className="font-display text-xl font-semibold">
-                        Schedules
-                      </p> */}
-                      <RoomTableSchedule
-                        data={row.original.schedules}
-                        startTime="7:00 AM"
-                        endTime="6:00 PM"
-                        interval={30}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ) : null}
-            </React.Fragment>
-          );
-        })}
-      </tbody>
-    </table>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map((row, rowIndex) => {
+              prepareRow(row);
+              return (
+                <React.Fragment key={rowIndex}>
+                  <tr
+                    key={rowIndex}
+                    {...row.getRowProps()}
+                    {...row.getToggleRowExpandedProps({ title: '' })}
+                    className={classNames(
+                      'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
+                      {
+                        'bg-primary-900 text-white hover:bg-primary-900':
+                          row.isExpanded,
+                      }
+                    )}
+                  >
+                    {row.cells.map((cell, index) => {
+                      return (
+                        <td
+                          key={index}
+                          {...cell.getCellProps()}
+                          className={classNames('p-4', {
+                            'font-semibold uppercase': index == 1,
+                          })}
+                        >
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {row.isExpanded ? (
+                    <tr>
+                      <td colSpan={visibleColumns.length}>
+                        <div className="overflow-auto">
+                          <PerSemScheduleTable
+                            type="rooms"
+                            fetchQuery={{ code: row.original.code }}
+                            title={`${row.original.code.toUpperCase()}: ${
+                              row.original.name
+                            }`}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

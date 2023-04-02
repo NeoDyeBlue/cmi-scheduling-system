@@ -1,6 +1,6 @@
 import { useFilePicker } from 'use-file-picker';
 import Image from 'next/image';
-import { MdAccountBox, MdOutlineAccountBox, MdInfo } from 'react-icons/md';
+import { MdAccountBox, MdInfo } from 'react-icons/md';
 import { useField } from 'formik';
 import { useEffect } from 'react';
 
@@ -14,7 +14,9 @@ export default function ImagePicker({ label, infoMessage, ...props }) {
     maxFileSize: 5,
   });
   useEffect(() => {
-    helpers.setValue(filesContent[0]?.content);
+    if (filesContent[0]?.content) {
+      helpers.setValue(filesContent[0]?.content);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesContent]);
 
@@ -26,8 +28,7 @@ export default function ImagePicker({ label, infoMessage, ...props }) {
         onBlur={field.onBlur}
         id={props.name}
         onClick={openFileSelector}
-        className="relative flex h-[120px] w-[120px] flex-col items-center justify-center
-      overflow-hidden rounded-lg border border-ship-gray-200 text-ship-gray-300"
+        className="relative flex h-[120px] w-[120px] flex-col items-center justify-center overflow-hidden rounded-lg border border-ship-gray-200 text-ship-gray-300"
       >
         {meta.value && !errors.length && !meta.error ? (
           <Image

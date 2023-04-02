@@ -2,7 +2,12 @@ import { MdCheckBoxOutlineBlank, MdCheckBox } from 'react-icons/md';
 import classNames from 'classnames';
 import { useField } from 'formik';
 
-export default function MultiSelectItem({ children, checked, long, ...props }) {
+export default function MultiSelectItem({
+  children,
+  checked,
+  long = false,
+  ...props
+}) {
   const [field] = useField(props);
   return (
     <label

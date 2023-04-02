@@ -13,7 +13,7 @@ body,
 #__next {
   max-width: 100vw;
   overflow-x: hidden;
-  font-size: 15px;
+  font-size: 14px;
   min-height: 100%;
 }
 
@@ -30,13 +30,74 @@ body,
   }
 
   .tab {
-    @apply relative flex w-full cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-lg bg-white px-4 py-3 
-    text-center font-display capitalize text-ship-gray-500 outline-none transition-colors hover:bg-ship-gray-50;
+    @apply relative flex cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-lg bg-white px-4 py-3 
+    text-center font-display text-sm capitalize text-ship-gray-500 outline-none transition-colors hover:bg-ship-gray-50;
+  }
+
+  .tab-sm {
+    @apply relative flex cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-lg bg-white px-3 py-2 
+    text-center font-display text-sm capitalize text-ship-gray-500 outline-none transition-colors;
   }
 
   .tab-active {
     @apply bg-primary-200 font-semibold text-primary-900 hover:bg-primary-200;
   }
+
+  .paginate-container {
+    @apply flex gap-2 text-sm leading-none;
+  }
+
+  .paginate-button {
+    @apply flex gap-2 rounded-lg border border-gray-300 px-3 py-2 hover:bg-gray-100 hover:text-primary-700;
+  }
+
+  .paginate-link {
+    @apply flex min-w-[30px] items-center justify-center rounded-lg border border-gray-300 
+        px-2 py-2 text-center hover:bg-gray-100;
+  }
+
+  .paginate-link-active {
+    @apply border-primary-300 bg-primary-200 text-primary-900 hover:bg-primary-200 hover:text-primary-900;
+  }
+
+  .paginate-break {
+    @apply flex min-w-[30px] items-center justify-center rounded-lg px-2 py-2 text-center;
+  }
+
+  .paginate-link-disabled {
+    @apply cursor-default text-ship-gray-300 hover:bg-white hover:text-ship-gray-300;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-[8px] pr-1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply my-1;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300;
+  }
+}
+
+.page-landscape {
+  @media print {
+    @page {
+      size: landscape;
+    }
+  }
+}
+
+.grid-lines {
+  background-image: repeating-linear-gradient(#ccc 0 1px, transparent 1px 100%),
+    repeating-linear-gradient(90deg, #ccc 0 1px, transparent 1px 100%);
+  /** 
+  * - 10px -> grid spacing  (px)
+  * - 12 -> number of cols  (grid unit).
+  * - 75px -> row height    (px)
+  */
+  background-size: calc((100% / 9)) 40px;
 }
 
 .clip-path {

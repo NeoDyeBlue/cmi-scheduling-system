@@ -1,12 +1,9 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { SearchForm, SubjectForm } from "@/components/Forms";
-import { useState } from "react";
-import { CreateButton } from "@/components/Buttons";
-import { Modal } from "@/components/Modals";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { PerTypeSubjectTable } from '@/components/Tables';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 export default function Subjects() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <>
       <Head>
@@ -16,20 +13,23 @@ export default function Subjects() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
-        <Modal
-          label="New Subject"
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        >
-          <SubjectForm onCancel={() => setIsModalOpen(false)} />
-        </Modal>
-        <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder="Search Subjects" />
-          <CreateButton
-            onClick={() => setIsModalOpen(true)}
-            text="New Subject"
-          />
-        </div>
+        <Tabs className="flex flex-col">
+          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto">
+            <Tab selectedClassName="tab-active" className="tab">
+              College
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Senior High
+            </Tab>
+          </TabList>
+
+          <TabPanel>
+            <PerTypeSubjectTable type={'college'} />
+          </TabPanel>
+          <TabPanel>
+            <PerTypeSubjectTable type={'shs'} />
+          </TabPanel>
+        </Tabs>
       </div>
     </>
   );

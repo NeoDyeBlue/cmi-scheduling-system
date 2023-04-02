@@ -1,5 +1,5 @@
-import Image from "next/image";
-import SidebarItem from "./SidebarItem";
+import Image from 'next/image';
+import SidebarItem from './SidebarItem';
 import {
   MdOutlineHome,
   MdHome,
@@ -16,16 +16,18 @@ import {
   MdClose,
   MdOutlineSchool,
   MdSchool,
-} from "react-icons/md";
-import useNavStore from "@/stores/useNavStore";
+} from 'react-icons/md';
+import useNavStore from '@/stores/useNavStore';
+import classNames from 'classnames';
 
 export default function Sidebar() {
   const { isMinimized, setIsMinimized, setIsOpen } = useNavStore();
   return (
     <nav
-      className={`
-      relative flex h-full w-full max-w-[250px] flex-col justify-between gap-4 border-r border-gray-300 bg-white
-    p-6 md:max-w-[300px] ${isMinimized ? "md:items-center" : ""}`}
+      className={classNames(
+        'relative flex h-full w-full max-w-[250px] flex-col justify-between gap-4 border-r border-gray-300 bg-white p-6 md:max-w-[300px]',
+        { 'md:items-center': isMinimized }
+      )}
     >
       {/* logo */}
       <div className="flex flex-col gap-4">
@@ -38,13 +40,13 @@ export default function Sidebar() {
         <div className="flex min-h-[64px] items-center gap-2">
           <div className="relative h-[60px] w-[60px] flex-shrink-0 overflow-hidden">
             <Image
-              src={"/logo/cmi.png"}
+              src={'/logo/cmi.png'}
               alt="college of mary immaculate logo"
               fill
             />
           </div>
           <div
-            className={`flex flex-col ${isMinimized ? "block md:hidden" : ""}`}
+            className={`flex flex-col ${isMinimized ? 'block md:hidden' : ''}`}
           >
             <p className="text-md font-display font-semibold text-primary-900">
               College of Mary Immaculate
@@ -66,8 +68,8 @@ export default function Sidebar() {
         <SidebarItem
           outlinedIcon={<MdOutlineAccessTime size={24} />}
           filledIcon={<MdAccessTimeFilled size={24} />}
-          link="/schedules"
-          name="Schedules"
+          link="/scheduler"
+          name="Scheduler"
         />
         <SidebarItem
           outlinedIcon={<MdOutlineGroups size={24} />}
@@ -94,7 +96,7 @@ export default function Sidebar() {
           name="Courses"
         />
       </ul>
-      <p className="text-sm">{isMinimized ? "❣️" : "In development"}</p>
+      <p className="text-sm">{isMinimized ? '❣️' : 'In development'}</p>
       <button
         onClick={() => setIsMinimized(!isMinimized)}
         className="absolute bottom-[15%] right-[-15px] hidden aspect-square h-[30px] w-[30px] rounded-full border border-gray-300 bg-white

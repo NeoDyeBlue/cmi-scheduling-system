@@ -1,10 +1,11 @@
-import { MdRadioButtonChecked, MdRadioButtonUnchecked } from "react-icons/md";
-import { useField } from "formik";
+import { MdRadioButtonChecked, MdRadioButtonUnchecked } from 'react-icons/md';
+import { useField } from 'formik';
+import classNames from 'classnames';
 
 export default function RadioSelectItem({ children, long, checked, ...props }) {
   const [field, meta] = useField(props);
   return (
-    <label className={`flex gap-4 ${long ? "items-start" : ""} cursor-pointer`}>
+    <label className={`flex gap-4 ${long ? 'items-start' : ''} cursor-pointer`}>
       <input
         type="radio"
         className="hidden"
@@ -12,18 +13,21 @@ export default function RadioSelectItem({ children, long, checked, ...props }) {
         {...props}
         checked={checked}
       />
-      <div className={`relative ${long ? "mt-1" : ""}`}>
+      <div className={`relative ${long ? 'mt-1' : ''}`}>
         <span
-          className={`text-ship-gray-300 ${
-            checked ? "opacity-0" : ""
-          } transition-opacity`}
+          className={classNames('text-ship-gray-300 transition-opacity', {
+            'opacity-0': checked,
+          })}
         >
           <MdRadioButtonUnchecked size={24} />
         </span>
         <span
-          className={`absolute top-0 left-0 z-10 text-primary-500 opacity-0 ${
-            checked ? "opacity-100" : ""
-          } transition-opacity`}
+          className={classNames(
+            'absolute top-0 left-0 text-primary-500 transition-opacity',
+            {
+              'opacity-0': !checked,
+            }
+          )}
         >
           <MdRadioButtonChecked size={24} />
         </span>

@@ -1,12 +1,22 @@
-import Head from "next/head";
-import { MainLayout } from "@/components/Layouts";
-import { CreateButton } from "@/components/Buttons";
-import { Modal } from "@/components/Modals";
-import { SearchForm, TeacherForm } from "@/components/Forms";
-import { useState } from "react";
+import Head from 'next/head';
+import { MainLayout } from '@/components/Layouts';
+import { CreateButton } from '@/components/Buttons';
+import { Modal } from '@/components/Modals';
+import { SearchForm, TeacherForm } from '@/components/Forms';
+import { useState } from 'react';
+import { TeacherTable } from '@/components/Tables';
+import usePaginate from '@/hooks/usePaginate';
+import ReactPaginate from 'react-paginate';
+import { SpinnerLoader } from '@/components/Loaders';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
+    url: `/api/teachers${searchValue ? '/search' : ''}`,
+    limit: 10,
+    query: { ...(searchValue ? { q: searchValue } : {}) },
+  });
   return (
     <>
       <Head>
@@ -21,13 +31,55 @@ export default function Teachers() {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         >
-          <TeacherForm onCancel={() => setIsModalOpen(false)} />
+          <TeacherForm
+            onCancel={() => setIsModalOpen(false)}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              mutate();
+            }}
+          />
         </Modal>
         <div className="flex items-center justify-between gap-4">
-          <SearchForm placeholder="Search Teachers" />
+          <div className="w-full max-w-[350px]">
+            <SearchForm
+              placeholder="Search teachers"
+              onSearch={(value) => setSearchValue(value)}
+            />
+          </div>
           <CreateButton
             onClick={() => setIsModalOpen(true)}
             text="New Teacher"
+          />
+        </div>
+        <div className="flex flex-col gap-4">
+          {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
+          {!isLoading && !docs.length ? (
+            <p className="mx-auto py-6 text-center text-ship-gray-500">
+              Nothing to show
+            </p>
+          ) : null}
+          {!isLoading && docs.length ? (
+            <>
+              <div className="overflow-x-auto">
+                <TeacherTable data={docs} mutate={() => mutate()} />
+              </div>
+            </>
+          ) : null}
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="next >"
+            onPageChange={({ selected }) => setPageIndex(selected + 1)}
+            pageRangeDisplayed={5}
+            pageCount={Math.ceil(pageData?.totalPages) || 0}
+            previousLabel="< prev"
+            renderOnZeroPageCount={null}
+            containerClassName="paginate-container"
+            previousLinkClassName="paginate-button"
+            nextLinkClassName="paginate-button"
+            pageLinkClassName="paginate-link"
+            activeLinkClassName="paginate-link-active"
+            breakLinkClassName="paginate-break"
+            disabledLinkClassName="paginate-link-disabled"
           />
         </div>
       </div>
@@ -36,5 +88,5 @@ export default function Teachers() {
 }
 
 Teachers.getLayout = function getLayout(page) {
-  return <MainLayout name={"Teachers"}>{page}</MainLayout>;
+  return <MainLayout name={'Teachers'}>{page}</MainLayout>;
 };

@@ -4,8 +4,7 @@ export default function CountCard({ label, count = 0, icon, iconColor }) {
       {icon && (
         <span
           //   style={{ backgroundColor: iconColor }
-          className="flex h-[20px] w-[20px] items-center justify-center rounded-md bg-gradient-to-br from-primary-400 to-primary-500
-          p-1 text-white"
+          className="flex h-[20px] w-[20px] items-center justify-center rounded-md bg-gradient-to-br from-primary-400 to-primary-500 p-1 text-white"
         >
           {icon}
         </span>
