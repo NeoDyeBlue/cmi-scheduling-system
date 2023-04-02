@@ -81,6 +81,7 @@ export default function Schedule() {
     data: result,
     isLoading,
     error,
+    mutate,
   } = useSWR(
     Object.keys(router.query).length
       ? `/api/courses/${courseCode}?${new URLSearchParams({
@@ -371,6 +372,7 @@ export default function Schedule() {
       if (result?.success) {
         toast.success('Schedules saved');
         setOldSchedsData(subjectScheds);
+        mutate();
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
