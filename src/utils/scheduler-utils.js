@@ -40,8 +40,10 @@ export function createInitialRoomLayout(
             !toCheckCourseSubjects.some(
               (subject) => subject.code == subjSchedule.subject.code
             ) ||
-            `${courseData.code}${courseData.year}${courseData.section}` !==
-              `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
+            // `${courseData.code}${courseData.year}${courseData.section}` !==
+            //   `${subjSchedule.course.code}${subjSchedule.course.year}${subjSchedule.course.section}`,
+            `${courseData.code}${courseData.year}` !==
+              `${subjSchedule.course.code}${subjSchedule.course.year}`,
         });
       });
     });

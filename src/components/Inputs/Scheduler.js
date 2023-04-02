@@ -2,7 +2,7 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { parse, format, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { MdRemove, MdMerge } from 'react-icons/md';
+import { MdRemove, MdMergeType } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
@@ -10,6 +10,18 @@ import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
+import { SchedulerLayoutItemButton } from '../Buttons';
+
+/**
+ * MERGE TEST
+ * Condition for merging:
+ * - same room
+ * - same teacher
+ * - same year
+ *
+ * Possible solution via modal
+ * - on merge click show the possible options for merging
+ */
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -154,34 +166,7 @@ export default function Scheduler({
         return subject.id == `${subjectCode}~${teacherId}~${courseYearSec}`;
       })?.data;
 
-      // return (
-      //   <SchedulerLayoutItem
-      //     key={schedule.i}
-      //     isResizing={isResizing}
-      //     layoutItemData={schedule}
-      //     subjectData={data}
-      //     onRemove={() => {
-      //       removeLayoutItem(schedule.i);
-      //       scheduleItemRefs.current.splice(index, 1);
-      //     }}
-      //     className={classNames(
-      //       'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
-      //       {
-      //         'border-warning-400 bg-warning-100':
-      //           data?.teacher?.type == 'part-time' && !schedule.static,
-      //         'border-success-400 bg-success-100':
-      //           data?.teacher?.type == 'full-time' && !schedule.static,
-      //         'border border-gray-400 bg-gray-100': schedule.static,
-      //       },
-      //       {
-      //         'cursor-default': schedule.static,
-      //         'cursor-move': !schedule.static,
-      //       }
-      //     )}
-      //     ref={(el) => (scheduleItemRefs.current[index] = el)}
-      //     // data-grid={schedule}
-      //   />
-      // );
+      console.log(data);
 
       return (
         <div
@@ -190,9 +175,15 @@ export default function Scheduler({
             'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
             {
               'border-warning-400 bg-warning-100':
-                data?.teacher?.type == 'part-time' && !schedule.static,
+                data?.teacher?.type == 'part-time' &&
+                !schedule.static &&
+                data.course.section == course.section,
               'border-success-400 bg-success-100':
-                data?.teacher?.type == 'full-time' && !schedule.static,
+                data?.teacher?.type == 'full-time' &&
+                !schedule.static &&
+                data.course.section == course.section,
+              'border-info-400 bg-info-100':
+                !schedule.static && data.course.section !== course.section,
               'border border-gray-400 bg-gray-100': schedule.static,
             },
             {
@@ -201,23 +192,28 @@ export default function Scheduler({
             }
           )}
         >
-          {!schedule.static && (
-            <button
-              onClick={(e) => {
-                removeLayoutItem(schedule.i);
-              }}
-              className={classNames(
-                `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center
-                      justify-center rounded-full border border-gray-200 bg-white text-center
-                      `,
-                {
-                  'group-hover:flex': !isResizing,
-                }
-              )}
-            >
-              <MdRemove size={16} />
-            </button>
-          )}
+          <div
+            className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
+              'group-hover:flex': !isResizing,
+            })}
+          >
+            {!schedule.static && data.course.section !== course.section && (
+              <SchedulerLayoutItemButton
+                // onClick={(e) => {
+                //   removeLayoutItem(schedule.i);
+                // }}
+                icon={<MdMergeType size={16} />}
+              />
+            )}
+            {!schedule.static && (
+              <SchedulerLayoutItemButton
+                onClick={(e) => {
+                  removeLayoutItem(schedule.i);
+                }}
+                icon={<MdRemove size={16} />}
+              />
+            )}
+          </div>
           <ImageWithFallback
             src={data?.teacher?.image}
             alt="teacher image"
