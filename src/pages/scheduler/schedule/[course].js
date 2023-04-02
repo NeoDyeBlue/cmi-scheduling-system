@@ -230,9 +230,9 @@ export default function Schedule() {
   useEffect(
     () => {
       if (removeRoom) {
+        setIsRemoveRoomConfirmOpen(false);
         submitChanges().then(() => {
           setToRemoveRoom('');
-          setIsRemoveRoomConfirmOpen(false);
           setRemoveRoom(false);
         });
       }
