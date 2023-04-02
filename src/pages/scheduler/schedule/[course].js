@@ -217,8 +217,14 @@ export default function Schedule() {
   );
 
   useEffect(() => {
-    setFormData({ course, subjectScheds });
-  }, [course, subjectScheds]);
+    const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
+    setFormData({
+      course,
+      subjectScheds,
+      rooms,
+      semester: schedulerData?.semester,
+    });
+  }, [course, subjectScheds, roomsSubjSchedsLayouts, schedulerData?.semester]);
 
   useEffect(
     () => {
@@ -351,19 +357,14 @@ export default function Schedule() {
 
   async function submitChanges() {
     console.log({
-      // ...formData,
+      ...formData,
       // semester: schedulerData?.semester,
-      oldSchedsData,
-      subjectScheds,
     });
     try {
       setIsSubmitting(true);
       const res = await fetch('/api/schedules', {
         method: 'POST',
-        body: JSON.stringify({
-          ...formData,
-          semester: schedulerData?.semester,
-        }),
+        body: JSON.stringify(formData),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();

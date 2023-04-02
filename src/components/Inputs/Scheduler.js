@@ -1,6 +1,6 @@
 import GridLayout, { WidthProvider } from 'react-grid-layout';
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { parse, format, addMinutes, differenceInMinutes } from 'date-fns';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { parse, format, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import { MdRemove } from 'react-icons/md';
 import classNames from 'classnames';
@@ -9,7 +9,7 @@ import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
-import { rooms } from '@/lib/test_data/rooms';
+import SchedulerLayoutItem from './SchedulerLayoutItem';
 
 export default function Scheduler({
   startTime = '1:00 AM',
@@ -26,6 +26,7 @@ export default function Scheduler({
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
+  const scheduleItemRefs = useRef([]);
 
   // const [scheduleLayout, setScheduleLayout] = useState([]);
 
@@ -141,13 +142,42 @@ export default function Scheduler({
         (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
       );
     })
-    .map((schedule) => {
+    .map((schedule, index) => {
       const data = subjectsData.find((subject) => {
         const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
           schedule.i
         );
         return subject.id == `${subjectCode}~${teacherId}~${courseYearSec}`;
       })?.data;
+
+      // return (
+      //   <SchedulerLayoutItem
+      //     key={schedule.i}
+      //     isResizing={isResizing}
+      //     layoutItemData={schedule}
+      //     subjectData={data}
+      //     onRemove={() => {
+      //       removeLayoutItem(schedule.i);
+      //       scheduleItemRefs.current.splice(index, 1);
+      //     }}
+      //     className={classNames(
+      //       'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
+      //       {
+      //         'border-warning-400 bg-warning-100':
+      //           data?.teacher?.type == 'part-time' && !schedule.static,
+      //         'border-success-400 bg-success-100':
+      //           data?.teacher?.type == 'full-time' && !schedule.static,
+      //         'border border-gray-400 bg-gray-100': schedule.static,
+      //       },
+      //       {
+      //         'cursor-default': schedule.static,
+      //         'cursor-move': !schedule.static,
+      //       }
+      //     )}
+      //     ref={(el) => (scheduleItemRefs.current[index] = el)}
+      //     // data-grid={schedule}
+      //   />
+      // );
 
       return (
         <div
@@ -173,8 +203,8 @@ export default function Scheduler({
                 removeLayoutItem(schedule.i);
               }}
               className={classNames(
-                `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
-                      justify-center rounded-full border border-gray-200 bg-white text-center 
+                `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center
+                      justify-center rounded-full border border-gray-200 bg-white text-center
                       `,
                 {
                   'group-hover:flex': !isResizing,
@@ -409,8 +439,6 @@ export default function Scheduler({
         return id == `${subjectCode}~${teacherId}~${courseYearSec}`;
       })
     );
-
-    console.log(filteredSubjSchedIds, roomData.code);
 
     const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
       const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(id);
@@ -1103,6 +1131,7 @@ export default function Scheduler({
       onDragStop={onDragStop}
       onResizeStart={onResizeStart}
       onResizeStop={onResizeStop}
+
       // measureBeforeMount={true}
     >
       {headerColumns}
