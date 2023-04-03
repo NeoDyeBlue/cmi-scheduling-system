@@ -184,7 +184,6 @@ export const handler = async (req, res) => {
                     isEqual(schedTimeStart, prefTimeStart)) &&
                     isAfter(schedTimeEnd, prefTimeEnd))
                 ) {
-                  // kung ang schedule ay dapat ba tanggalin.
                   let isAdded = scheduleHavingConflict.some(
                     (schedConflict) =>
                       schedConflict._id === schedDayTime.schedule_oid
