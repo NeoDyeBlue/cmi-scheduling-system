@@ -1208,6 +1208,7 @@ class Course extends Model {
       throw error;
     }
   }
+  
   async searchCourse({ q, limit }) {
     try {
       const pipeline = [

@@ -180,6 +180,63 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async getTeacherConflictedSchedules({ teacher_id }) {
+    try {
+      const pipeline = [
+        // get teacher
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(teacher_id),
+          },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id',
+            foreignField: 'teacher',
+            pipeline: [
+              // filter the schedule that has conflict to the new preferredDayTimes of a teacher
+              {
+                $project: {
+                  _id: '$_id',
+                  schedules: 1,
+                },
+              },
+              {
+                $unwind: '$schedules',
+              },
+              {
+                $addFields: {
+                  dayTimes: {
+                    $map: {
+                      input: '$schedules.times',
+                      as: 'time',
+                      in: {
+                        schedule_oid: '$_id',
+                        day: '$schedules.day',
+                        start: '$$time.start',
+                        end: '$$time.end',
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $project: {
+                  dayTimes: 1,
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+      ];
+      const data = await this.Teacher.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const teacher = new Teacher();
 export default teacher;
