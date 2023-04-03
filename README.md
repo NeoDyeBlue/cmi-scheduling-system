@@ -56,9 +56,12 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] some subjects does not appear on search (f,b)
 - [x] fix on course, room, teacher, and subject delete should also update the schedules collection (b)
 - [x] 1st, 2nd and summer semesters should check their existing schedules only on the same sem (f,b)
-- [ ] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
+- [x] schedule not updating when room is removed with one subject and same room or when schedules array is empty (b)
 - [x] add where the subject is offered, if its for shs or college (f,b)
 - [x] course schedules page
 - [ ] fix room code update should not affect schedules
-- [ ] Filter room by year and secion of schedulerData.rooms (I figured it out the if we remove schedules on that room it the section wont seeing the scheduels on that room)
+- [x] Filter room by year and secion of schedulerData.rooms (I figured it out that if we remove schedules on that room it the section wont seeing the scheduels on that room)
 - [ ] Fix fetching of room schedules.
+- [x] update teacher day and time, should response all schedules that were affected of teacher's day time.
+- [ ] update subject
+- [ ] update course
