@@ -139,6 +139,22 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async deleteScheduleByItsId({ scheduleHavingConflict }) {
+    try {
+      const schedulesBulksOptions = scheduleHavingConflict.map((sched) => {
+        return {
+          deleteMany: {
+            filter: { _id: sched._id },
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
+      console.log('deleted schedules', data);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   // to view all schedules by room
   async getSchedulesBy({ roomCode, teacher, course, section, year }) {
     try {
