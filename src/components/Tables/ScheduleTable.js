@@ -214,6 +214,10 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
+          <div>
+            <p className="text-lg font-bold uppercase">{slot?.subject?.code}</p>
+            <p className="text-xs">{slot?.subject?.name}</p>
+          </div>
           {type !== 'teachers' && type !== 'rooms' ? (
             <>
               <p
@@ -234,10 +238,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
             </p>
           )}
-          <div>
-            <p className="text-lg font-bold uppercase">{slot?.subject?.code}</p>
-            <p className="text-xs">{slot?.subject?.name}</p>
-          </div>
           {type !== 'courses' && (
             <p className="font-semibold uppercase">
               {slot?.course?.code} {slot?.course?.year}

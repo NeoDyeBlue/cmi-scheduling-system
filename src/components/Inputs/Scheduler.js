@@ -2,14 +2,19 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { parse, format, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { MdRemove, MdMergeType } from 'react-icons/md';
+import { MdRemove, MdMergeType, MdCallSplit } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
-import { createInitialRoomLayout } from '@/utils/scheduler-utils';
+import {
+  createInitialRoomLayout,
+  parseLayoutItemId,
+  createLayoutItemId,
+  checkIfEqualCourses,
+} from '@/utils/scheduler-utils';
 import { SchedulerLayoutItemButton } from '../Buttons';
 
 /**
@@ -38,7 +43,6 @@ export default function Scheduler({
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
-  const scheduleItemRefs = useRef([]);
 
   // const [scheduleLayout, setScheduleLayout] = useState([]);
 
@@ -151,41 +155,50 @@ export default function Scheduler({
 
   const scheduleCells = layout
     .filter((item) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        item.i
-      );
+      const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+
       return subjectsData.some(
-        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+        (data) => data.id == `${subjectCode}~${teacherId}`
       );
     })
     .map((schedule, index) => {
+      const { subjectCode, teacherId, courses } = parseLayoutItemId(schedule.i);
       const data = subjectsData.find((subject) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-          schedule.i
-        );
-        return subject.id == `${subjectCode}~${teacherId}~${courseYearSec}`;
+        return subject.id == `${subjectCode}~${teacherId}`;
       })?.data;
 
-      console.log(data);
+      const isSameSubjectAndTeacher = courseSubjects.some(
+        (courseSubject) =>
+          courseSubject.code == subjectCode &&
+          courseSubject.assignedTeachers.some(
+            (teacher) => teacher.teacherId == teacherId
+          )
+      );
+
+      const inSubjectCourses = courses.some(
+        (courseItem) =>
+          courseItem == `${course.code}${course.year}${course.section}`
+      );
+
+      const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
 
       return (
         <div
           key={schedule.i}
-          data-grid={schedule}
           className={classNames(
-            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
+            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border-2 p-2',
             {
               'border-warning-400 bg-warning-100':
                 data?.teacher?.type == 'part-time' &&
                 !schedule.static &&
-                data.course.section == course.section,
+                inSubjectCourses,
               'border-success-400 bg-success-100':
                 data?.teacher?.type == 'full-time' &&
                 !schedule.static &&
-                data.course.section == course.section,
-              'border-info-400 bg-info-100':
-                !schedule.static && data.course.section !== course.section,
-              'border border-gray-400 bg-gray-100': schedule.static,
+                inSubjectCourses,
+              'border-info-400 bg-info-100': schedule.static && mergeable,
+              'border border-gray-400 bg-gray-100':
+                schedule.static && !mergeable,
             },
             {
               'cursor-default': schedule.static,
@@ -197,12 +210,28 @@ export default function Scheduler({
             className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
               'group-hover:flex': !isResizing,
             })}
+            onClick={(e) => e.stopPropagation()}
           >
-            {!schedule.static && data.course.section !== course.section && (
-              <SchedulerLayoutItemButton icon={<MdMergeType size={16} />} />
+            {schedule.static && mergeable && (
+              <SchedulerLayoutItemButton
+                toolTipId="merge"
+                toolTipContent="Merge"
+                onClick={() => handleClassMerge(schedule)}
+                icon={<MdMergeType size={16} className="rotate-180" />}
+              />
+            )}
+            {!schedule.static && courses.length > 1 && inSubjectCourses && (
+              <SchedulerLayoutItemButton
+                toolTipId="split"
+                toolTipContent="Split"
+                onClick={() => handleSplitMerge(schedule)}
+                icon={<MdCallSplit size={16} />}
+              />
             )}
             {!schedule.static && (
               <SchedulerLayoutItemButton
+                toolTipId="remove"
+                toolTipContent="Remove"
                 onClick={(e) => {
                   removeLayoutItem(schedule.i);
                 }}
@@ -210,25 +239,39 @@ export default function Scheduler({
               />
             )}
           </div>
-          <ImageWithFallback
-            src={data?.teacher?.image}
-            alt="teacher image"
-            width={36}
-            height={36}
-            draggable={false}
-            fallbackSrc="/images/default-teacher.jpg"
-            className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-          />
+          {schedule.h > 2 ? (
+            <ImageWithFallback
+              src={data?.teacher?.image}
+              alt="teacher image"
+              width={36}
+              height={36}
+              draggable={false}
+              fallbackSrc="/images/default-teacher.jpg"
+              className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+            />
+          ) : null}
           <div className="flex flex-col text-center">
             <p className="font-display font-semibold uppercase">{data.code}</p>
-            <p className="text-xs font-medium">
-              {data?.teacher?.firstName} {data?.teacher?.lastName}
-            </p>
+            {schedule.h > 1 && (
+              <p className="text-xs font-medium">
+                {data?.teacher?.firstName} {data?.teacher?.lastName}
+              </p>
+            )}
           </div>
-          {schedule.static && (
-            <p className="text-center text-sm font-medium uppercase">
-              {data.course.code} {data.course.year}
-              {data.course.section}
+          {(schedule.static || inSubjectCourses) && (
+            <p className="max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase">
+              {/* {courses.join(', ')} */}
+              {schedule.static &&
+                courses.length > 1 &&
+                `${courses[0]} & ${courses.length - 1} other${
+                  courses.length - 1 > 1 ? 's' : ''
+                }`}
+              {schedule.static && courses.length <= 1 && courses[0]}
+              {!schedule.static &&
+                inSubjectCourses &&
+                `${course.code}${course.year}${course.section} & ${
+                  courses.length - 1
+                } other${courses.length - 1 > 1 ? 's' : ''}`}
             </p>
           )}
         </div>
@@ -252,11 +295,7 @@ export default function Scheduler({
       (room) => room.roomCode == roomData.code
     );
     if (existingRoomLayout?.layout) {
-      setLayout([
-        ...headers,
-        ...existingRoomLayout.layout,
-        ...timeLayout.flat(),
-      ]);
+      setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
@@ -264,7 +303,7 @@ export default function Scheduler({
         courseSubjects,
         timeData
       );
-      setLayout([...headers, ...initialLayout, ...timeLayout.flat()]);
+      setLayout([...initialLayout, ...timeLayout.flat()]);
     }
   }, []);
 
@@ -291,13 +330,9 @@ export default function Scheduler({
       const courseSchedsData = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
-          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-            item.i
-          );
+          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
           return (
-            subjSchedIds.includes(
-              `${subjectCode}~${teacherId}~${courseYearSec}`
-            ) && !item.static
+            subjSchedIds.includes(`${subjectCode}~${teacherId}`) && !item.static
           );
         }),
         {
@@ -313,12 +348,10 @@ export default function Scheduler({
             ...createCourseSubjectSchedules(
               subjSchedIds,
               roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId, courseYearSec } =
-                  parseSubjSchedId(item.i);
+                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
                 return (
-                  subjSchedIds.includes(
-                    `${subjectCode}~${teacherId}~${courseYearSec}`
-                  ) && !item.static
+                  subjSchedIds.includes(`${subjectCode}~${teacherId}`) &&
+                  !item.static
                 );
               }),
               {
@@ -367,7 +400,7 @@ export default function Scheduler({
         });
       }
       const subjSchedItems = layout.filter((item) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
+        const { subjectCode, teacherId, courseYearSec } = parseLayoutItemId(
           item.i
         );
         return subjSchedIds.includes(
@@ -395,38 +428,47 @@ export default function Scheduler({
     //remove subjSchedIds that has no layout item
     const filteredSubjSchedIds = subjSchedIds.filter((id) =>
       subjSchedItems.some((item) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-          item.i
-        );
-        return id == `${subjectCode}~${teacherId}~${courseYearSec}`;
+        const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+        return id == `${subjectCode}~${teacherId}`;
       })
     );
 
-    const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(id);
-      return { code: subjectCode, teacher: teacherId, courseYearSec };
+    const layoutItemIds = subjSchedItems.reduce((accumulator, currentItem) => {
+      const { subjectCode, teacherId } = parseLayoutItemId(currentItem.i);
+      if (
+        filteredSubjSchedIds.some((id) => id == `${subjectCode}~${teacherId}`)
+      ) {
+        return [...accumulator, currentItem.i];
+      } else {
+        return accumulator;
+      }
+    }, []);
+
+    const subjSchedIdsParsed = layoutItemIds.map((id) => {
+      const { subjectCode, teacherId, courses } = parseLayoutItemId(id);
+      return { code: subjectCode, teacher: teacherId, courses };
     });
 
     const newRoomSubjectScheds = [];
     //for each schedIds
 
-    subjSchedIdsParsed.forEach(({ code, teacher, courseYearSec }) => {
+    subjSchedIdsParsed.forEach(({ code, teacher, courses }) => {
       //get the subject layout items of the same id
       const subjSchedLayoutItems = subjSchedItems.filter((item) => {
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
+          courses: itemCourses,
+        } = parseLayoutItemId(item.i);
         return (
           code == itemSubjCode &&
           teacher == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
+          checkIfEqualCourses(courses, itemCourses)
         );
       });
 
       const subjectData = subjectsData.find(
-        (data) => data.id == `${code}~${teacher}~${courseYearSec}`
+        (data) => data.id == `${code}~${teacher}`
       );
       //set the subject's times and days
       const schedules = subjSchedLayoutItems.map((layout) => ({
@@ -472,6 +514,7 @@ export default function Scheduler({
           groupedByDay.push({
             day,
             room,
+            courses,
             times: daySchedules.map((daySchedule) => ({
               start: daySchedule.time.start,
               end: daySchedule.time.end,
@@ -497,10 +540,12 @@ export default function Scheduler({
     return newRoomSubjectScheds;
   }
 
-  function parseSubjSchedId(id, separator = '~') {
-    const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
-    return { subjectCode, teacherId, courseYearSec, nanoId };
-  }
+  console.log(subjectScheds);
+
+  // function parseLayoutItemId(id, separator = '~') {
+  //   const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
+  //   return { subjectCode, teacherId, courseYearSec, nanoId };
+  // }
 
   function removeLayoutItem(layoutId) {
     const newLayout = layout.filter((item) => item.i !== layoutId);
@@ -516,20 +561,14 @@ export default function Scheduler({
 
   function updateSubjSchedsMaxH(layoutSource, layoutItemId) {
     //parse layoutItemId
-    const { subjectCode, teacherId, courseYearSec } =
-      parseSubjSchedId(layoutItemId);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItemId);
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
     //get the layout items with the same ids
     const roomSubjSchedItems = layoutSource.filter((item) => {
-      const {
-        subjectCode: itemSubjectCode,
-        teacherId: itemTeacherId,
-        courseYearSec: itemCourseYearSec,
-      } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(
-        `${itemSubjectCode}~${itemTeacherId}~${itemCourseYearSec}`
-      );
+      const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
+        parseLayoutItemId(item.i);
+      return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
     });
     //get the layout from other rooms
     const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
@@ -537,10 +576,8 @@ export default function Scheduler({
     );
     //get the subject's data
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
-
-    // console.log(subjectData);
 
     //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
@@ -554,12 +591,12 @@ export default function Scheduler({
         const {
           subjectCode: itemSubjectCode,
           teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
+          courses: itemCourses,
+        } = parseLayoutItemId(item.i);
         return (
           subjectCode == itemSubjectCode &&
           teacherId == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
+          checkIfEqualCourses(courses, itemCourses)
         );
       });
 
@@ -614,7 +651,7 @@ export default function Scheduler({
       };
 
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
-      setLayout([...headers, ...newRoomLayout.layout, ...timeLayout.flat()]);
+      setLayout([...newRoomLayout.layout, ...timeLayout.flat()]);
     } else {
       setLayout(layoutSource);
     }
@@ -633,23 +670,21 @@ export default function Scheduler({
     layoutItem,
     fromDrop = false
   ) {
-    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-      layoutItem.i
-    );
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
     if (subjectData) {
       const subjSchedItems = layoutSource.filter((item) => {
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
+          courses: itemCourses,
+        } = parseLayoutItemId(item.i);
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
+          checkIfEqualCourses(courses, itemCourses)
         );
       });
 
@@ -726,7 +761,7 @@ export default function Scheduler({
    * @param {Object} subjectData
    */
 
-  function createRestrictions(layoutSource, subjectData) {
+  function createRestrictions(layoutSource, subjectData, layoutItem) {
     const endX = 7;
 
     const restrictedAreas = [];
@@ -743,6 +778,8 @@ export default function Scheduler({
           )) ||
         [];
 
+      console.log(existingSchedules);
+
       const inSchedulerDayTimes = subjectScheds
         .filter(
           (subjSched) =>
@@ -750,6 +787,7 @@ export default function Scheduler({
         )
         .map((subj) => subj.schedules)
         .flat();
+
       const inSchedulerTimes = inSchedulerDayTimes
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
@@ -777,7 +815,7 @@ export default function Scheduler({
           //get all the available time indexes of the teacher from preffered day start and end
           for (
             let availableY = preferredTimeStartIndex;
-            availableY <= preferredTimeEndIndex;
+            availableY < preferredTimeEndIndex;
             availableY++
           ) {
             availableTimesY.push(availableY);
@@ -800,12 +838,27 @@ export default function Scheduler({
 
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingSchedules.length) {
+        let parsedLayoutItemId = null;
+        if (layoutItem) {
+          parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
+        }
         existingSchedules.forEach((scheduleDays) => {
+          //needs attention
           scheduleDays.times.forEach((scheduleTime) => {
             if (
-              `${course.code}${course.year}${course.section}` !==
-                `${scheduleTime.course.code}${scheduleTime.course.year}${scheduleTime.course.section}` ||
-              scheduleTime.subject.semester !== semester
+              !scheduleTime.courses.some(
+                (scheduleCourse) =>
+                  `${course.code}${course.year}${course.section}` ==
+                  `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
+              ) &&
+              !(
+                parsedLayoutItemId &&
+                parsedLayoutItemId.courses.some(
+                  (itemCourse) =>
+                    itemCourse ==
+                    `${course.code}${course.year}${course.section}`
+                )
+              )
             ) {
               const timeStartIndex = timeData.findIndex((time) => {
                 return time[0] == scheduleTime.start;
@@ -839,11 +892,9 @@ export default function Scheduler({
 
       //get all the schedule items from the same day
       let columnItemsUsedIndexes = [];
-      const columnItems = layoutSource.filter(
-        (item) => item.x == x && item.y !== 0
-      );
+      const columnItems = layoutSource.filter((item) => item.x == x);
       columnItems.forEach((item) => {
-        for (let i = item.y; i < item.y + item.h; i++) {
+        for (let i = item.y; i <= item.y + item.h; i++) {
           columnItemsUsedIndexes.push(i);
         }
       });
@@ -867,7 +918,7 @@ export default function Scheduler({
       let start = duplicatesRemoved[0];
       let prev = duplicatesRemoved[0];
 
-      for (let i = 1; i <= duplicatesRemoved.length; i++) {
+      for (let i = 0; i < duplicatesRemoved.length; i++) {
         if (duplicatesRemoved[i] === prev + 1) {
           prev = duplicatesRemoved[i];
         } else {
@@ -903,8 +954,6 @@ export default function Scheduler({
    * removes the restrictions
    */
 
-  console.log(layout);
-
   function removeRestrictions() {
     setLayout((prev) =>
       prev.filter((layoutItem) => {
@@ -915,6 +964,36 @@ export default function Scheduler({
     setRestrictionLayoutItemIds([]);
   }
 
+  function handleClassMerge(layoutItem) {
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+    const newItemId = createLayoutItemId(subjectCode, teacherId, [
+      ...courses,
+      `${course.code}${course.year}${course.section}`,
+    ]);
+
+    setLayout((prev) => [
+      ...prev.filter((item) => item.i !== layoutItem.i),
+      { ...layoutItem, i: newItemId, static: false },
+    ]);
+  }
+
+  function handleSplitMerge(layoutItem) {
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+    const newItemId = createLayoutItemId(
+      subjectCode,
+      teacherId,
+      courses.filter(
+        (courseYearSec) =>
+          courseYearSec !== `${course.code}${course.year}${course.section}`
+      )
+    );
+
+    setLayout((prev) => [
+      ...prev.filter((item) => item.i !== layoutItem.i),
+      { ...layoutItem, i: newItemId, static: true },
+    ]);
+  }
+
   function handleLayoutChange(newLayout) {
     if (!isDraggingFromOutside && !isResizing && !isDragging) {
       setLayout(newLayout);
@@ -922,12 +1001,13 @@ export default function Scheduler({
     }
   }
 
+  //needs attention
   function onDrop(newLayout, layoutItem, _event) {
     try {
       const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const nanoId = nanoid(10);
-        const layoutItemId = `${data.code}~${data.teacher.teacherId}~${data.course.code}${data.course.year}${data.course.section}~${nanoId}`;
+        const layoutItemId = `${data.code}~${data.teacher.teacherId}~~${nanoId}`;
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
@@ -945,16 +1025,16 @@ export default function Scheduler({
     }
   }
 
+  //needs attention
   function onDropDragOver() {
     //set item dragging item maxH and minH
     if (draggingSubject) {
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
-          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-            item.i
-          );
+          const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
           return subjectsData.some(
-            (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+            (data) =>
+              data.id == `${subjectCode}~${teacherId}~${courses.join(',')}`
           );
         })
         .reduce(
@@ -986,13 +1066,11 @@ export default function Scheduler({
   function onDragStart(newLayout, layoutItem) {
     if (!isDraggingFromOutside && layoutItem.i !== '__dropping-elem__') {
       setIsDragging(true);
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        layoutItem.i
-      );
+      const { subjectCode, teacherId } = parseLayoutItemId(layoutItem.i);
       const subjectData = subjectsData.find(
-        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+        (data) => data.id == `${subjectCode}~${teacherId}`
       )?.data;
-      createRestrictions(layout, subjectData);
+      createRestrictions(layout, subjectData, layoutItem);
     }
   }
 
@@ -1007,14 +1085,12 @@ export default function Scheduler({
 
   function onResizeStart(newLayout, layoutItem) {
     setIsResizing(true);
-    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-      layoutItem.i
-    );
+    const { subjectCode, teacherId } = parseLayoutItemId(layoutItem.i);
     updateSubjSchedsMaxH(newLayout, layoutItem.i);
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
-    createRestrictions(layout, subjectData);
+    createRestrictions(layout, subjectData, layoutItem);
   }
 
   function onResizeStop(newLayout, layoutItem) {
@@ -1025,7 +1101,7 @@ export default function Scheduler({
   }
 
   return (
-    <div className="min-w-[720px]">
+    <div className="min-w-[900px]">
       <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}
       </div>
