@@ -63,5 +63,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] Filter room by year and secion of schedulerData.rooms (I figured it out that if we remove schedules on that room it the section wont seeing the scheduels on that room)
 - [ ] Fix fetching of room schedules.
 - [x] update teacher day and time, should response all schedules that were affected of teacher's day time.
-- [ ] update subject
+- [x] update subject
 - [ ] update course
+- [x] on save of the same room and section but differnt sem, the different sem schedule is also deleting.

@@ -143,55 +143,13 @@ class Course extends Model {
             yearSections: 1,
           },
         },
-        // {
-        //   $project: {
-        //     code: 1,
-        //     name: 1,
-        //     years: {
-        //       $max: '$yearSections.year',
-        //     },
-        //     sections: {
-        //       $size: '$yearSections',
-        //     },
-        //     type: 1,
-        //     yearSections: 1,
-        //   },
-        // },
-        // {
-        //   $unwind: '$yearSections',
-        // },
-        // {
-        //   $group: {
-        //     _id: {
-        //       year: '$yearSections.year',
-        //       year: '$yearSections.section',
-        //     },
-        //     code: { $first: '$code' },
-        //     name: { $first: '$name' },
-        //     years: { $first: '$years' },
-        //     sections: { $first: '$sections' },
-        //     type: { $first: '$type' },
-        //     yearSections: { $push: '$yearSections' },
-        //     sectionCount: { $sum: 1 },
-        //   },
-        // },
-        // {
-        //   $project: {
-        //     code: 1,
-        //     name: 1,
-        //     type: 1,
-        //     'yearSections.year': '$_id.year',
-        //     'yearSections.sectionCount': '$sectionCount',
-        //     'yearSections.semesterSubjects': '$yearSections.semesterSubjects',
-        //   },
-        // },
+
       ];
       const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
         courseAggregate,
         options
       );
-      console.log('data', JSON.stringify(data));
       return data;
     } catch (error) {
       console.log('error', error);
@@ -284,6 +242,46 @@ class Course extends Model {
       const data = await this.Course.aggregate(pipeline);
       return data[0];
     } catch (error) {
+      throw error;
+    }
+  }
+  /* used to get schedules per section and check if
+   that subjects are still assigned to this course
+  */
+  async getSubjectsPerYearSection({ course_id }) {
+    try {
+      const pipeline = [
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(course_id),
+          },
+        },
+        { $unwind: '$yearSections' },
+        { $unwind: '$yearSections.semesterSubjects' },
+        {
+          $group: {
+            _id: {
+              course_oid: '$_id',
+              year: '$yearSections.year',
+              section: '$yearSections.section',
+              semester: '$yearSections.semesterSubjects.semester',
+            },
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            semester: { $first: '$yearSections.semesterSubjects.semester' },
+            year: { $first: '$yearSections.year' },
+            section: { $first: '$yearSections.section' },
+            subjects: {
+              $first: '$yearSections.semesterSubjects.subjects',
+            },
+          },
+        },
+      ];
+      const data = await this.Course.aggregate(pipeline);
+      console.log('data----------', JSON.stringify(data), '------------');
+      return data;
+    } catch (error) {
+      console.log('error', error);
       throw error;
     }
   }
@@ -1208,7 +1206,7 @@ class Course extends Model {
       throw error;
     }
   }
-  
+
   async searchCourse({ q, limit }) {
     try {
       const pipeline = [

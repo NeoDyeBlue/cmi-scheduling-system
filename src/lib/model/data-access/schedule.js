@@ -51,6 +51,7 @@ class Schedule extends Model {
       const { course } = courseSubjectScheds;
       const currentSchedules = await this.Schedule.find({
         course: course._id,
+        semester: schedules[0].semester, // get schedules by semester
         yearSec: {
           year: course.year,
           section: course.section,
@@ -68,9 +69,6 @@ class Schedule extends Model {
           return sched.subject === currentSched.subject;
         });
       });
-      console.log('course', course);
-      console.log('currentSchedules', currentSchedules);
-      console.log('toDeleteItems', toDeleteItems);
       const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
         return {
           deleteMany: {
@@ -149,7 +147,24 @@ class Schedule extends Model {
         };
       });
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
-      console.log('deleted schedules', data);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async bulkDeleteSchedulesByTeacher({ teachers, subject }) {
+    try {
+      const deleteScheduleBulkOptions = teachers.map((teacher) => {
+        return {
+          deleteMany: {
+            filter: {
+              teacher: teacher.teacher.toString(),
+              subject: subject,
+            },
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(deleteScheduleBulkOptions);
       return data;
     } catch (error) {
       throw error;
@@ -293,32 +308,18 @@ class Schedule extends Model {
             },
           },
         },
-
-        // filter only the dayTimes of specific room per schedule.
-        // {
-        //   $project: {
-
-        //     subject: 1,
-        //     teacher: 1,
-        //     existingSchedules: 1,
-        //     semester: '$semester',
-        //     dayTimes: {
-        //       $filter: {
-        //         input: '$dayTimes',
-        //         as: 'day_time',
-        //         cond: { $eq: ['$$day_time.room.code', roomCode] },
-        //       },
-        //     },
-        //     course: {
-        //       code: '$course.code',
-        //       name: '$course.name',
-        //       year: '$yearSec.year',
-        //       section: '$yearSec.section',
-        //     },
-        //   },
-        // },
       ];
       const data = await this.Schedule.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getSchedulesBycourse({ course_id }) {
+    try {
+      const data = await this.Schedule.find({ course: course_id })
+        .select('-schedules')
+        .exec();
       return data;
     } catch (error) {
       throw error;

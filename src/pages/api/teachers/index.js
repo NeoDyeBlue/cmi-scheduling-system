@@ -119,6 +119,7 @@ export const handler = async (req, res) => {
         fields,
         teacherId: payload.teacherId,
       });
+      
       // check all schedules of a teacher if it's suit from updated preferredDayTime.
       // then delete.
       const conflictSchedules = await teacher.getTeacherConflictedSchedules({
