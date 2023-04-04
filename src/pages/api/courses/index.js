@@ -62,7 +62,6 @@ export const handler = async (req, res) => {
   if (req.method === 'PATCH') {
     try {
       const { _id: id, ...fields } = req.body;
-      console.log('req.body;', JSON.stringify(req.body));
       const sectionNames = generateChar(20);
       const sections = [];
       for (let yearIndex in fields.yearSections) {
@@ -77,8 +76,43 @@ export const handler = async (req, res) => {
           });
         }
       }
+      console.log('fields', fields);
       fields.yearSections = sections;
       const data = await course.updateCourse({ id, fields });
+
+      // get subjects of every section
+      const courseSections = await course.getSubjectsPerYearSection({
+        course_id: id,
+      });
+      // get schedules by course.
+      const courseSchedules = await schedule.getSchedulesBycourse({
+        course_id: id,
+      });
+      // loop through course schedules and filter by section and semester
+      // if subject in schedule are existin on subjects of section then
+      // the schedule should not be removed.
+      let scheduleHavingConflict = [];
+      for (let courseSched of courseSchedules) {
+        for (let courseSection of courseSections) {
+          if (
+            courseSched.semester === courseSection.semester &&
+            courseSched.course.toString() ===
+              courseSection._id.course_oid.toString() &&
+            parseInt(courseSched.yearSec.year) === courseSection.year &&
+            courseSched.yearSec.section === courseSection.section
+          ) {
+            const isSubjectInSection = courseSection.subjects.some(
+              (subject) =>
+                subject._id.toString() === courseSched.subject.toString()
+            );
+            if (!isSubjectInSection) {
+              // if subject of schedule is not in section's subjects list.
+              scheduleHavingConflict.push(courseSched);
+            }
+          }
+        }
+      }
+      await schedule.deleteScheduleByItsId({ scheduleHavingConflict });
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
