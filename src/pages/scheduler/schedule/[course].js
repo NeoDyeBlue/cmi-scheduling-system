@@ -119,25 +119,24 @@ export default function Schedule() {
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
             //add to course subjects data
-            const subjectCourseYearSections = [schedulerData?.course];
-            teacher.existingSchedules.forEach((schedule) => {
-              schedule.times.forEach((time) => {
-                if (time.subject._id == subject._id) {
-                  time.courses.forEach((course) => {
-                    if (
-                      !subjectCourseYearSections.some(
-                        (courseYrSec) =>
-                          courseYrSec.code == course.code &&
-                          courseYrSec.year == course.year &&
-                          courseYrSec.section == course.section
-                      )
-                    ) {
-                      subjectCourseYearSections.push(course);
-                    }
-                  });
-                }
-              });
-            });
+            // teacher.existingSchedules.forEach((schedule) => {
+            //   schedule.times.forEach((time) => {
+            //     if (time.subject._id == subject._id) {
+            //       time.courses.forEach((course) => {
+            //         if (
+            //           !subjectCourseYearSections.some(
+            //             (courseYrSec) =>
+            //               courseYrSec.code == course.code &&
+            //               courseYrSec.year == course.year &&
+            //               courseYrSec.section == course.section
+            //           )
+            //         ) {
+            //           subjectCourseYearSections.push(course);
+            //         }
+            //       });
+            //     }
+            //   });
+            // });
 
             const dataId = `${subject.code}~${teacher.teacherId}`;
             const { teachers, ...newData } = subject;
@@ -146,7 +145,7 @@ export default function Schedule() {
               data: {
                 ...newData,
                 teacher,
-                courses: subjectCourseYearSections,
+                courses: subject.courses,
               },
             });
           });
