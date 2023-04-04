@@ -12,10 +12,12 @@ export default function SchedulerLayoutItemButton({
   onClick = () => {},
   toolTipId,
   toolTipContent,
+  ...props
 }) {
   return (
     <>
       <button
+        {...props}
         data-tooltip-id={toolTipId}
         data-tooltip-content={toolTipContent}
         onClick={(e) => {

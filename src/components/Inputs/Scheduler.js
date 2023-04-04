@@ -61,6 +61,8 @@ export default function Scheduler({
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
+    hoveredMergeable,
+    setHoveredMergeable,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -76,6 +78,8 @@ export default function Scheduler({
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
         setAllRoomSubjScheds: state.setAllRoomSubjScheds,
         setOldSchedsData: state.setOldSchedsData,
+        hoveredMergeable: state.hoveredMergeable,
+        setHoveredMergeable: state.setHoveredMergeable,
       }),
       []
     ),
@@ -185,10 +189,10 @@ export default function Scheduler({
 
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
-      )?.data;
+      );
 
       const remainingRowSpan = getRemainingRowSpan(
-        subjectData.units,
+        subjectData.data.units,
         subjectLayoutItems
       );
 
@@ -253,7 +257,11 @@ export default function Scheduler({
           )}
         >
           {schedule.static && mergeable ? (
-            <p className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white">
+            <p
+              className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white"
+              onMouseEnter={() => setHoveredMergeable(subjectData.id)}
+              onMouseLeave={() => setHoveredMergeable('')}
+            >
               mergeable
             </p>
           ) : null}
@@ -269,6 +277,8 @@ export default function Scheduler({
                 toolTipContent="Merge"
                 onClick={() => handleClassMerge(schedule)}
                 icon={<MdMergeType size={16} className="rotate-180" />}
+                onMouseEnter={() => setHoveredMergeable(subjectData.id)}
+                onMouseLeave={() => setHoveredMergeable('')}
               />
             )}
             {!schedule.static && courses.length > 1 && inSubjectCourses && (

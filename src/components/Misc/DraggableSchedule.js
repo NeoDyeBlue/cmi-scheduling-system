@@ -20,16 +20,18 @@ export default function DraggableSchedule({ data }) {
     minutes: 0,
   });
   //stores
-  const { subjectScheds, setDraggingSubject } = useSchedulerStore(
-    useCallback(
-      (state) => ({
-        subjectScheds: state.subjectScheds,
-        setDraggingSubject: state.setDraggingSubject,
-      }),
-      []
-    ),
-    shallow
-  );
+  const { subjectScheds, setDraggingSubject, hoveredMergeable } =
+    useSchedulerStore(
+      useCallback(
+        (state) => ({
+          subjectScheds: state.subjectScheds,
+          setDraggingSubject: state.setDraggingSubject,
+          hoveredMergeable: state.hoveredMergeable,
+        }),
+        []
+      ),
+      shallow
+    );
 
   useEffect(() => {
     const subject = subjectScheds.find(
@@ -79,10 +81,14 @@ export default function DraggableSchedule({ data }) {
     <li
       className={classNames(
         `flex w-full flex-col gap-4 overflow-hidden rounded-md
-        border border-gray-300 bg-white p-4 transition-all`,
+        border border-gray-300 p-4  transition-all`,
         {
           'group cursor-grab hover:border-primary-400 hover:bg-primary-400 hover:text-white hover:shadow-lg':
             isDraggable,
+          'animate-pulse border-info-500 bg-info-100':
+            hoveredMergeable == `${data.code}~${data.teacher.teacherId}`,
+          'bg-white':
+            hoveredMergeable !== `${data.code}~${data.teacher.teacherId}`,
           'cursor-not-allowed opacity-50': !isDraggable,
         }
       )}

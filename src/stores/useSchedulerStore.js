@@ -10,6 +10,7 @@ const initialState = {
   subjectScheds: [],
   roomsSubjScheds: [],
   roomsSubjSchedsLayouts: [],
+  hoveredMergeable: '',
   oldSchedsData: [],
 };
 
@@ -71,6 +72,11 @@ const useSchedulerStore = create((set, get) => ({
     );
     set(() => ({
       roomsSubjScheds: [...filteredSchedules, { roomCode, roomId, schedules }],
+    }));
+  },
+  setHoveredMergeable: (payload) => {
+    set(() => ({
+      hoveredMergeable: payload,
     }));
   },
   setOldSchedsData: (payload) => {
