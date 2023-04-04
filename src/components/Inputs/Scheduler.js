@@ -35,7 +35,6 @@ export default function Scheduler({
   endTime = '12:00 AM',
   interval = 30,
   roomData,
-  semester,
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -58,6 +57,7 @@ export default function Scheduler({
     roomsSubjSchedsLayouts,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
+    setAllRoomSubjScheds,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
@@ -74,6 +74,7 @@ export default function Scheduler({
         setSubjectScheds: state.setSubjectScheds,
         setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+        setAllRoomSubjScheds: state.setAllRoomSubjScheds,
         setOldSchedsData: state.setOldSchedsData,
       }),
       []
@@ -163,7 +164,7 @@ export default function Scheduler({
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
     })
-    .map((schedule, index) => {
+    .map((schedule) => {
       const { subjectCode, teacherId, courses } = parseLayoutItemId(schedule.i);
       const data = subjectsData.find((subject) => {
         return subject.id == `${subjectCode}~${teacherId}`;
@@ -349,6 +350,7 @@ export default function Scheduler({
     const existingRoomLayout = roomsSubjSchedsLayouts.find(
       (room) => room.roomCode == roomData.code
     );
+    console.log(existingRoomLayout);
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
@@ -381,21 +383,19 @@ export default function Scheduler({
   useEffect(
     () => {
       const subjSchedIds = subjectsData.map((data) => data.id);
-
-      const courseSchedsData = createCourseSubjectSchedules(
+      const roomSchedule = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
           const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
-          return (
-            subjSchedIds.includes(`${subjectCode}~${teacherId}`) &&
-            courses.includes(`${course.code}${course.year}${course.section}`)
-          );
+          return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
         }),
         {
           _id: roomData._id,
           code: roomData.code,
         }
       );
+
+      console.log(roomSchedule);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
@@ -404,15 +404,8 @@ export default function Scheduler({
             ...createCourseSubjectSchedules(
               subjSchedIds,
               roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId, courses } = parseLayoutItemId(
-                  item.i
-                );
-                return (
-                  subjSchedIds.includes(`${subjectCode}~${teacherId}`) &&
-                  courses.includes(
-                    `${course.code}${course.year}${course.section}`
-                  )
-                );
+                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
               }),
               {
                 _id: roomLayout.roomId,
@@ -423,56 +416,58 @@ export default function Scheduler({
         }
       });
 
-      let mergedScheds = [...courseSchedsData];
+      let mergedRoomScheds = [...roomSchedule.schedules];
       if (otherRoomScheds.length) {
-        otherRoomScheds.forEach((roomSched) => {
-          const existingSched = mergedScheds.find(
-            (mergedSched) =>
-              mergedSched.subject.code == roomSched.subject.code &&
-              mergedSched.teacher.teacherId == roomSched.teacher.teacherId
-          );
+        otherRoomScheds
+          .map((room) => room.schedules)
+          .flat()
+          .forEach((roomSched) => {
+            const existingSched = mergedRoomScheds.find(
+              (mergedSched) =>
+                mergedSched.subject.code == roomSched.subject.code &&
+                mergedSched.teacher.teacherId == roomSched.teacher.teacherId
+            );
 
-          if (!existingSched) {
-            mergedScheds.push(roomSched);
-          } else {
-            const merged = {
-              ...existingSched,
-              schedules: [
-                ...existingSched.schedules.filter(
-                  (exist) => exist.room.code == roomData.code
-                ),
-                ...roomSched.schedules.filter(
-                  (sched) => sched.room.code !== roomData.code
-                ),
-              ],
-            };
+            if (!existingSched) {
+              mergedRoomScheds.push(roomSched);
+            } else {
+              const merged = {
+                ...existingSched,
+                schedules: [
+                  ...existingSched.schedules.filter(
+                    (exist) => exist.room.code == roomData.code
+                  ),
+                  ...roomSched.schedules.filter(
+                    (sched) => sched.room.code !== roomData.code
+                  ),
+                ],
+              };
 
-            mergedScheds = [
-              ...mergedScheds.filter((mergedSched) => {
-                return (
-                  mergedSched.subject.code !== merged.subject.code &&
-                  mergedSched.teacher.teacherId !== merged.teacher.teacherId
-                );
-              }),
-              merged,
-            ];
-          }
-        });
+              mergedRoomScheds = [
+                ...mergedRoomScheds.filter((mergedSched) => {
+                  return (
+                    mergedSched.subject.code !== merged.subject.code &&
+                    mergedSched.teacher.teacherId !== merged.teacher.teacherId
+                  );
+                }),
+                merged,
+              ];
+            }
+          });
       }
+
+      const updatedRoomSchedules = [roomSchedule, ...otherRoomScheds];
+
       const subjSchedItems = layout.filter((item) => {
-        const { subjectCode, teacherId, courseYearSec } = parseLayoutItemId(
-          item.i
-        );
-        return subjSchedIds.includes(
-          `${subjectCode}~${teacherId}~${courseYearSec}`
-        );
+        const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+        return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
-      setSubjectScheds(mergedScheds);
-      // console.log(subjSchedItems, subjSchedIds, subjectsData);
+      setSubjectScheds(mergedRoomScheds);
+      setAllRoomSubjScheds(updatedRoomSchedules);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
-      if (!oldSchedsData.length && mergedScheds.length) {
-        setOldSchedsData(mergedScheds);
+      if (!oldSchedsData.length && updatedRoomSchedules.length) {
+        setOldSchedsData(updatedRoomSchedules);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -493,37 +488,39 @@ export default function Scheduler({
       })
     );
 
-    const layoutItemIds = subjSchedItems.reduce((accumulator, currentItem) => {
-      const { subjectCode, teacherId } = parseLayoutItemId(currentItem.i);
-      if (
-        filteredSubjSchedIds.some((id) => id == `${subjectCode}~${teacherId}`)
-      ) {
-        return [...accumulator, currentItem.i];
-      } else {
-        return accumulator;
-      }
-    }, []);
+    // const layoutItemIds = subjSchedItems.reduce((accumulator, currentItem) => {
+    //   const { subjectCode, teacherId } = parseLayoutItemId(currentItem.i);
+    //   if (
+    //     filteredSubjSchedIds.some((id) => id == `${subjectCode}~${teacherId}`)
+    //   ) {
+    //     return [...accumulator, currentItem.i];
+    //   } else {
+    //     return accumulator;
+    //   }
+    // }, []);
 
-    const subjSchedIdsParsed = layoutItemIds.map((id) => {
-      const { subjectCode, teacherId, courses } = parseLayoutItemId(id);
-      return { code: subjectCode, teacher: teacherId, courses };
+    // console.log(layoutItemIds, filteredSubjSchedIds);
+
+    const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
+      const { subjectCode, teacherId } = parseLayoutItemId(id);
+      return { code: subjectCode, teacher: teacherId };
     });
 
     const newRoomSubjectScheds = [];
     //for each schedIds
 
-    subjSchedIdsParsed.forEach(({ code, teacher, courses }) => {
+    subjSchedIdsParsed.forEach(({ code, teacher }) => {
       //get the subject layout items of the same id
       const subjSchedLayoutItems = subjSchedItems.filter((item) => {
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          courses: itemCourses,
+          // courses: itemCourses,
         } = parseLayoutItemId(item.i);
         return (
-          code == itemSubjCode &&
-          teacher == itemTeacherId &&
-          itemCourses.includes(`${course.code}${course.year}${course.section}`)
+          code == itemSubjCode && teacher == itemTeacherId
+          // courses.some((course) => itemCourses.includes(course))
+          // itemCourses.includes(`${course.code}${course.year}${course.section}`)
         );
       });
 
@@ -598,10 +595,12 @@ export default function Scheduler({
       });
     });
 
-    return newRoomSubjectScheds;
+    return {
+      roomId: room._id,
+      roomCode: room.code,
+      schedules: newRoomSubjectScheds,
+    };
   }
-
-  console.log('subjectScheds', subjectScheds);
 
   // function parseLayoutItemId(id, separator = '~') {
   //   const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
@@ -689,9 +688,6 @@ export default function Scheduler({
           ),
         ],
       };
-
-      console.log('newRoomLayout', newRoomLayout);
-
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
       setLayout([...newRoomLayout.layout, ...timeLayout.flat()]);
     } else {
