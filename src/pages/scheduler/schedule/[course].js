@@ -34,6 +34,7 @@ export default function Schedule() {
     subjectScheds,
     courseSubjects,
     selectedRooms,
+    roomsSubjScheds,
     roomsSubjSchedsLayouts,
     oldSchedsData,
     setCourseSubjects,
@@ -42,6 +43,7 @@ export default function Schedule() {
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
+    setAllRoomSubjScheds,
     setRoomSubjSchedsLayout,
     setOldSchedsData,
     reset,
@@ -53,6 +55,7 @@ export default function Schedule() {
         subjectScheds: state.subjectScheds,
         courseSubjects: state.courseSubjects,
         selectedRooms: state.selectedRooms,
+        roomsSubjScheds: state.roomsSubjScheds,
         roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
         oldSchedsData: state.oldSchedsData,
         setCourseSubjects: state.setCourseSubjects,
@@ -60,6 +63,7 @@ export default function Schedule() {
         setCourse: state.setCourse,
         setSubjectScheds: state.setSubjectScheds,
         setSelectedRooms: state.setSelectedRooms,
+        setAllRoomSubjScheds: state.setAllRoomSubjScheds,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
         setOldSchedsData: state.setOldSchedsData,
         setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
@@ -205,11 +209,11 @@ export default function Schedule() {
     // const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
     setFormData({
       course,
-      subjectScheds,
+      roomSchedules: roomsSubjScheds,
       // rooms,
       semester: schedulerData?.semester,
     });
-  }, [course, subjectScheds, schedulerData?.semester]);
+  }, [course, roomsSubjScheds, schedulerData?.semester]);
 
   useEffect(
     () => {
@@ -309,27 +313,27 @@ export default function Schedule() {
       ...formData,
       // semester: schedulerData?.semester,
     });
-    try {
-      setIsSubmitting(true);
-      const res = await fetch('/api/schedules', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const result = await res.json();
-      if (result?.success) {
-        toast.success('Schedules saved');
-        setOldSchedsData(subjectScheds);
-        mutate();
-      } else if (!result.success) {
-        toast.error("Can't save schedules");
-      }
-      setIsSubmitting(false);
-    } catch (error) {
-      console.log(error);
-      setIsSubmitting(false);
-      toast.error("Can't save schedules");
-    }
+    // try {
+    //   setIsSubmitting(true);
+    //   const res = await fetch('/api/schedules', {
+    //     method: 'POST',
+    //     body: JSON.stringify(formData),
+    //     headers: { 'Content-Type': 'application/json' },
+    //   });
+    //   const result = await res.json();
+    //   if (result?.success) {
+    //     toast.success('Schedules saved');
+    //     setOldSchedsData(subjectScheds);
+    //     mutate();
+    //   } else if (!result.success) {
+    //     toast.error("Can't save schedules");
+    //   }
+    //   setIsSubmitting(false);
+    // } catch (error) {
+    //   console.log(error);
+    //   setIsSubmitting(false);
+    //   toast.error("Can't save schedules");
+    // }
   }
 
   async function onConfirmReset() {
@@ -337,9 +341,10 @@ export default function Schedule() {
     setAllRoomSubjSchedsLayout([]);
     setSelectedRooms([]);
     setSubjectScheds([]);
+    setAllRoomSubjScheds([]);
     setFormData({
       course,
-      subjectScheds: [],
+      roomSchedules: [],
       semester: schedulerData?.semester,
     });
 
@@ -358,9 +363,13 @@ export default function Schedule() {
         ],
       }))
       .filter((items) => items.schedules.length);
+
+    const newRoomsSubjScheds = roomsSubjScheds.filter(
+      (room) => room.roomCode !== toRemoveRoom
+    );
     setFormData({
       course,
-      subjectScheds: newSubjScheds,
+      roomsSubjScheds: newRoomsSubjScheds,
       semester: schedulerData?.semester,
     });
     setSubjectScheds(newSubjScheds);
