@@ -2,14 +2,13 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { parse, format, differenceInMinutes } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { MdRemove } from 'react-icons/md';
+import { MdRemove, MdMerge } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
 import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
-import SchedulerLayoutItem from './SchedulerLayoutItem';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
 export default function Scheduler({
@@ -93,7 +92,7 @@ export default function Scheduler({
           i: `${index}-${times[0]}`,
           times,
           x: 0,
-          y: index + 1,
+          y: index,
           w: 1,
           h: 1,
           static: true,
@@ -102,7 +101,7 @@ export default function Scheduler({
           i: `${index}-${times[1]}`,
           times,
           x: headers.length,
-          y: index + 1,
+          y: index,
           w: 1,
           h: 1,
           static: true,
@@ -112,10 +111,14 @@ export default function Scheduler({
   );
 
   //elements
-  const headerColumns = headers.map((item) => (
+  const headerColumns = headers.map((item, index) => (
     <div
       key={item.i}
-      className="flex h-[40px] items-center justify-center overflow-hidden whitespace-nowrap"
+      className={classNames(
+        'flex h-[40px] items-center justify-center overflow-hidden whitespace-nowrap bg-white',
+        `col-start-[${index}]`,
+        'border-b-2 border-l border-gray-300'
+      )}
     >
       <p className="font-display text-xs font-semibold capitalize leading-none">
         {item.name}
@@ -437,8 +440,8 @@ export default function Scheduler({
       const schedules = subjSchedLayoutItems.map((layout) => ({
         day: layout.x,
         time: {
-          start: timeData[layout.y - 1][0],
-          end: timeData[layout.y - 1 + layout.h - 1][1],
+          start: timeData[layout.y][0],
+          end: timeData[layout.y + layout.h - 1][1],
         },
       }));
 
@@ -796,7 +799,6 @@ export default function Scheduler({
           )) ||
         [];
 
-      console.log(subjectScheds);
       const inSchedulerDayTimes = subjectScheds
         .filter(
           (subjSched) =>
@@ -808,8 +810,6 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
-
-      // console.log(existingSchedules, inSchedulerDayTimes, subjectScheds);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
@@ -836,17 +836,17 @@ export default function Scheduler({
             availableY <= preferredTimeEndIndex;
             availableY++
           ) {
-            availableTimesY.push(availableY + 1);
+            availableTimesY.push(availableY);
           }
         }
       } else if (subjectData?.teacher?.type == 'full-time') {
-        availableTimesY = [...Array(timeData.length + 1).keys()].slice(1);
+        availableTimesY = [...Array(timeData.length).keys()];
       }
 
       //get all the unavailable time indexes of the teacher based on available times
       for (
-        let unavailableY = 1;
-        unavailableY <= timeData.length;
+        let unavailableY = 0;
+        unavailableY < timeData.length;
         unavailableY++
       ) {
         if (!availableTimesY.includes(unavailableY)) {
@@ -871,7 +871,7 @@ export default function Scheduler({
               });
 
               for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-                unavailableTimesY.push(i + 1);
+                unavailableTimesY.push(i);
               }
             }
           });
@@ -888,7 +888,7 @@ export default function Scheduler({
           });
 
           for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-            unavailableTimesY.push(i + 1);
+            unavailableTimesY.push(i);
           }
         });
       }
@@ -1079,32 +1079,36 @@ export default function Scheduler({
   }
 
   return (
-    <ResponsiveGridLayout
-      className="grid-lines h-full w-full"
-      layout={layout}
-      cols={headerColumns.length}
-      rowHeight={40}
-      maxRows={timeRows.length + 1}
-      onDrop={onDrop}
-      onLayoutChange={handleLayoutChange}
-      resizeHandles={['s']}
-      isBounded={true}
-      margin={[0, 0]}
-      preventCollision
-      compactType={null}
-      isDroppable
-      onDropDragOver={onDropDragOver}
-      onDragStart={onDragStart}
-      onDragStop={onDragStop}
-      onResizeStart={onResizeStart}
-      onResizeStop={onResizeStop}
-
-      // measureBeforeMount={true}
-    >
-      {headerColumns}
-      {scheduleCells}
-      {timeRows}
-      {cellRestrictions}
-    </ResponsiveGridLayout>
+    <>
+      <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
+        {headerColumns}
+      </div>
+      <ResponsiveGridLayout
+        className="grid-lines h-full w-full"
+        layout={layout}
+        cols={headerColumns.length}
+        rowHeight={40}
+        maxRows={timeRows.length + 1}
+        onDrop={onDrop}
+        onLayoutChange={handleLayoutChange}
+        resizeHandles={['s']}
+        isBounded={true}
+        margin={[0, 0]}
+        preventCollision
+        compactType={null}
+        // allowOverlap={allowMerging}
+        isDroppable
+        onDropDragOver={onDropDragOver}
+        onDragStart={onDragStart}
+        onDragStop={onDragStop}
+        onResizeStart={onResizeStart}
+        onResizeStop={onResizeStop}
+      >
+        {/* {headerColumns} */}
+        {scheduleCells}
+        {timeRows}
+        {cellRestrictions}
+      </ResponsiveGridLayout>
+    </>
   );
 }
