@@ -775,15 +775,15 @@ const schedulerData2 = {
                 name: 'Mergeable Subject',
                 units: 3,
               },
-              //change to array of courses
-              courses: [
-                {
-                  code: 'dontdelete-jp',
-                  name: 'For Merge Test',
-                  year: 1,
-                  section: 'A',
-                },
-              ],
+              //remove array of courses here if kaya or possible
+              // courses: [
+              //   {
+              //     code: 'dontdelete-jp',
+              //     name: 'For Merge Test',
+              //     year: 1,
+              //     section: 'A',
+              //   },
+              // ],
               dayTimes: [
                 {
                   day: 2,
@@ -793,6 +793,15 @@ const schedulerData2 = {
                   },
                   times: [
                     {
+                      //add array of courses here if kaya
+                      courses: [
+                        {
+                          code: 'dontdelete-jp',
+                          name: 'For Merge Test',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
                       start: '7:30 AM',
                       end: '9:00 AM',
                       _id: '642a2e22e769e5c289c2f0e4',
@@ -808,6 +817,14 @@ const schedulerData2 = {
                   },
                   times: [
                     {
+                      courses: [
+                        {
+                          code: 'dontdelete-jp',
+                          name: 'For Merge Test',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
                       start: '7:30 AM',
                       end: '9:00 AM',
                       _id: '642a2e22e769e5c289c2f0e4',
