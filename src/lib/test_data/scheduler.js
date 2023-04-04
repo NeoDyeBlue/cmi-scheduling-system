@@ -668,15 +668,20 @@ const schedulerData2 = {
           name: 'Mergeable Subject',
           units: 3,
           courses: [
-            /**
-             * add the courses that has this subject
-             * example:
-             * {
-             *  _id,
-             *  code,
-             *  yearSections: [{year, section}]
-             * }
-             */
+            {
+              _id: '642a2d8fe769e5c289c2f080',
+              name: 'For Merge Test',
+              code: 'dontdelete-jp',
+              year: 1,
+              section: 'A',
+            },
+            {
+              _id: '642a2d8fe769e5c289c2f080',
+              name: 'For Merge Test',
+              code: 'dontdelete-jp',
+              year: 1,
+              section: 'B',
+            },
           ],
           assignedTeachers: [
             {
@@ -795,6 +800,20 @@ const schedulerData2 = {
                    *  yearSections: [{year, section}]
                    * }
                    */
+                  {
+                    _id: '642a2d8fe769e5c289c2f080',
+                    name: 'For Merge Test',
+                    code: 'dontdelete-jp',
+                    year: 1,
+                    section: 'A',
+                  },
+                  {
+                    _id: '642a2d8fe769e5c289c2f080',
+                    name: 'For Merge Test',
+                    code: 'dontdelete-jp',
+                    year: 1,
+                    section: 'B',
+                  },
                 ],
               },
               //remove array of courses here if kaya or possible

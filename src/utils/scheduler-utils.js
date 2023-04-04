@@ -1,5 +1,7 @@
 import { nanoid } from 'nanoid';
 import _ from 'lodash';
+import { parse, differenceInMinutes } from 'date-fns';
+import { subtractDuration } from './time-utils';
 
 export function createInitialRoomLayout(
   roomSchedules,
@@ -157,4 +159,140 @@ export function getRemainingRowSpan(units = 1, subjectLayoutItems = []) {
   );
 
   return unitsMaxSpan - totalRowSpanCount;
+}
+
+export function createCourseSubjectSchedules(
+  subjSchedIds = [],
+  subjSchedItems = [],
+  room = { _id: '', code: '' },
+  subjectsData,
+  timeData
+) {
+  //remove subjSchedIds that has no layout item
+  const filteredSubjSchedIds = subjSchedIds.filter((id) =>
+    subjSchedItems.some((item) => {
+      const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+      return id == `${subjectCode}~${teacherId}`;
+    })
+  );
+
+  // const layoutItemIds = subjSchedItems.reduce((accumulator, currentItem) => {
+  //   const { subjectCode, teacherId } = parseLayoutItemId(currentItem.i);
+  //   if (
+  //     filteredSubjSchedIds.some((id) => id == `${subjectCode}~${teacherId}`)
+  //   ) {
+  //     return [...accumulator, currentItem.i];
+  //   } else {
+  //     return accumulator;
+  //   }
+  // }, []);
+
+  // console.log(layoutItemIds, filteredSubjSchedIds);
+
+  const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
+    const { subjectCode, teacherId } = parseLayoutItemId(id);
+    return { code: subjectCode, teacher: teacherId };
+  });
+
+  const newRoomSubjectScheds = [];
+  //for each schedIds
+
+  subjSchedIdsParsed.forEach(({ code, teacher }) => {
+    //get the subject layout items of the same id
+    const subjSchedLayoutItems = subjSchedItems.filter((item) => {
+      const {
+        subjectCode: itemSubjCode,
+        teacherId: itemTeacherId,
+        // courses: itemCourses,
+      } = parseLayoutItemId(item.i);
+      return (
+        code == itemSubjCode && teacher == itemTeacherId
+        // courses.some((course) => itemCourses.includes(course))
+        // itemCourses.includes(`${course.code}${course.year}${course.section}`)
+      );
+    });
+
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${code}~${teacher}`
+    )?.data;
+    //set the subject's times and days
+    const schedules = subjSchedLayoutItems.map((item) => ({
+      day: item.x,
+      time: {
+        start: timeData[item.y][0],
+        end: timeData[item.y + item.h - 1][1],
+        courses: parseLayoutItemId(item.i).courses,
+      },
+    }));
+
+    console.log(subjectData);
+
+    //check if completed or not
+    let totalMinutesDuration = 0;
+    let isNotCompleted = true;
+    schedules?.forEach((sched) => {
+      const start = parse(sched.time.start, 'hh:mm a', new Date());
+      const end = parse(sched.time.end, 'hh:mm a', new Date());
+
+      totalMinutesDuration += differenceInMinutes(end, start);
+    });
+
+    const hoursDuration = Math.floor(totalMinutesDuration / 60);
+    const minutesDuration = totalMinutesDuration % 60;
+
+    const { hours, minutes } = subtractDuration(
+      { hours: subjectData.units, minutes: 0 },
+      {
+        hours: hoursDuration,
+        minutes: minutesDuration,
+      }
+    );
+
+    if (hours <= 0 && minutes <= 0) {
+      isNotCompleted = false;
+    }
+
+    //group by day
+    const groupedByDay = [];
+    for (let day = 1; day <= 7; day++) {
+      const daySchedules = schedules.filter((schedule) => schedule.day == day);
+      if (daySchedules.length) {
+        groupedByDay.push({
+          day,
+          room,
+          times: daySchedules.map((daySchedule) => ({
+            start: daySchedule.time.start,
+            end: daySchedule.time.end,
+            courses: daySchedule.time.courses.map((course) => {
+              const courseData = subjectData.courses.find(
+                (subjCourse) =>
+                  course ==
+                  `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
+              );
+              return courseData;
+            }),
+          })),
+        });
+      }
+    }
+    //add to the sched array
+    newRoomSubjectScheds.push({
+      subject: {
+        _id: subjectData._id,
+        code: subjectData.code,
+      },
+      teacher: {
+        _id: subjectData.teacher._id,
+        teacherId: subjectData.teacher.teacherId,
+      },
+      isCompleted: !isNotCompleted,
+      schedules: [...groupedByDay],
+    });
+  });
+
+  return {
+    roomId: room._id,
+    roomCode: room.code,
+    schedules: newRoomSubjectScheds,
+  };
 }
