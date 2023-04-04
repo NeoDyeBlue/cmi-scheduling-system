@@ -1,4 +1,5 @@
 import errorThrower, { validationError } from '@/utils/error.util';
+import mongoose from 'mongoose';
 import Model from '..';
 
 class Subject extends Model {
@@ -87,6 +88,7 @@ class Subject extends Model {
       throw error;
     }
   }
+  async;
   async deleteSubject({ id }) {
     try {
       const data = await this.Subject.findOneAndDelete({ _id: id }).exec();
@@ -98,8 +100,39 @@ class Subject extends Model {
       throw error;
     }
   }
-
-  async searchSubjects({ q, semester, type }) {
+  async getAssignedTeachersSchedules({ subject_id }) {
+    try {
+      const pipeline = [
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(subject_id),
+          },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id',
+            foreignField: 'subject',
+            pipeline: [
+              {
+                $project: {
+                  teacher: 1,
+                  subject: 1,
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+      ];
+      const data = await this.Subject.aggregate(pipeline);
+      console.log('schedules', JSON.stringify(data));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async searchSubjects({ q, semester, type, page, limit }) {
     try {
       const pipeline = [];
       pipeline.push({
@@ -124,8 +157,19 @@ class Subject extends Model {
           },
         });
       }
-      const data = await this.Subject.aggregate(pipeline);
-      return data;
+      console.log('page && limit', page && limit);
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const subjectAggregation = this.Subject.aggregate(pipeline);
+        const data = await this.Subject.aggregatePaginate(
+          subjectAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Subject.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       throw error;
     }

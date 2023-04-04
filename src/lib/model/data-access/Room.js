@@ -41,7 +41,7 @@ class Room extends Model {
       throw error;
     }
   }
-  async searchRooms({ q }) {
+  async searchRooms({ q, page, limit }) {
     try {
       // const data  = await this.Room.find().select(["type", "code", 'name']).exec()
       const pipeline = [];
@@ -63,9 +63,18 @@ class Room extends Model {
           name: 1,
         },
       });
-      const data = await this.Room.aggregate(pipeline);
-      console.log('data', data);
-      return data;
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const roomAggregation = this.Room.aggregate(pipeline);
+        const data = await this.Room.aggregatePaginate(
+          roomAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Room.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       console.log('error', error);
       throw error;
@@ -471,7 +480,6 @@ class Room extends Model {
             // },
           },
         },
-
       ];
       // if courseCode exists, then filter it by courseCode.
       if (courseCode) {

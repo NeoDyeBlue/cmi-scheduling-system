@@ -76,7 +76,7 @@ class Teacher extends Model {
     }
   }
 
-  async getTeachersName({ q }) {
+  async getTeachersName({ q, page, limit }) {
     try {
       const pipeline = [
         {
@@ -96,19 +96,29 @@ class Teacher extends Model {
         {
           $limit: 25,
         },
-        {
-          $project: {
-            firstName: 1,
-            lastName: 1,
-            type: 1,
-            teacherId: 1,
-            image: 1,
-          },
-        },
+        // {
+        //   $project: {
+        //     firstName: 1,
+        //     lastName: 1,
+        //     type: 1,
+        //     teacherId: 1,
+        //     image: 1,
+        //     preferredDayTimes:1,
+        //   },
+        // },
       ];
-
-      const data = await this.Teacher.aggregate(pipeline);
-      return data;
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const teacherAggregation = this.Teacher.aggregate(pipeline);
+        const data = await this.Teacher.aggregatePaginate(
+          teacherAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Teacher.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       console.log('errrorrrrrrrr', error);
       throw error;
@@ -177,6 +187,63 @@ class Teacher extends Model {
       return data;
     } catch (error) {
       // console.log('error update teacher', error);
+      throw error;
+    }
+  }
+  async getTeacherConflictedSchedules({ teacher_id }) {
+    try {
+      const pipeline = [
+        // get teacher
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(teacher_id),
+          },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id',
+            foreignField: 'teacher',
+            pipeline: [
+              // filter the schedule that has conflict to the new preferredDayTimes of a teacher
+              {
+                $project: {
+                  _id: '$_id',
+                  schedules: 1,
+                },
+              },
+              {
+                $unwind: '$schedules',
+              },
+              {
+                $addFields: {
+                  dayTimes: {
+                    $map: {
+                      input: '$schedules.times',
+                      as: 'time',
+                      in: {
+                        schedule_oid: '$_id',
+                        day: '$schedules.day',
+                        start: '$$time.start',
+                        end: '$$time.end',
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $project: {
+                  dayTimes: 1,
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+      ];
+      const data = await this.Teacher.aggregate(pipeline);
+      return data;
+    } catch (error) {
       throw error;
     }
   }

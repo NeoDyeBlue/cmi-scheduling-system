@@ -63,7 +63,42 @@ export const handler = async (req, res) => {
       }
       fields['assignedTeachers'] = assignedTeachers;
       // console.log("req.body",req.body)
+
+      // if teacher was remove from subject, then the schedule should be deleted.
+      // get all assigned teachers to a subject then delete all schedules that contain teacher did not assigned to a subject.
+
       const data = await subject.updateSubject({ id, fields });
+
+      const subjectData = await subject.getAssignedTeachersSchedules({
+        subject_id: id,
+      });
+      if (subjectData[0]) {
+        const { assignedTeachers: assigned, schedules: teacherOnSchedules } =
+          subjectData[0];
+        let notAssignedTeachers = [];
+        if (assigned.length && teacherOnSchedules.length) {
+          for (let sched of teacherOnSchedules) {
+            console.log('sched', sched);
+            let isAssigned = assigned.some(
+              (tcher) => tcher.teacher.toString() === sched.teacher.toString()
+            );
+            if (!isAssigned) {
+              notAssignedTeachers.push(sched);
+            }
+          }
+        }
+        if (notAssignedTeachers.length) {
+          // delete sched
+          await schedule.bulkDeleteSchedulesByTeacher({
+            teachers: notAssignedTeachers,
+            subject: id,
+          });
+        } else if (!assigned.length) {
+          // if no assigned to this subject, then we will remove all schedules with this subject
+          await schedule.deleteSchedulesContainSubject({ subject_id: id });
+        }
+      }
+
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
