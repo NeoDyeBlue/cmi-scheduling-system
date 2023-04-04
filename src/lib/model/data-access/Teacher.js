@@ -96,16 +96,16 @@ class Teacher extends Model {
         {
           $limit: 25,
         },
-        // {
-        //   $project: {
-        //     firstName: 1,
-        //     lastName: 1,
-        //     type: 1,
-        //     teacherId: 1,
-        //     image: 1,
-        //     preferredDayTimes:1,
-        //   },
-        // },
+        {
+          $project: {
+            firstName: 1,
+            lastName: 1,
+            type: 1,
+            teacherId: 1,
+            image: 1,
+            preferredDays: '$preferredDayTimes',
+          },
+        },
       ];
       if (page && limit) {
         const options = { ...(page && limit ? { page, limit } : {}) };
