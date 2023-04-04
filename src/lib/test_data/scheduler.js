@@ -791,7 +791,7 @@ const schedulerData2 = {
                 code: 'mergeable subj',
                 name: 'Mergeable Subject',
                 units: 3,
-                //add courses that has this subject
+                // add courses that has this subject
                 courses: [
                   {
                     _id: '642a2d8fe769e5c289c2f080',

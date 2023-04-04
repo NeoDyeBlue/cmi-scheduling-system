@@ -22,6 +22,51 @@ export const handler = async (req, res) => {
         schedules.push(scheds);
       }
 
+      /*  
+{
+  "_id": {
+      "$oid": "642a2f19dea3f2bcc8df8c12"
+  },
+  "course": {
+      "$oid": "642a2d8fe769e5c289c2f080"
+  },
+  "semester": "1",
+  "subject": {
+      "$oid": "642a2dc0e769e5c289c2f0aa"
+  },
+  "teacher": {
+      "$oid": "642784c6b33fe4cc05644ba4"
+  },
+  "yearSec": {
+      "year": {
+          "$numberInt": "1"
+      },
+      "section": "A"
+  },
+  "isCompleted": true,
+  "schedules": [{
+      "day": {
+          "$numberInt": "2"
+      },
+      "room": {
+          "_id": {
+              "$oid": "642a2de0e769e5c289c2f0b4"
+          },
+          "code": "mergeable room"
+      },
+      "times": [{
+          "start": "7:30 AM",
+          "end": "10:30 AM",
+          "_id": {
+              "$oid": "642a2e22e769e5c289c2f0e4"
+          }
+      }],
+      "_id": {
+          "$oid": "642a2e22e769e5c289c2f0e3"
+      }
+  }]
+}
+*/
       const data = await schedule.createSchedule({
         schedules,
         courseSubjectScheds,

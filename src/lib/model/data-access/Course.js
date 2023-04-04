@@ -1206,7 +1206,7 @@ class Course extends Model {
     }
   }
 
-  async searchCourse({ q, limit, page }) {
+  async searchCourse({ q, limit, page, type }) {
     try {
       const pipeline = [
         {
@@ -1237,6 +1237,13 @@ class Course extends Model {
           },
         },
       ];
+      if (type) {
+        pipeline.push({
+          $match: {
+            type: type,
+          },
+        });
+      }
       if (limit && page) {
         const options = { ...(page && limit ? { page, limit } : {}) };
         const courseAggregation = this.Course.aggregate(pipeline);
