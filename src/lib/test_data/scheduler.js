@@ -667,6 +667,7 @@ const schedulerData2 = {
           code: 'mergeable subj',
           name: 'Mergeable Subject',
           units: 3,
+          //add courses that has this subject
           courses: [
             {
               _id: '642a2d8fe769e5c289c2f080',
@@ -790,16 +791,8 @@ const schedulerData2 = {
                 code: 'mergeable subj',
                 name: 'Mergeable Subject',
                 units: 3,
+                //add courses that has this subject
                 courses: [
-                  /**
-                   * add the courses that has this subject
-                   * example:
-                   * {
-                   *  _id,
-                   *  code,
-                   *  yearSections: [{year, section}]
-                   * }
-                   */
                   {
                     _id: '642a2d8fe769e5c289c2f080',
                     name: 'For Merge Test',
