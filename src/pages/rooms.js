@@ -12,9 +12,13 @@ import { SpinnerLoader } from '@/components/Loaders';
 
 export default function Rooms() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: '/api/rooms',
+    url: `/api/rooms${searchValue ? '/search' : ''}`,
     limit: 10,
+    query: {
+      ...(searchValue ? { q: searchValue } : {}),
+    },
   });
   // console.log(pageData, Math.ceil(pageData?.totalPages));
   return (
@@ -41,7 +45,10 @@ export default function Rooms() {
         </Modal>
         <div className="flex items-center justify-between gap-4">
           <div className="w-full max-w-[350px]">
-            <SearchForm placeholder="Search rooms" />
+            <SearchForm
+              placeholder="Search rooms"
+              onSearch={(value) => setSearchValue(value)}
+            />
           </div>
           <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
         </div>

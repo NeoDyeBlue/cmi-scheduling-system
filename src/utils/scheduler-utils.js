@@ -166,7 +166,8 @@ export function createCourseSubjectSchedules(
   subjSchedItems = [],
   room = { _id: '', code: '' },
   subjectsData,
-  timeData
+  timeData,
+  course
 ) {
   //remove subjSchedIds that has no layout item
   const filteredSubjSchedIds = subjSchedIds.filter((id) =>
@@ -203,12 +204,13 @@ export function createCourseSubjectSchedules(
       const {
         subjectCode: itemSubjCode,
         teacherId: itemTeacherId,
-        // courses: itemCourses,
+        courses: itemCourses,
       } = parseLayoutItemId(item.i);
       return (
-        code == itemSubjCode && teacher == itemTeacherId
+        code == itemSubjCode &&
+        teacher == itemTeacherId &&
         // courses.some((course) => itemCourses.includes(course))
-        // itemCourses.includes(`${course.code}${course.year}${course.section}`)
+        itemCourses.includes(`${course.code}${course.year}${course.section}`)
       );
     });
 
@@ -224,8 +226,6 @@ export function createCourseSubjectSchedules(
         courses: parseLayoutItemId(item.i).courses,
       },
     }));
-
-    console.log(subjectData);
 
     //check if completed or not
     let totalMinutesDuration = 0;

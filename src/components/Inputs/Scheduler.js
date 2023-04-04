@@ -394,10 +394,9 @@ export default function Scheduler({
           code: roomData.code,
         },
         subjectsData,
-        timeData
+        timeData,
+        course
       );
-
-      console.log(roomSchedule);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
@@ -414,7 +413,8 @@ export default function Scheduler({
                 code: roomLayout.roomCode,
               },
               subjectsData,
-              timeData
+              timeData,
+              course
             )
           );
         }
@@ -754,55 +754,58 @@ export default function Scheduler({
 
         existingSchedules.forEach((existingSchedule) => {
           //should exclude checking of existing times when is merged with the currently editing course
-          existingSchedule.times.forEach((scheduleTime) => {
-            const subject = subjectScheds.find(
-              (subj) => subj.subject.code == scheduleTime.subject.code
-            );
-
-            //needs more tests
-            let coursesExist = false;
-            if (subject && scheduleTime) {
-              const scheduleTimeCourses = scheduleTime.courses.map(
-                (schedTimeCourse) =>
-                  `${schedTimeCourse.code}${schedTimeCourse.year}${schedTimeCourse.section}`
+          if (existingSchedule.room.code !== roomData.code) {
+            existingSchedule.times.forEach((scheduleTime) => {
+              console.log(scheduleTime);
+              const subject = subjectScheds.find(
+                (subj) => subj.subject.code == scheduleTime.subject.code
               );
 
-              coursesExist = subject.schedules.some((schedule) => {
-                return schedule.times.some((time) => {
-                  return time.courses.some((course) => {
-                    return scheduleTimeCourses.includes(course);
+              //needs more tests
+              let coursesExist = false;
+              if (subject && scheduleTime) {
+                const scheduleTimeCourses = scheduleTime.courses.map(
+                  (schedTimeCourse) =>
+                    `${schedTimeCourse.code}${schedTimeCourse.year}${schedTimeCourse.section}`
+                );
+
+                coursesExist = subject.schedules.some((schedule) => {
+                  return schedule.times.some((time) => {
+                    return time.courses.some((course) => {
+                      return scheduleTimeCourses.includes(course);
+                    });
                   });
                 });
-              });
-            }
-            if (
-              !scheduleTime.courses.some(
-                (scheduleCourse) =>
-                  `${course.code}${course.year}${course.section}` ==
-                  `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
-              ) &&
-              !(
-                parsedLayoutItemId &&
-                parsedLayoutItemId.courses.some(
-                  (itemCourse) =>
-                    itemCourse ==
-                    `${course.code}${course.year}${course.section}`
-                )
-              ) &&
-              !coursesExist
-            ) {
-              const timeStartIndex = timeData.findIndex((time) => {
-                return time[0] == scheduleTime.start;
-              });
-              const timeEndIndex = timeData.findIndex((time) => {
-                return time[1] == scheduleTime.end;
-              });
-
-              for (let i = timeStartIndex; i < timeEndIndex; i++) {
-                unavailableTimesY.push(i);
               }
-            }
-          });
+              if (
+                !scheduleTime.courses.some(
+                  (scheduleCourse) =>
+                    `${course.code}${course.year}${course.section}` ==
+                    `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
+                ) &&
+                !(
+                  parsedLayoutItemId &&
+                  parsedLayoutItemId.courses.some(
+                    (itemCourse) =>
+                      itemCourse ==
+                      `${course.code}${course.year}${course.section}`
+                  )
+                ) &&
+                !coursesExist
+              ) {
+                const timeStartIndex = timeData.findIndex((time) => {
+                  return time[0] == scheduleTime.start;
+                });
+                const timeEndIndex = timeData.findIndex((time) => {
+                  return time[1] == scheduleTime.end;
+                });
+
+                for (let i = timeStartIndex; i < timeEndIndex; i++) {
+                  unavailableTimesY.push(i);
+                }
+              }
+            });
+          }
         });
       }
 
@@ -902,13 +905,14 @@ export default function Scheduler({
       `${course.code}${course.year}${course.section}`,
     ]);
 
-    updateSubjSchedsMaxH(
-      [
-        ...layout.filter((item) => item.i !== layoutItem.i),
-        { ...layoutItem, i: newItemId, static: false },
-      ],
-      newItemId
+    const newLayoutItem = { ...layoutItem, i: newItemId, static: false };
+
+    const mergedItemsLayout = mergeYAdjacentSubjScheds(
+      [...layout.filter((item) => item.i !== layoutItem.i), newLayoutItem],
+      newLayoutItem
     );
+
+    updateSubjSchedsMaxH(mergedItemsLayout, newItemId);
   }
 
   function handleSplitMerge(layoutItem) {
@@ -922,17 +926,22 @@ export default function Scheduler({
       )
     );
 
-    console.log([
-      ...layout.filter((item) => item.i !== layoutItem.i),
-      { ...layoutItem, i: newItemId, static: true },
-    ]);
-    updateSubjSchedsMaxH(
-      [
-        ...layout.filter((item) => item.i !== layoutItem.i),
-        { ...layoutItem, i: newItemId, static: true },
-      ],
-      newItemId
+    const newLayoutItem = { ...layoutItem, i: newItemId, static: true };
+
+    const mergedItemsLayout = mergeYAdjacentSubjScheds(
+      [...layout.filter((item) => item.i !== layoutItem.i), newLayoutItem],
+      newLayoutItem
     );
+
+    updateSubjSchedsMaxH(mergedItemsLayout, newItemId);
+
+    // updateSubjSchedsMaxH(
+    //   [
+    //     ...layout.filter((item) => item.i !== layoutItem.i),
+    //     { ...layoutItem, i: newItemId, static: true },
+    //   ],
+    //   newItemId
+    // );
   }
 
   function handleLayoutChange(newLayout) {
