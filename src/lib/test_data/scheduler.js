@@ -686,7 +686,39 @@ const schedulerData2 = {
                   times: [
                     {
                       start: '7:30 AM',
-                      end: '10:30 AM',
+                      end: '9:30 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                      //change to array of courses
+                      courses: [
+                        {
+                          _id: '642a2d8fe769e5c289c2f080',
+                          name: 'For Merge Test',
+                          code: 'dontdelete-jp',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      subject: {
+                        _id: '642a2dc0e769e5c289c2f0aa',
+                        code: 'mergeable subj',
+                        name: 'Mergeable Subject',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:30 AM',
                       _id: '642a2e22e769e5c289c2f0e4',
                       //change to array of courses
                       courses: [
@@ -762,7 +794,22 @@ const schedulerData2 = {
                   times: [
                     {
                       start: '7:30 AM',
-                      end: '10:30 AM',
+                      end: '9:00 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:00 AM',
                       _id: '642a2e22e769e5c289c2f0e4',
                     },
                   ],

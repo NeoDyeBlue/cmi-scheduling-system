@@ -14,6 +14,8 @@ import {
   parseLayoutItemId,
   createLayoutItemId,
   checkIfEqualCourses,
+  getRemainingRowSpan,
+  getSubjectScheduleLayoutItems,
 } from '@/utils/scheduler-utils';
 import { SchedulerLayoutItemButton } from '../Buttons';
 
@@ -167,6 +169,28 @@ export default function Scheduler({
         return subject.id == `${subjectCode}~${teacherId}`;
       })?.data;
 
+      const subjSchedIds = subjectsData.map((data) => data.id);
+      const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
+        (roomLayout) => roomLayout.roomCode !== roomData.code
+      );
+      const { subjectLayoutItems } = getSubjectScheduleLayoutItems(
+        subjectCode,
+        teacherId,
+        layout,
+        otherRoomLayouts,
+        subjSchedIds,
+        course
+      );
+
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${subjectCode}~${teacherId}`
+      )?.data;
+
+      const remainingRowSpan = getRemainingRowSpan(
+        subjectData.units,
+        subjectLayoutItems
+      );
+
       const isSameSubjectAndTeacher = courseSubjects.some(
         (courseSubject) =>
           courseSubject.code == subjectCode &&
@@ -180,7 +204,28 @@ export default function Scheduler({
           courseItem == `${course.code}${course.year}${course.section}`
       );
 
-      const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
+      const mergeable =
+        isSameSubjectAndTeacher &&
+        !inSubjectCourses &&
+        schedule.h <= remainingRowSpan;
+
+      let courseText = '';
+
+      if (schedule.static) {
+        if (courses.length > 1) {
+          courseText = `${courses[0]} & ${courses.length - 1} other${
+            courses.length - 1 > 1 ? 's' : ''
+          }`;
+        } else {
+          courseText = courses[0];
+        }
+      } else if (!schedule.static) {
+        if (courses.length > 1 && inSubjectCourses) {
+          courseText = `${course.code}${course.year}${course.section} & ${
+            courses.length - 1
+          } other${courses.length - 1 > 1 ? 's' : ''}`;
+        }
+      }
 
       return (
         <div
@@ -191,14 +236,14 @@ export default function Scheduler({
               'border-warning-400 bg-warning-100':
                 data?.teacher?.type == 'part-time' &&
                 !schedule.static &&
-                inSubjectCourses,
+                courses.length <= 1,
               'border-success-400 bg-success-100':
                 data?.teacher?.type == 'full-time' &&
                 !schedule.static &&
-                inSubjectCourses,
-              'border-info-400 bg-info-100': schedule.static && mergeable,
-              'border border-gray-400 bg-gray-100':
-                schedule.static && !mergeable,
+                courses.length <= 1,
+              'border-info-400 bg-info-100':
+                !schedule.static && courses.length > 1 && inSubjectCourses,
+              'border border-gray-400 bg-gray-100': schedule.static,
             },
             {
               'cursor-default': schedule.static,
@@ -206,6 +251,11 @@ export default function Scheduler({
             }
           )}
         >
+          {schedule.static && mergeable ? (
+            <p className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white">
+              mergeable
+            </p>
+          ) : null}
           <div
             className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
               'group-hover:flex': !isResizing,
@@ -251,7 +301,13 @@ export default function Scheduler({
             />
           ) : null}
           <div className="flex flex-col text-center">
-            <p className="font-display font-semibold uppercase">{data.code}</p>
+            <p
+              className={classNames('font-display font-semibold uppercase', {
+                'text-xs': schedule.h == 1,
+              })}
+            >
+              {data.code}
+            </p>
             {schedule.h > 1 && (
               <p className="text-xs font-medium">
                 {data?.teacher?.firstName} {data?.teacher?.lastName}
@@ -260,18 +316,16 @@ export default function Scheduler({
           </div>
           {(schedule.static || inSubjectCourses) && (
             <p className="max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase">
-              {/* {courses.join(', ')} */}
-              {schedule.static &&
-                courses.length > 1 &&
-                `${courses[0]} & ${courses.length - 1} other${
-                  courses.length - 1 > 1 ? 's' : ''
-                }`}
+              {/* {courses.join(', ')}
+              {schedule.static && courseText}
               {schedule.static && courses.length <= 1 && courses[0]}
               {!schedule.static &&
                 inSubjectCourses &&
                 `${course.code}${course.year}${course.section} & ${
                   courses.length - 1
                 } other${courses.length - 1 > 1 ? 's' : ''}`}
+              {!schedule.static && courses.length <= 1 && courses[0]} */}
+              {courseText}
             </p>
           )}
         </div>
@@ -290,6 +344,7 @@ export default function Scheduler({
 
   //for setting initial layout
   useEffect(() => {
+    console.log('here');
     //get the existing room layout
     const existingRoomLayout = roomsSubjSchedsLayouts.find(
       (room) => room.roomCode == roomData.code
@@ -330,9 +385,10 @@ export default function Scheduler({
       const courseSchedsData = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
-          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+          const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
           return (
-            subjSchedIds.includes(`${subjectCode}~${teacherId}`) && !item.static
+            subjSchedIds.includes(`${subjectCode}~${teacherId}`) &&
+            courses.includes(`${course.code}${course.year}${course.section}`)
           );
         }),
         {
@@ -348,10 +404,14 @@ export default function Scheduler({
             ...createCourseSubjectSchedules(
               subjSchedIds,
               roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+                const { subjectCode, teacherId, courses } = parseLayoutItemId(
+                  item.i
+                );
                 return (
                   subjSchedIds.includes(`${subjectCode}~${teacherId}`) &&
-                  !item.static
+                  courses.includes(
+                    `${course.code}${course.year}${course.section}`
+                  )
                 );
               }),
               {
@@ -463,7 +523,7 @@ export default function Scheduler({
         return (
           code == itemSubjCode &&
           teacher == itemTeacherId &&
-          checkIfEqualCourses(courses, itemCourses)
+          itemCourses.includes(`${course.code}${course.year}${course.section}`)
         );
       });
 
@@ -471,11 +531,12 @@ export default function Scheduler({
         (data) => data.id == `${code}~${teacher}`
       );
       //set the subject's times and days
-      const schedules = subjSchedLayoutItems.map((layout) => ({
-        day: layout.x,
+      const schedules = subjSchedLayoutItems.map((item) => ({
+        day: item.x,
         time: {
-          start: timeData[layout.y][0],
-          end: timeData[layout.y + layout.h - 1][1],
+          start: timeData[item.y][0],
+          end: timeData[item.y + item.h - 1][1],
+          courses: parseLayoutItemId(item.i).courses,
         },
       }));
 
@@ -514,10 +575,10 @@ export default function Scheduler({
           groupedByDay.push({
             day,
             room,
-            courses,
             times: daySchedules.map((daySchedule) => ({
               start: daySchedule.time.start,
               end: daySchedule.time.end,
+              courses: daySchedule.time.courses,
             })),
           });
         }
@@ -540,7 +601,7 @@ export default function Scheduler({
     return newRoomSubjectScheds;
   }
 
-  console.log(subjectScheds);
+  console.log('subjectScheds', subjectScheds);
 
   // function parseLayoutItemId(id, separator = '~') {
   //   const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
@@ -565,11 +626,7 @@ export default function Scheduler({
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
     //get the layout items with the same ids
-    const roomSubjSchedItems = layoutSource.filter((item) => {
-      const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
-        parseLayoutItemId(item.i);
-      return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
-    });
+    // console.log(roomSubjSchedItems);
     //get the layout from other rooms
     const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
       (roomLayout) => roomLayout.roomCode !== roomData.code
@@ -581,38 +638,21 @@ export default function Scheduler({
 
     //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
-      const unitsMaxSpan = subjectData.units * 2;
-      const subjSchedItems = [
-        ...roomSubjSchedItems,
-        ...(otherRoomLayouts.length ? otherRoomLayouts : [])
-          .map((obj) => obj.layout)
-          .flat(),
-      ].filter((item) => {
-        const {
-          subjectCode: itemSubjectCode,
-          teacherId: itemTeacherId,
-          courses: itemCourses,
-        } = parseLayoutItemId(item.i);
-        return (
-          subjectCode == itemSubjectCode &&
-          teacherId == itemTeacherId &&
-          checkIfEqualCourses(courses, itemCourses)
-        );
-      });
-
-      const { totalRowSpanCount } = subjSchedItems.reduce(
-        (accumulator, currentItem) => {
-          return {
-            totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
-            itemCount: (accumulator.itemCount += 1),
-          };
-        },
-        { totalRowSpanCount: 0, itemCount: 0 }
+      const { roomItems, subjectLayoutItems } = getSubjectScheduleLayoutItems(
+        subjectCode,
+        teacherId,
+        layoutSource,
+        otherRoomLayouts,
+        subjSchedIds,
+        course
       );
 
-      const remainingRowSpan = unitsMaxSpan - totalRowSpanCount;
+      const remainingRowSpan = getRemainingRowSpan(
+        subjectData.units,
+        subjectLayoutItems
+      );
 
-      const updatedSubjSchedItems = subjSchedItems.map((item) => ({
+      const updatedSubjSchedItems = subjectLayoutItems.map((item) => ({
         ...item,
         maxH: remainingRowSpan + item.h,
       }));
@@ -638,17 +678,19 @@ export default function Scheduler({
         roomCode: roomData.code,
         roomId: roomData._id,
         layout: [
-          ...roomSubjSchedItems.filter(
+          ...roomItems.filter(
             (item) =>
               !updatedSubjSchedItems.some(
                 (updatedItem) => updatedItem.i == item.i
               )
           ),
           ...updatedSubjSchedItems.filter((updatedItem) =>
-            roomSubjSchedItems.some((item) => updatedItem.i == item.i)
+            roomItems.some((item) => updatedItem.i == item.i)
           ),
         ],
       };
+
+      console.log('newRoomLayout', newRoomLayout);
 
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
       setLayout([...newRoomLayout.layout, ...timeLayout.flat()]);
@@ -778,8 +820,6 @@ export default function Scheduler({
           )) ||
         [];
 
-      console.log(existingSchedules);
-
       const inSchedulerDayTimes = subjectScheds
         .filter(
           (subjSched) =>
@@ -815,7 +855,7 @@ export default function Scheduler({
           //get all the available time indexes of the teacher from preffered day start and end
           for (
             let availableY = preferredTimeStartIndex;
-            availableY < preferredTimeEndIndex;
+            availableY <= preferredTimeEndIndex;
             availableY++
           ) {
             availableTimesY.push(availableY);
@@ -842,9 +882,30 @@ export default function Scheduler({
         if (layoutItem) {
           parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
         }
-        existingSchedules.forEach((scheduleDays) => {
-          //needs attention
-          scheduleDays.times.forEach((scheduleTime) => {
+
+        existingSchedules.forEach((existingSchedule) => {
+          //should exclude checking of existing times when is merged with the currently editing course
+          existingSchedule.times.forEach((scheduleTime) => {
+            const subject = subjectScheds.find(
+              (subj) => subj.subject.code == scheduleTime.subject.code
+            );
+
+            //needs more tests
+            let coursesExist = false;
+            if (subject && scheduleTime) {
+              const scheduleTimeCourses = scheduleTime.courses.map(
+                (schedTimeCourse) =>
+                  `${schedTimeCourse.code}${schedTimeCourse.year}${schedTimeCourse.section}`
+              );
+
+              coursesExist = subject.schedules.some((schedule) => {
+                return schedule.times.some((time) => {
+                  return time.courses.some((course) => {
+                    return scheduleTimeCourses.includes(course);
+                  });
+                });
+              });
+            }
             if (
               !scheduleTime.courses.some(
                 (scheduleCourse) =>
@@ -858,7 +919,8 @@ export default function Scheduler({
                     itemCourse ==
                     `${course.code}${course.year}${course.section}`
                 )
-              )
+              ) &&
+              !coursesExist
             ) {
               const timeStartIndex = timeData.findIndex((time) => {
                 return time[0] == scheduleTime.start;
@@ -867,7 +929,7 @@ export default function Scheduler({
                 return time[1] == scheduleTime.end;
               });
 
-              for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+              for (let i = timeStartIndex; i < timeEndIndex; i++) {
                 unavailableTimesY.push(i);
               }
             }
@@ -884,7 +946,7 @@ export default function Scheduler({
             return time[1] == scheduleTime.end;
           });
 
-          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+          for (let i = timeStartIndex; i < timeEndIndex; i++) {
             unavailableTimesY.push(i);
           }
         });
@@ -894,7 +956,7 @@ export default function Scheduler({
       let columnItemsUsedIndexes = [];
       const columnItems = layoutSource.filter((item) => item.x == x);
       columnItems.forEach((item) => {
-        for (let i = item.y; i <= item.y + item.h; i++) {
+        for (let i = item.y; i < item.y + item.h; i++) {
           columnItemsUsedIndexes.push(i);
         }
       });
@@ -971,10 +1033,13 @@ export default function Scheduler({
       `${course.code}${course.year}${course.section}`,
     ]);
 
-    setLayout((prev) => [
-      ...prev.filter((item) => item.i !== layoutItem.i),
-      { ...layoutItem, i: newItemId, static: false },
-    ]);
+    updateSubjSchedsMaxH(
+      [
+        ...layout.filter((item) => item.i !== layoutItem.i),
+        { ...layoutItem, i: newItemId, static: false },
+      ],
+      newItemId
+    );
   }
 
   function handleSplitMerge(layoutItem) {
@@ -988,10 +1053,17 @@ export default function Scheduler({
       )
     );
 
-    setLayout((prev) => [
-      ...prev.filter((item) => item.i !== layoutItem.i),
+    console.log([
+      ...layout.filter((item) => item.i !== layoutItem.i),
       { ...layoutItem, i: newItemId, static: true },
     ]);
+    updateSubjSchedsMaxH(
+      [
+        ...layout.filter((item) => item.i !== layoutItem.i),
+        { ...layoutItem, i: newItemId, static: true },
+      ],
+      newItemId
+    );
   }
 
   function handleLayoutChange(newLayout) {
@@ -1006,8 +1078,11 @@ export default function Scheduler({
     try {
       const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
-        const nanoId = nanoid(10);
-        const layoutItemId = `${data.code}~${data.teacher.teacherId}~~${nanoId}`;
+        const layoutItemId = createLayoutItemId(
+          data.code,
+          data.teacher.teacherId,
+          [`${course.code}${course.year}${course.section}`]
+        );
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
@@ -1032,9 +1107,11 @@ export default function Scheduler({
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
           const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
-          return subjectsData.some(
-            (data) =>
-              data.id == `${subjectCode}~${teacherId}~${courses.join(',')}`
+          return (
+            subjectsData.some(
+              (data) => data.id == `${subjectCode}~${teacherId}`
+            ) &&
+            courses.includes(`${course.code}${course.year}${course.section}`)
           );
         })
         .reduce(
@@ -1052,6 +1129,7 @@ export default function Scheduler({
           },
           { totalRowSpanCount: 0, itemCount: 0 }
         );
+
       const unitsMaxSpan = draggingSubject.units * 2;
       const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
 

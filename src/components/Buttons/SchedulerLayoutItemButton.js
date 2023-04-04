@@ -23,7 +23,8 @@ export default function SchedulerLayoutItemButton({
           onClick();
         }}
         className={classNames(
-          `aspect-square items-center justify-center rounded-lg border border-gray-200 bg-white p-[0.15rem] text-center`
+          `aspect-square items-center justify-center rounded-lg border border-gray-200 bg-white p-[0.15rem] text-center
+           shadow-md`
         )}
       >
         {icon}

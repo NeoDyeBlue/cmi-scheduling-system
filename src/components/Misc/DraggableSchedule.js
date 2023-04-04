@@ -2,11 +2,12 @@ import React from 'react';
 import ImageWithFallback from './ImageWithFallback';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import TeacherTypeBadge from './TeacherTypeBadge';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import classNames from 'classnames';
 import { parse, differenceInMinutes } from 'date-fns';
 import { MdCheck } from 'react-icons/md';
 import { subtractDuration } from '@/utils/time-utils';
+import { shallow } from 'zustand/shallow';
 
 /**
  * Your Component
@@ -19,7 +20,16 @@ export default function DraggableSchedule({ data }) {
     minutes: 0,
   });
   //stores
-  const { setDraggingSubject, subjectScheds } = useSchedulerStore();
+  const { subjectScheds, setDraggingSubject } = useSchedulerStore(
+    useCallback(
+      (state) => ({
+        subjectScheds: state.subjectScheds,
+        setDraggingSubject: state.setDraggingSubject,
+      }),
+      []
+    ),
+    shallow
+  );
 
   useEffect(() => {
     const subject = subjectScheds.find(
@@ -64,27 +74,6 @@ export default function DraggableSchedule({ data }) {
       // setIsDraggable(subject.isCompleted);
     }
   }, [subjectScheds, data]);
-
-  // function subtractDuration(
-  //   duration = { hours: 0, minutes: 0 },
-  //   toSubtractDuration = { hours: 0, minutes: 0 }
-  // ) {
-  //   // Convert duration1 to total minutes
-  //   const duration1TotalMinutes = duration.hours * 60 + duration.minutes;
-
-  //   // Convert duration2 to total minutes
-  //   const duration2TotalMinutes =
-  //     toSubtractDuration.hours * 60 + toSubtractDuration.minutes;
-
-  //   // Subtract the two durations
-  //   const resultTotalMinutes = duration1TotalMinutes - duration2TotalMinutes;
-
-  //   // Convert the result back to hours and minutes
-  //   const hours = Math.floor(resultTotalMinutes / 60);
-  //   const minutes = resultTotalMinutes % 60;
-
-  //   return { hours, minutes };
-  // }
 
   return (
     <li

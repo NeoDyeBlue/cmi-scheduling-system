@@ -83,7 +83,7 @@ export function createInitialRoomLayout(
 }
 
 export function createLayoutItemId(subject = '', teacher = '', courses = []) {
-  return `${subject}~${teacher}~${courses.join(',')}~${nanoid(10)}`;
+  return `${subject}~${teacher}~${_.sortBy(courses).join(',')}~${nanoid(10)}`;
 }
 
 export function parseLayoutItemId(id = '', separator = '~') {
@@ -98,4 +98,62 @@ export function parseLayoutItemId(id = '', separator = '~') {
 
 export function checkIfEqualCourses(courses1 = [], courses2 = []) {
   return _.isEqual(_.sortBy(courses1), _.sortBy(courses2));
+}
+
+export function getSubjectScheduleLayoutItems(
+  subjectCode,
+  teacherId,
+  roomLayout = [],
+  otherRoomLayouts = [],
+  subjSchedIds = [],
+  course
+) {
+  const roomSubjSchedItems = roomLayout.filter((item) => {
+    const {
+      subjectCode: itemSubjectCode,
+      teacherId: itemTeacherId,
+      courses: itemCourses,
+    } = parseLayoutItemId(item.i);
+    return (
+      subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`) ||
+      itemCourses.includes(`${course.code}${course.year}${course.section}`)
+    );
+  });
+  const subjSchedItems = [
+    ...roomSubjSchedItems,
+    ...(otherRoomLayouts.length ? otherRoomLayouts : [])
+      .map((obj) => obj.layout)
+      .flat(),
+  ].filter((item) => {
+    const {
+      subjectCode: itemSubjectCode,
+      teacherId: itemTeacherId,
+      courses: itemCourses,
+    } = parseLayoutItemId(item.i);
+    return (
+      subjectCode == itemSubjectCode &&
+      teacherId == itemTeacherId &&
+      itemCourses.includes(`${course.code}${course.year}${course.section}`)
+    );
+  });
+
+  return {
+    roomItems: roomSubjSchedItems,
+    subjectLayoutItems: subjSchedItems,
+  };
+}
+
+export function getRemainingRowSpan(units = 1, subjectLayoutItems = []) {
+  const unitsMaxSpan = units * 2;
+  const { totalRowSpanCount } = subjectLayoutItems.reduce(
+    (accumulator, currentItem) => {
+      return {
+        totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
+        itemCount: (accumulator.itemCount += 1),
+      };
+    },
+    { totalRowSpanCount: 0, itemCount: 0 }
+  );
+
+  return unitsMaxSpan - totalRowSpanCount;
 }
