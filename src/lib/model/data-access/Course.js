@@ -143,7 +143,6 @@ class Course extends Model {
             yearSections: 1,
           },
         },
-
       ];
       const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
@@ -1207,7 +1206,7 @@ class Course extends Model {
     }
   }
 
-  async searchCourse({ q, limit }) {
+  async searchCourse({ q, limit, page }) {
     try {
       const pipeline = [
         {
@@ -1237,12 +1236,23 @@ class Course extends Model {
             type: 1,
           },
         },
-        {
-          $limit: parseInt(limit),
-        },
       ];
-      const data = await this.Course.aggregate(pipeline);
-      return data;
+      if (limit && page) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const courseAggregation = this.Course.aggregate(pipeline);
+        const data = await this.Course.aggregatePaginate(
+          courseAggregation,
+          options
+        );
+        return data;
+      } else {
+        // if it should not have pagination
+        pipeline.push({
+          $limit: parseInt(limit),
+        });
+        const data = await this.Course.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       throw error;
     }

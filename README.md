@@ -64,5 +64,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [ ] Fix fetching of room schedules.
 - [x] update teacher day and time, should response all schedules that were affected of teacher's day time.
 - [x] update subject
-- [ ] update course
+- [x] update course
 - [x] on save of the same room and section but differnt sem, the different sem schedule is also deleting.

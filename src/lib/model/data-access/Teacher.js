@@ -76,7 +76,7 @@ class Teacher extends Model {
     }
   }
 
-  async getTeachersName({ q }) {
+  async getTeachersName({ q, page, limit }) {
     try {
       const pipeline = [
         {
@@ -96,19 +96,29 @@ class Teacher extends Model {
         {
           $limit: 25,
         },
-        {
-          $project: {
-            firstName: 1,
-            lastName: 1,
-            type: 1,
-            teacherId: 1,
-            image: 1,
-          },
-        },
+        // {
+        //   $project: {
+        //     firstName: 1,
+        //     lastName: 1,
+        //     type: 1,
+        //     teacherId: 1,
+        //     image: 1,
+        //     preferredDayTimes:1,
+        //   },
+        // },
       ];
-
-      const data = await this.Teacher.aggregate(pipeline);
-      return data;
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const teacherAggregation = this.Teacher.aggregate(pipeline);
+        const data = await this.Teacher.aggregatePaginate(
+          teacherAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Teacher.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       console.log('errrorrrrrrrr', error);
       throw error;

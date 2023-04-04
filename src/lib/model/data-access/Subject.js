@@ -132,7 +132,7 @@ class Subject extends Model {
       throw error;
     }
   }
-  async searchSubjects({ q, semester, type }) {
+  async searchSubjects({ q, semester, type, page, limit }) {
     try {
       const pipeline = [];
       pipeline.push({
@@ -157,8 +157,19 @@ class Subject extends Model {
           },
         });
       }
-      const data = await this.Subject.aggregate(pipeline);
-      return data;
+      console.log('page && limit', page && limit);
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const subjectAggregation = this.Subject.aggregate(pipeline);
+        const data = await this.Subject.aggregatePaginate(
+          subjectAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Subject.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       throw error;
     }
