@@ -667,6 +667,17 @@ const schedulerData2 = {
           code: 'mergeable subj',
           name: 'Mergeable Subject',
           units: 3,
+          courses: [
+            /**
+             * add the courses that has this subject
+             * example:
+             * {
+             *  _id,
+             *  code,
+             *  yearSections: [{year, section}]
+             * }
+             */
+          ],
           assignedTeachers: [
             {
               _id: '642784c6b33fe4cc05644ba4',
@@ -774,6 +785,17 @@ const schedulerData2 = {
                 code: 'mergeable subj',
                 name: 'Mergeable Subject',
                 units: 3,
+                courses: [
+                  /**
+                   * add the courses that has this subject
+                   * example:
+                   * {
+                   *  _id,
+                   *  code,
+                   *  yearSections: [{year, section}]
+                   * }
+                   */
+                ],
               },
               //remove array of courses here if kaya or possible
               // courses: [
