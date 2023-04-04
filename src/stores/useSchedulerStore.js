@@ -3,6 +3,7 @@ import { create } from 'zustand';
 const initialState = {
   course: null,
   courseSubjects: [],
+  mergedClasses: [],
   subjectsData: [],
   draggingSubject: null,
   selectedRooms: [],
@@ -40,6 +41,11 @@ const useSchedulerStore = create((set, get) => ({
   setAllRoomSubjSchedsLayout: (payload) => {
     set(() => ({
       roomsSubjSchedsLayouts: payload,
+    }));
+  },
+  setMergedClasses: (payload) => {
+    set(() => ({
+      mergedClasses: payload,
     }));
   },
   setRoomSubjSchedsLayout: (roomCode, roomId, layout) => {

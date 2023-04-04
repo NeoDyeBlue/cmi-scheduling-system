@@ -657,4 +657,172 @@ const courses = [
   },
 ];
 
-export { schedulerData, rooms, courses };
+const schedulerData2 = {
+  code: 200,
+  data: [
+    {
+      subjects: [
+        {
+          _id: '642a2dc0e769e5c289c2f0aa',
+          code: 'mergeable subj',
+          name: 'Mergeable Subject',
+          units: 3,
+          assignedTeachers: [
+            {
+              _id: '642784c6b33fe4cc05644ba4',
+              firstName: 'Arashi',
+              lastName: 'Scaramouchie',
+              image: '/images/teachers/642784c6b33fe4cc05644ba4.jpeg',
+              type: 'full-time',
+              preferredDayTimes: [],
+              teacherId: '11-1112',
+              existingSchedules: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:30 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                      //change to array of courses
+                      courses: [
+                        {
+                          _id: '642a2d8fe769e5c289c2f080',
+                          name: 'For Merge Test',
+                          code: 'dontdelete-jp',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      subject: {
+                        _id: '642a2dc0e769e5c289c2f0aa',
+                        code: 'mergeable subj',
+                        name: 'Mergeable Subject',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:30 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                      //change to array of courses
+                      courses: [
+                        {
+                          _id: '642a2d8fe769e5c289c2f080',
+                          name: 'For Merge Test',
+                          code: 'dontdelete-jp',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      subject: {
+                        _id: '642a2dc0e769e5c289c2f0aa',
+                        code: 'mergeable subj',
+                        name: 'Mergeable Subject',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      course: {
+        _id: '642a2d8fe769e5c289c2f080',
+        code: 'dontdelete-jp',
+        name: 'For Merge Test',
+        year: 1,
+        section: 'B',
+      },
+      semester: '1',
+      completed: false,
+      rooms: [
+        {
+          _id: '642a2de0e769e5c289c2f0b4',
+          code: 'mergeable room',
+          name: 'Mergeable Room',
+          schedules: [
+            {
+              _id: '642a2f19dea3f2bcc8df8c12',
+              teacher: {
+                _id: '642784c6b33fe4cc05644ba4',
+                firstName: 'Arashi',
+                lastName: 'Scaramouchie',
+                teacherId: '11-1112',
+              },
+              subject: {
+                _id: '642a2dc0e769e5c289c2f0aa',
+                code: 'mergeable subj',
+                name: 'Mergeable Subject',
+                units: 3,
+              },
+              //change to array of courses
+              courses: [
+                {
+                  code: 'dontdelete-jp',
+                  name: 'For Merge Test',
+                  year: 1,
+                  section: 'A',
+                },
+              ],
+              dayTimes: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:00 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:00 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  success: true,
+};
+
+export { schedulerData, rooms, courses, schedulerData2 };

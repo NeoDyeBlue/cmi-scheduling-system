@@ -23,6 +23,7 @@ import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
+import { schedulerData2 } from '@/lib/test_data/scheduler';
 
 export default function Schedule() {
   const router = useRouter();
@@ -102,8 +103,8 @@ export default function Schedule() {
   );
 
   const schedulerData = useMemo(
-    () => (result?.data[0] ? result.data[0] : null),
-    [result]
+    () => (schedulerData2?.data[0] ? schedulerData2.data[0] : null),
+    []
   );
 
   useEffect(
@@ -114,52 +115,36 @@ export default function Schedule() {
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
             //add to course subjects data
-            const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
+            const subjectCourseYearSections = [schedulerData?.course];
+            teacher.existingSchedules.forEach((schedule) => {
+              schedule.times.forEach((time) => {
+                if (time.subject._id == subject._id) {
+                  time.courses.forEach((course) => {
+                    if (
+                      !subjectCourseYearSections.some(
+                        (courseYrSec) =>
+                          courseYrSec.code == course.code &&
+                          courseYrSec.year == course.year &&
+                          courseYrSec.section == course.section
+                      )
+                    ) {
+                      subjectCourseYearSections.push(course);
+                    }
+                  });
+                }
+              });
+            });
+
+            const dataId = `${subject.code}~${teacher.teacherId}`;
             const { teachers, ...newData } = subject;
             courseSubjectsData.push({
               id: dataId,
-              data: { ...newData, teacher, course: schedulerData?.course },
+              data: {
+                ...newData,
+                teacher,
+                courses: subjectCourseYearSections,
+              },
             });
-
-            //check if addable to initial subject scheds
-            // if (teacher.existingSchedules.length) {
-            //   const courseSubjectSchedules = [];
-            //   teacher.existingSchedules.forEach((dayTimes) => {
-            //     const subjectTimes = [];
-
-            //     dayTimes.times.forEach((time) => {
-            //       if (
-            //         `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
-            //           `${time.course.code}${time.course.year}${time.course.section}` &&
-            //         time.subject.code == subject.code
-            //       ) {
-            //         subjectTimes.push({ start: time.start, end: time.end });
-            //       }
-            //     });
-
-            //     if (subjectTimes.length) {
-            //       courseSubjectSchedules.push({
-            //         day: dayTimes.day,
-            //         room: dayTimes.room,
-            //         times: subjectTimes,
-            //       });
-            //     }
-            //   });
-
-            //   if (courseSubjectSchedules.length) {
-            //     initialSubjectScheds.push({
-            //       subject: {
-            //         _id: subject._id,
-            //         code: subject.code,
-            //       },
-            //       teacher: {
-            //         _id: teacher._id,
-            //         teacherId: teacher.teacherId,
-            //       },
-            //       schedules: courseSubjectSchedules,
-            //     });
-            //   }
-            // }
           });
         });
         const roomLayouts = [];
@@ -177,8 +162,6 @@ export default function Schedule() {
           });
         });
         setAllRoomSubjSchedsLayout(roomLayouts);
-        // setSubjectScheds(initialSubjectScheds);
-        // setOldSchedsData(initialSubjectScheds);
         setCourseSubjects(schedulerData?.subjects);
         setCourse(schedulerData?.course);
         setSubjectsData(courseSubjectsData);
@@ -195,7 +178,7 @@ export default function Schedule() {
         const roomSubjectsData = [];
         selectedRooms.forEach((room) => {
           room.schedules.forEach((schedule) => {
-            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
+            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}`;
             if (
               !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)
@@ -205,7 +188,7 @@ export default function Schedule() {
                 data: {
                   ...schedule.subject,
                   teacher: schedule.teacher,
-                  course: schedule.course,
+                  courses: schedule.courses,
                 },
               });
             }
@@ -392,9 +375,6 @@ export default function Schedule() {
 
     setRemoveRoom(true);
   }
-
-  // console.log('old', oldSchedsData);
-  // console.log('new', subjectScheds);
 
   return (
     <>
