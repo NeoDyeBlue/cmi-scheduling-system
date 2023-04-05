@@ -34,46 +34,51 @@ export default function DraggableSchedule({ data }) {
     );
 
   useEffect(() => {
-    const subject = subjectScheds.find(
-      (subj) => subj.subject.code == data.code
-    );
-    const isTheTeacher = subject?.teacher.teacherId == data.teacher.teacherId;
-
-    if (subject && !isTheTeacher) {
-      setIsDraggable(false);
-    } else {
-      let totalMinutesDuration = 0;
-      subject?.schedules?.forEach((sched) => {
-        sched.times.forEach((time) => {
-          const start = parse(time.start, 'hh:mm a', new Date());
-          const end = parse(time.end, 'hh:mm a', new Date());
-
-          totalMinutesDuration += differenceInMinutes(end, start);
-        });
-      });
-
-      const hoursDuration = Math.floor(totalMinutesDuration / 60);
-      const minutesDuration = totalMinutesDuration % 60;
-
-      const { hours, minutes } = subtractDuration(
-        { hours: data.units, minutes: 0 },
-        {
-          hours: hoursDuration,
-          minutes: minutesDuration,
-        }
+    if (data?.teacher) {
+      const subject = subjectScheds.find(
+        (subj) => subj.subject.code == data.code
       );
+      const isTheTeacher =
+        subject?.teacher?.teacherId == data?.teacher?.teacherId;
 
-      setRemainingTime({
-        hours,
-        minutes,
-      });
-
-      if (hours <= 0 && minutes <= 0) {
+      if (subject && !isTheTeacher) {
         setIsDraggable(false);
       } else {
-        setIsDraggable(true);
+        let totalMinutesDuration = 0;
+        subject?.schedules?.forEach((sched) => {
+          sched.times.forEach((time) => {
+            const start = parse(time.start, 'hh:mm a', new Date());
+            const end = parse(time.end, 'hh:mm a', new Date());
+
+            totalMinutesDuration += differenceInMinutes(end, start);
+          });
+        });
+
+        const hoursDuration = Math.floor(totalMinutesDuration / 60);
+        const minutesDuration = totalMinutesDuration % 60;
+
+        const { hours, minutes } = subtractDuration(
+          { hours: data.units, minutes: 0 },
+          {
+            hours: hoursDuration,
+            minutes: minutesDuration,
+          }
+        );
+
+        setRemainingTime({
+          hours,
+          minutes,
+        });
+
+        if (hours <= 0 && minutes <= 0) {
+          setIsDraggable(false);
+        } else {
+          setIsDraggable(true);
+        }
+        // setIsDraggable(subject.isCompleted);
       }
-      // setIsDraggable(subject.isCompleted);
+    } else {
+      setIsDraggable(false);
     }
   }, [subjectScheds, data]);
 
@@ -86,8 +91,10 @@ export default function DraggableSchedule({ data }) {
           'group cursor-grab hover:border-primary-400 hover:bg-primary-400 hover:text-white hover:shadow-lg':
             isDraggable,
           'animate-pulse border-info-500 bg-info-100':
+            data?.teacher &&
             hoveredMergeable == `${data.code}~${data.teacher.teacherId}`,
           'bg-white':
+            data?.teacher &&
             hoveredMergeable !== `${data.code}~${data.teacher.teacherId}`,
           'cursor-not-allowed opacity-50': !isDraggable,
         }
@@ -124,23 +131,27 @@ export default function DraggableSchedule({ data }) {
           )}
         </p>
       </div>
-      <div className="flex items-center gap-3 overflow-hidden">
-        <ImageWithFallback
-          src={data?.teacher?.image}
-          alt="teacher image"
-          width={36}
-          height={36}
-          draggable={false}
-          fallbackSrc="/images/teachers/default.jpg"
-          className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-        />
-        <div className="flex flex-col overflow-hidden">
-          <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">
-            {data?.teacher?.firstName} {data?.teacher?.lastName}
-          </p>
-          <TeacherTypeBadge isPartTime={data?.teacher?.type == 'part-time'} />
+      {data.teacher ? (
+        <div className="flex items-center gap-3 overflow-hidden">
+          <ImageWithFallback
+            src={data?.teacher?.image}
+            alt="teacher image"
+            width={36}
+            height={36}
+            draggable={false}
+            fallbackSrc="/images/teachers/default.jpg"
+            className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+          />
+          <div className="flex flex-col overflow-hidden">
+            <p className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+              {data?.teacher?.firstName} {data?.teacher?.lastName}
+            </p>
+            <TeacherTypeBadge isPartTime={data?.teacher?.type == 'part-time'} />
+          </div>
         </div>
-      </div>
+      ) : (
+        <p className="text-xs font-semibold text-danger-500">Unassigned</p>
+      )}
     </li>
   );
 }

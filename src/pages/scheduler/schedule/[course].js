@@ -89,20 +89,18 @@ export default function Schedule() {
     error,
     mutate,
   } = useSWR(
-    Object.keys(router.query).length
-      ? `/api/courses/${courseCode}?${new URLSearchParams({
-          semester,
-          year,
-          section,
-          p: 'draggable',
-        }).toString()}`
-      : null,
+    `/api/courses/${courseCode}?${new URLSearchParams({
+      semester,
+      year,
+      section,
+      p: 'draggable',
+    }).toString()}`,
     null,
     {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
+      // revalidateIfStale: false,
+      // revalidateOnFocus: false,
       revalidateOnMount: true,
-      revalidateOnReconnect: false,
+      // revalidateOnReconnect: false,
     }
   );
 
@@ -110,6 +108,8 @@ export default function Schedule() {
     () => (result?.data[0] ? result.data[0] : null),
     [result]
   );
+
+  console.log(schedulerData);
 
   useEffect(
     () => {
@@ -255,12 +255,21 @@ export default function Schedule() {
 
   const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
     const { teachers, ...newData } = subject;
-    return subject?.assignedTeachers.map((teacher, teacherIndex) => (
-      <DraggableSchedule
-        key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-        data={{ ...newData, teacher, course }}
-      />
-    ));
+    if (subject.assignedTeachers.length) {
+      return subject?.assignedTeachers.map((teacher, teacherIndex) => (
+        <DraggableSchedule
+          key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
+          data={{ ...newData, teacher, course }}
+        />
+      ));
+    } else {
+      return (
+        <DraggableSchedule
+          key={subjIndex}
+          data={{ ...newData, teacher: null, course }}
+        />
+      );
+    }
   });
 
   const selectedRoomTabs = selectedRooms.map((room, index) => (

@@ -27,6 +27,9 @@ export default function CourseTable({ type }) {
     query: {
       type,
     },
+    // options: {
+    //   revalidateOnMount: true,
+    // },
   });
 
   const memoizedData = useMemo(() => docs, [docs]);
