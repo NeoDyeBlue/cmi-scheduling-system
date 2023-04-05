@@ -332,11 +332,6 @@ class Course extends Model {
                   let: { subject_oid: '$_id' },
                   foreignField: 'yearSections.semesterSubjects.subjects._id',
                   pipeline: [
-                    {
-                      $match: {
-                        'yearSections.semesterSubjects.semester': semester,
-                      },
-                    },
                     { $unwind: '$yearSections' },
                     { $unwind: '$yearSections.semesterSubjects' },
                     {
@@ -381,6 +376,16 @@ class Course extends Model {
                     {
                       $project: {
                         _id: 0,
+                      },
+                    },
+                    {
+                      $addFields: {
+                        _id: '$course_oid',
+                      },
+                    },
+                    {
+                      $project: {
+                        course_oid: 0,
                       },
                     },
                     {
@@ -572,6 +577,7 @@ class Course extends Model {
           },
         },
       ];
+
       if (year) {
         pipeline.push({
           $match: {

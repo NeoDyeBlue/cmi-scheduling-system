@@ -5,6 +5,7 @@ export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const formData = req.body;
+      console.log('formData', JSON.stringify(formData));
       const schedules = formData.roomSchedules.flatMap((roomSchedule) =>
         roomSchedule.schedules.flatMap((schedule) =>
           schedule.schedules.flatMap((sched) =>

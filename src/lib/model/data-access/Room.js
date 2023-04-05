@@ -370,7 +370,7 @@ class Room extends Model {
         {
           $project: { _id: 1, code: 1, name: 1 },
         },
-
+        
         {
           $lookup: {
             from: 'schedules',
@@ -421,12 +421,6 @@ class Room extends Model {
                         foreignField:
                           'yearSections.semesterSubjects.subjects._id',
                         pipeline: [
-                          {
-                            $match: {
-                              'yearSections.semesterSubjects.semester':
-                                semester,
-                            },
-                          },
                           { $unwind: '$yearSections' },
                           { $unwind: '$yearSections.semesterSubjects' },
                           {
@@ -470,8 +464,13 @@ class Room extends Model {
                             },
                           },
                           {
-                            $project: {
+                            $project :{
                               _id: 0,
+                            }
+                          },
+                          {
+                            $addFields: {
+                              _id: "$course_oid",
                             },
                           },
                           {
@@ -570,12 +569,7 @@ class Room extends Model {
                       cond: { $eq: ['$$day_time.room.code', '$roomCode'] },
                     },
                   },
-                  course: {
-                    code: '$course.code',
-                    name: '$course.name',
-                    year: '$yearSec.year',
-                    section: '$yearSec.section',
-                  },
+                 
                 },
               },
             ],
@@ -586,56 +580,30 @@ class Room extends Model {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
         },
 
-        // { $unwind: '$schedules' },
-
-        // {
-        //   $match: {
-        //     'schedules.course.year': parseInt(year),
-        //     'schedules.course.section': section,
-        //   },
-        // },
-        // {
-        //   $group: {
-        //     _id: '$_id',
-        //     code: { $first: '$code' },
-        //     year: { $first: '$year' },
-        //     schedules: { $push: '$schedules' },
-        //   },
-        // },
-
         {
           $project: {
             _id: 1,
             code: 1,
             name: 1,
             schedules: 1,
-            // {
-            //   $filter: {
-            //     input: '$schedules',
-            //     as: 'scheds',
-            //     cond: {
-            //       $and: [
-            //         { $eq: ['$$scheds.course.year', parseInt(year)] },
-            //         { $eq: ['$$scheds.course.section', section] },
-            //       ],
-            //     },
-            //   },
-            // },
           },
         },
       ];
+      
       // if courseCode exists, then filter it by courseCode.
-      if (courseCode) {
-        pipeline.push({
-          $match: {
-            'schedules.course.code': courseCode,
-          },
-        });
-      }
+      // if (courseCode) {
+      //   pipeline.push({
+      //     $match: {
+      //       'schedules.course.code': courseCode,
+      //     },
+      //   });
+      // }
 
       const data = await this.Room.aggregate(pipeline);
+      console.log("rooooooooms", data)
       return data;
     } catch (error) {
+      console.log("error",error)
       throw error;
     }
   }
