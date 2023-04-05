@@ -23,15 +23,15 @@ export const handler = async (req, res) => {
       console.log('roomSchedules', roomSchedules);
 
       if (data[0]) {
-        // const rooms = roomSchedules.filter((room) => {
-        //   return room.schedules.some((schedule) => {
-        //     return (
-        //       schedule.course.year === parseInt(year) &&
-        //       schedule.course.section === section
-        //     );
-        //   });
-        // });
-        data[0]['rooms'] = roomSchedules;
+        const rooms = roomSchedules.filter((room) => {
+          return room.schedules.some((schedule) => {
+            return (
+              schedule.course.year === parseInt(year) &&
+              schedule.course.section === section
+            );
+          });
+        });
+        data[0]['rooms'] = rooms;
       }
       return successResponse(req, res, data);
     } catch (error) {
