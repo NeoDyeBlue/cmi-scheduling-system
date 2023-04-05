@@ -47,16 +47,21 @@ class Schedule extends Model {
       // store all schedules to remove to an array.
 
       // get all schedules of the course-year-section
+      const filtersForSchedules = schedules.map((sched) => {
+        return {
+          course: sched.course,
+          semester: sched.semester,
+          yearSec: {
+            year: sched.yearSec.year,
+            section: sched.yearSec.section,
+          },
+        };
+      });
 
-      const { course } = courseSubjectScheds;
       const currentSchedules = await this.Schedule.find({
-        course: course._id,
-        semester: schedules[0].semester, // get schedules by semester
-        yearSec: {
-          year: course.year,
-          section: course.section,
-        },
+        $or: filtersForSchedules,
       }).exec();
+      console.log('currentSchedules', currentSchedules);
 
       // delete schedules that has value empty array
       await this.Schedule.deleteMany({
@@ -84,9 +89,10 @@ class Schedule extends Model {
 
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
+      console.log('data---------', data);
       return data;
     } catch (error) {
-      console.log('error', error);
+      console.log('error---------', error);
       throw error;
     }
   }

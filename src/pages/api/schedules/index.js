@@ -4,72 +4,28 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
-      const courseSubjectScheds = req.body;
-      const schedules = [];
-      for (let courseScheds of courseSubjectScheds.subjectScheds) {
-        const scheds = {
-          teacher: courseScheds.teacher._id,
-          subject: courseScheds.subject._id,
-          course: courseSubjectScheds.course._id,
-          semester: parseInt(courseSubjectScheds.semester),
-          isCompleted: courseScheds.isCompleted,
-          yearSec: {
-            year: courseSubjectScheds.course.year,
-            section: courseSubjectScheds.course.section,
-          },
-          schedules: courseScheds.schedules,
-        };
-        schedules.push(scheds);
-      }
+      const formData = req.body;
+      const schedules = formData.roomSchedules.flatMap((roomSchedule) =>
+        roomSchedule.schedules.flatMap((schedule) =>
+          schedule.schedules.flatMap((sched) =>
+            sched.times.flatMap((time) =>
+              time.courses.flatMap((course) => ({
+                teacher: schedule.teacher._id,
+                subject: schedule.subject._id,
+                isCompleted: schedule.isCompleted,
+                semester: formData.semester,
+                schedules: [sched],
+                course: course._id,
+                yearSec: { year: course.year, section: course.section },
+              }))
+            )
+          )
+        )
+      );
 
-      /*  
-{
-  "_id": {
-      "$oid": "642a2f19dea3f2bcc8df8c12"
-  },
-  "course": {
-      "$oid": "642a2d8fe769e5c289c2f080"
-  },
-  "semester": "1",
-  "subject": {
-      "$oid": "642a2dc0e769e5c289c2f0aa"
-  },
-  "teacher": {
-      "$oid": "642784c6b33fe4cc05644ba4"
-  },
-  "yearSec": {
-      "year": {
-          "$numberInt": "1"
-      },
-      "section": "A"
-  },
-  "isCompleted": true,
-  "schedules": [{
-      "day": {
-          "$numberInt": "2"
-      },
-      "room": {
-          "_id": {
-              "$oid": "642a2de0e769e5c289c2f0b4"
-          },
-          "code": "mergeable room"
-      },
-      "times": [{
-          "start": "7:30 AM",
-          "end": "10:30 AM",
-          "_id": {
-              "$oid": "642a2e22e769e5c289c2f0e4"
-          }
-      }],
-      "_id": {
-          "$oid": "642a2e22e769e5c289c2f0e3"
-      }
-  }]
-}
-*/
       const data = await schedule.createSchedule({
         schedules,
-        courseSubjectScheds,
+        formData,
       });
       return successResponse(req, res, data);
     } catch (error) {
