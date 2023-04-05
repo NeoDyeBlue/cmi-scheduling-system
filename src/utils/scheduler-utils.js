@@ -163,19 +163,6 @@ export function createCourseSubjectSchedules(
     })
   );
 
-  // const layoutItemIds = subjSchedItems.reduce((accumulator, currentItem) => {
-  //   const { subjectCode, teacherId } = parseLayoutItemId(currentItem.i);
-  //   if (
-  //     filteredSubjSchedIds.some((id) => id == `${subjectCode}~${teacherId}`)
-  //   ) {
-  //     return [...accumulator, currentItem.i];
-  //   } else {
-  //     return accumulator;
-  //   }
-  // }, []);
-
-  // console.log(layoutItemIds, filteredSubjSchedIds);
-
   const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
     const { subjectCode, teacherId } = parseLayoutItemId(id);
     return { code: subjectCode, teacher: teacherId };
@@ -186,94 +173,110 @@ export function createCourseSubjectSchedules(
 
   subjSchedIdsParsed.forEach(({ code, teacher }) => {
     //get the subject layout items of the same id
-    const subjSchedLayoutItems = subjSchedItems.filter((item) => {
+    /**
+     * this needs tests
+     * this causes some subjects to be completed
+     */
+    let courseSubjSchedLayoutItems = [];
+    let otherSubjSchedLayoutItems;
+
+    subjSchedItems.forEach((item) => {
       const {
         subjectCode: itemSubjCode,
         teacherId: itemTeacherId,
         courses: itemCourses,
       } = parseLayoutItemId(item.i);
-      return (
+      if (
         code == itemSubjCode &&
         teacher == itemTeacherId &&
-        // courses.some((course) => itemCourses.includes(course))
         itemCourses.includes(`${course.code}${course.year}${course.section}`)
-      );
+      ) {
+        courseSubjSchedLayoutItems.push(item);
+      } else {
+        otherSubjSchedLayoutItems.push(item);
+      }
+      // return (
+      //   code == itemSubjCode &&
+      //   teacher == itemTeacherId &&
+      //   // courses.some((course) => itemCourses.includes(course))
+      //   itemCourses.includes(`${course.code}${course.year}${course.section}`)
+      // );
     });
 
     const subjectData = subjectsData.find(
       (data) => data.id == `${code}~${teacher}`
     )?.data;
     //set the subject's times and days
-    const schedules = subjSchedLayoutItems.map((item) => ({
-      day: item.x,
-      time: {
-        start: timeData[item.y][0],
-        end: timeData[item.y + item.h - 1][1],
-        courses: parseLayoutItemId(item.i).courses,
-      },
-    }));
+    // const schedules = subjSchedLayoutItems.map((item) => ({
+    //   day: item.x,
+    //   time: {
+    //     start: timeData[item.y][0],
+    //     end: timeData[item.y + item.h - 1][1],
+    //     courses: parseLayoutItemId(item.i).courses,
+    //   },
+    // }));
 
-    //check if completed or not
-    let totalMinutesDuration = 0;
-    let isNotCompleted = true;
-    schedules?.forEach((sched) => {
-      const start = parse(sched.time.start, 'hh:mm a', new Date());
-      const end = parse(sched.time.end, 'hh:mm a', new Date());
+    // //check if completed or not
+    // let totalMinutesDuration = 0;
+    // let isNotCompleted = true;
+    // schedules?.forEach((sched) => {
+    //   const start = parse(sched.time.start, 'hh:mm a', new Date());
+    //   const end = parse(sched.time.end, 'hh:mm a', new Date());
 
-      totalMinutesDuration += differenceInMinutes(end, start);
-    });
+    //   totalMinutesDuration += differenceInMinutes(end, start);
+    // });
 
-    const hoursDuration = Math.floor(totalMinutesDuration / 60);
-    const minutesDuration = totalMinutesDuration % 60;
+    // const hoursDuration = Math.floor(totalMinutesDuration / 60);
+    // const minutesDuration = totalMinutesDuration % 60;
 
-    const { hours, minutes } = subtractDuration(
-      { hours: subjectData.units, minutes: 0 },
-      {
-        hours: hoursDuration,
-        minutes: minutesDuration,
-      }
-    );
+    // const { hours, minutes } = subtractDuration(
+    //   { hours: subjectData.units, minutes: 0 },
+    //   {
+    //     hours: hoursDuration,
+    //     minutes: minutesDuration,
+    //   }
+    // );
 
-    if (hours <= 0 && minutes <= 0) {
-      isNotCompleted = false;
-    }
+    // if (hours <= 0 && minutes <= 0) {
+    //   isNotCompleted = false;
+    // }
 
-    //group by day
-    const groupedByDay = [];
-    for (let day = 1; day <= 7; day++) {
-      const daySchedules = schedules.filter((schedule) => schedule.day == day);
-      if (daySchedules.length) {
-        groupedByDay.push({
-          day,
-          room,
-          times: daySchedules.map((daySchedule) => ({
-            start: daySchedule.time.start,
-            end: daySchedule.time.end,
-            courses: daySchedule.time.courses.map((course) => {
-              const courseData = subjectData.courses.find(
-                (subjCourse) =>
-                  course ==
-                  `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
-              );
-              return courseData;
-            }),
-          })),
-        });
-      }
-    }
-    //add to the sched array
-    newRoomSubjectScheds.push({
-      subject: {
-        _id: subjectData._id,
-        code: subjectData.code,
-      },
-      teacher: {
-        _id: subjectData.teacher._id,
-        teacherId: subjectData.teacher.teacherId,
-      },
-      isCompleted: !isNotCompleted,
-      schedules: [...groupedByDay],
-    });
+    // //group by day
+    // const groupedByDay = [];
+    // for (let day = 1; day <= 7; day++) {
+    //   const daySchedules = schedules.filter((schedule) => schedule.day == day);
+    //   if (daySchedules.length) {
+    //     groupedByDay.push({
+    //       day,
+    //       room,
+    //       times: daySchedules.map((daySchedule) => ({
+    //         start: daySchedule.time.start,
+    //         end: daySchedule.time.end,
+    //         courses: daySchedule.time.courses.map((course) => {
+    //           const courseData = subjectData.courses.find(
+    //             (subjCourse) =>
+    //               course ==
+    //               `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
+    //           );
+    //           return courseData;
+    //         }),
+    //       })),
+    //     });
+    //   }
+    // }
+    // //add to the sched array
+    // newRoomSubjectScheds.push({
+    //   subject: {
+    //     _id: subjectData._id,
+    //     code: subjectData.code,
+    //   },
+    //   teacher: {
+    //     _id: subjectData.teacher._id,
+    //     teacherId: subjectData.teacher.teacherId,
+    //   },
+    //   isCompleted: !isNotCompleted,
+    //   schedules: [...groupedByDay],
+    // });
   });
 
   return {
@@ -281,4 +284,81 @@ export function createCourseSubjectSchedules(
     roomCode: room.code,
     schedules: newRoomSubjectScheds,
   };
+}
+
+function createSchedules(subjectData, subjSchedLayoutItems, timeData) {
+  let newSchedules = [];
+  const schedules = subjSchedLayoutItems.map((item) => ({
+    day: item.x,
+    time: {
+      start: timeData[item.y][0],
+      end: timeData[item.y + item.h - 1][1],
+      courses: parseLayoutItemId(item.i).courses,
+    },
+  }));
+
+  //check if completed or not
+  let totalMinutesDuration = 0;
+  let isNotCompleted = true;
+  schedules?.forEach((sched) => {
+    const start = parse(sched.time.start, 'hh:mm a', new Date());
+    const end = parse(sched.time.end, 'hh:mm a', new Date());
+
+    totalMinutesDuration += differenceInMinutes(end, start);
+  });
+
+  const hoursDuration = Math.floor(totalMinutesDuration / 60);
+  const minutesDuration = totalMinutesDuration % 60;
+
+  const { hours, minutes } = subtractDuration(
+    { hours: subjectData.units, minutes: 0 },
+    {
+      hours: hoursDuration,
+      minutes: minutesDuration,
+    }
+  );
+
+  if (hours <= 0 && minutes <= 0) {
+    isNotCompleted = false;
+  }
+
+  //group by day
+  const groupedByDay = [];
+  for (let day = 1; day <= 7; day++) {
+    const daySchedules = schedules.filter((schedule) => schedule.day == day);
+    if (daySchedules.length) {
+      groupedByDay.push({
+        day,
+        room,
+        times: daySchedules.map((daySchedule) => ({
+          start: daySchedule.time.start,
+          end: daySchedule.time.end,
+          courses: daySchedule.time.courses.map((course) => {
+            const courseData = subjectData.courses.find(
+              (subjCourse) =>
+                course ==
+                `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
+            );
+            return courseData;
+          }),
+        })),
+      });
+    }
+  }
+
+  //add to the sched array
+  newSchedules.push({
+    subject: {
+      _id: subjectData._id,
+      code: subjectData.code,
+    },
+    teacher: {
+      _id: subjectData.teacher._id,
+      teacherId: subjectData.teacher.teacherId,
+    },
+    isCompleted: !isNotCompleted,
+    schedules: [...groupedByDay],
+  });
+
+  return newSchedules;
 }

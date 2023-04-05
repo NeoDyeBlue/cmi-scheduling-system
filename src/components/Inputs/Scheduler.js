@@ -395,7 +395,7 @@ export default function Scheduler({
   useEffect(
     () => {
       const subjSchedIds = subjectsData.map((data) => data.id);
-      const roomSchedule = createCourseSubjectSchedules(
+      const roomSchedules = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
           const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
@@ -409,6 +409,8 @@ export default function Scheduler({
         timeData,
         course
       );
+
+      console.log(roomSchedules);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
@@ -432,7 +434,7 @@ export default function Scheduler({
         }
       });
 
-      let mergedRoomScheds = [...roomSchedule.schedules];
+      let mergedRoomScheds = [...roomSchedules.schedules];
       if (otherRoomScheds.length) {
         otherRoomScheds
           .map((room) => room.schedules)
@@ -472,7 +474,7 @@ export default function Scheduler({
           });
       }
 
-      const updatedRoomSchedules = [roomSchedule, ...otherRoomScheds];
+      const updatedRoomSchedules = [roomSchedules, ...otherRoomScheds];
 
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId } = parseLayoutItemId(item.i);
