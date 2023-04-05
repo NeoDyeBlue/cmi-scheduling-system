@@ -34,6 +34,8 @@ export function createInitialRoomLayout(
             `${courseData.code}${courseData.year}${courseData.section}`
         );
 
+        console.log(courses, inCourses);
+
         console.log(courses, inCourses, courseData);
 
         const yStart = timeData.findIndex(
@@ -49,20 +51,6 @@ export function createInitialRoomLayout(
           courses
         );
 
-        // console.log(
-        //   {
-        //     static: !(
-        //       courseSubjects.some(
-        //         (subject) => subject.code !== subjSchedule.subject.code
-        //       ) || inCourses
-        //     ),
-        //   },
-        //   courseSubjects.some(
-        //     (subject) => subject.code == subjSchedule.subject.code
-        //   ),
-        //   inCourses
-        // );
-
         roomSubjectsLayout.push({
           i: itemId,
           x: dayTime.day,
@@ -75,11 +63,11 @@ export function createInitialRoomLayout(
            * will only be static if subject code is not offered in course
            * or current course is not in the merged classes
            */
-          static: !(
-            courseSubjects.some(
-              (subject) => subject.code !== subjSchedule.subject.code
-            ) || inCourses
-          ),
+          static: !(courseSubjects.some(
+            (subject) => subject.code == subjSchedule.subject.code
+          )
+            ? inCourses
+            : false),
         });
       });
     });
