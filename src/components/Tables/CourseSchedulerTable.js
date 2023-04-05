@@ -1,7 +1,5 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo, useCallback } from 'react';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 import { useRouter } from 'next/router';
@@ -14,7 +12,6 @@ import {
   MdCheckCircle,
   MdCancel,
 } from 'react-icons/md';
-import { courses } from '@/lib/test_data/scheduler';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
 import { SpinnerLoader } from '../Loaders';
@@ -27,9 +24,10 @@ export default function CourseTable({ type }) {
     query: {
       type,
     },
-    // options: {
-    //   revalidateOnMount: true,
-    // },
+    options: {
+      revalidateOnMount: true,
+      revalidateOnFocus: true,
+    },
   });
 
   const memoizedData = useMemo(() => docs, [docs]);

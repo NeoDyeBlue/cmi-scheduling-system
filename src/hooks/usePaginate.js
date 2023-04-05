@@ -1,11 +1,14 @@
 import useSWR from 'swr';
 import { useState, useMemo } from 'react';
 
+const pageFetcher = ([url, args]) =>
+  fetch(`${url}?${new URLSearchParams(args).toString()}`).then((r) => r.json());
+
 export default function usePaginate({
-  url,
-  limit,
-  query,
-  options,
+  url = '',
+  limit = 10,
+  query = {},
+  options = {},
   initialIndex = 1,
 }) {
   const [pageIndex, setPageIndex] = useState(initialIndex);
@@ -27,7 +30,18 @@ export default function usePaginate({
     mutate,
     isValidating,
     isLoading,
-  } = useSWR(getKey, options);
+  } = useSWR(
+    [
+      url,
+      {
+        ...query,
+        limit,
+        page: pageIndex,
+      },
+    ],
+    pageFetcher,
+    options
+  );
 
   const { docs, ...pageData } = result?.data || {};
   const docsSource = useMemo(() => {

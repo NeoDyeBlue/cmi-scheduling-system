@@ -23,8 +23,13 @@ import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
-import { schedulerData2 } from '@/lib/test_data/scheduler';
 
+const courseFetcher = ([url, args]) =>
+  fetch(
+    `${url}/${args.course}?${new URLSearchParams(
+      _.omit(args, 'course')
+    ).toString()}`
+  ).then((r) => r.json());
 export default function Schedule() {
   const router = useRouter();
   const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
@@ -82,34 +87,66 @@ export default function Schedule() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [schedulerData, setSchedulerData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
-  const {
-    data: result,
-    isLoading,
-    error,
-    mutate,
-  } = useSWR(
-    `/api/courses/${courseCode}?${new URLSearchParams({
-      semester,
-      year,
-      section,
-      p: 'draggable',
-    }).toString()}`,
-    null,
-    {
-      // revalidateIfStale: false,
-      // revalidateOnFocus: false,
-      revalidateOnMount: true,
-      // revalidateOnReconnect: false,
+  // const {
+  //   data: result,
+  //   isLoading,
+  //   error,
+  //   mutate,
+  // } = useSWR(
+  //   Object.keys(router.query).length
+  //     ? [
+  //         '/api/courses',
+  //         {
+  //           course: courseCode,
+  //           semester,
+  //           year,
+  //           section,
+  //           p: 'draggable',
+  //         },
+  //       ]
+  //     : null,
+  //   courseFetcher,
+  //   {
+  //     revalidateOnMount: true,
+  //     refreshInterval: 0,
+  //   }
+  // );
+
+  // const schedulerData = useMemo(() => {
+  //   return result?.data[0] ? result.data[0] : null;
+  // }, [result]);
+
+  useEffect(() => {
+    async function getSchedulerData() {
+      if (Object.keys(router.query).length) {
+        try {
+          const res = await fetch(
+            `/api/courses/${router.query.course}?${new URLSearchParams({
+              ..._.pick(router.query, ['semester', 'year', 'section']),
+              p: 'draggable',
+            }).toString()}`
+          );
+
+          const result = await res.json();
+
+          if (result && result.success) {
+            setSchedulerData(result?.data[0]);
+          } else {
+            setError(error);
+          }
+          setIsLoading(false);
+        } catch (error) {
+          setError(error);
+          setIsLoading(false);
+        }
+      }
     }
-  );
-
-  const schedulerData = useMemo(
-    () => (result?.data[0] ? result.data[0] : null),
-    [result]
-  );
-
-  console.log(schedulerData);
+    getSchedulerData();
+  }, [router.query]);
 
   useEffect(
     () => {
@@ -332,7 +369,7 @@ export default function Schedule() {
       if (result?.success) {
         toast.success('Schedules saved');
         setOldSchedsData(subjectScheds);
-        mutate();
+        // mutate();
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
