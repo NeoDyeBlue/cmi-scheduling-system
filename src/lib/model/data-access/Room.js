@@ -650,13 +650,13 @@ class Room extends Model {
       ];
 
       // if courseCode exists, then filter it by courseCode.
-      if (courseCode) {
-        pipeline.push({
-          $match: {
-            'schedules.course.code': courseCode,
-          },
-        });
-      }
+      // if (courseCode) {
+      //   pipeline.push({
+      //     $match: {
+      //       'schedules.course.code': courseCode,
+      //     },
+      //   });
+      // }
 
       const data = await this.Room.aggregate(pipeline);
       console.log('rooooooooms', JSON.stringify(data));

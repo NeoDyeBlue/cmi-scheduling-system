@@ -31,7 +31,7 @@ export const handler = async (req, res) => {
             );
           });
         });
-        data[0]['rooms'] = rooms;
+        data[0]['rooms'] = roomSchedules;
       }
       return successResponse(req, res, data);
     } catch (error) {
