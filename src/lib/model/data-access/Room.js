@@ -166,9 +166,80 @@ class Room extends Model {
                   pipeline: [
                     {
                       $project: {
+                        _id: 1,
                         code: 1,
                         name: 1,
                         units: 1,
+                      },
+                    },
+                    {
+                      $lookup: {
+                        from: 'courses',
+                        localField: '_id',
+                        let: { subject_oid: '$_id' },
+                        foreignField:
+                          'yearSections.semesterSubjects.subjects._id',
+                        pipeline: [
+                          {
+                            $match: {
+                              'yearSections.semesterSubjects.semester':
+                                semester,
+                            },
+                          },
+                          { $unwind: '$yearSections' },
+                          { $unwind: '$yearSections.semesterSubjects' },
+                          {
+                            $group: {
+                              _id: {
+                                _id: '$_id',
+                                year: '$yearSections.year',
+                                section: '$yearSections.section',
+                                semester:
+                                  '$yearSections.semesterSubjects.semester',
+                              },
+                              course_oid: { $first: '$_id' },
+                              code: { $first: '$code' },
+                              name: { $first: '$name' },
+                              year: { $first: '$yearSections.year' },
+                              section: { $first: '$yearSections.section' },
+                              isSectionHasTheSubject: {
+                                $first: {
+                                  $cond: {
+                                    if: {
+                                      $and: [
+                                        {
+                                          $in: [
+                                            '$$subject_oid',
+                                            '$yearSections.semesterSubjects.subjects._id',
+                                          ],
+                                        },
+                                        {
+                                          $eq: [
+                                            '$yearSections.semesterSubjects.semester',
+                                            semester,
+                                          ],
+                                        },
+                                      ],
+                                    },
+                                    then: true,
+                                    else: false,
+                                  },
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 0,
+                            },
+                          },
+                          {
+                            $match: {
+                              isSectionHasTheSubject: true,
+                            },
+                          },
+                        ],
+                        as: 'courses',
                       },
                     },
                   ],
