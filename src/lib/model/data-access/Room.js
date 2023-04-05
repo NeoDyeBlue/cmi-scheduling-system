@@ -370,7 +370,7 @@ class Room extends Model {
         {
           $project: { _id: 1, code: 1, name: 1 },
         },
-        
+
         {
           $lookup: {
             from: 'schedules',
@@ -389,6 +389,7 @@ class Room extends Model {
               },
               {
                 $project: {
+                  _id: 0,
                   teacher: 1,
                   course: 1,
                   subject: 1,
@@ -464,13 +465,13 @@ class Room extends Model {
                             },
                           },
                           {
-                            $project :{
+                            $project: {
                               _id: 0,
-                            }
+                            },
                           },
                           {
                             $addFields: {
-                              _id: "$course_oid",
+                              _id: '$course_oid',
                             },
                           },
                           {
@@ -518,24 +519,6 @@ class Room extends Model {
                         lastName: 1,
                       },
                     },
-                    // remove existingSchedules of the room sabi ni jamp
-                    // {
-                    //   $lookup: {
-                    //     from: 'schedules',
-                    //     localField: '_id',
-                    //     foreignField: 'teacher',
-                    //     pipeline: [
-                    //       {
-                    //         $project: {
-                    //           day: { $arrayElemAt: ['$schedules.day', 0] },
-                    //           room: { $arrayElemAt: ['$schedules.room', 0] },
-                    //           times: { $arrayElemAt: ['$schedules.times', 0] },
-                    //         },
-                    //       },
-                    //     ],
-                    //     as: 'existingSchedules',
-                    //   },
-                    // },
                   ],
                   as: 'teacher',
                 },
@@ -569,7 +552,73 @@ class Room extends Model {
                       cond: { $eq: ['$$day_time.room.code', '$roomCode'] },
                     },
                   },
-                 
+                },
+              },
+
+              {
+                $unwind: '$dayTimes',
+              },
+              {
+                $unwind: '$dayTimes.times',
+              },
+              {
+                $project: {
+                  'dayTimes._id': 0,
+                  'dayTimes.times._id': 0,
+                },
+              },
+              {
+                $group: {
+                  _id: {
+                    teacher: '$teacher._id',
+                    subject: '$subject._id',
+                    day: '$dayTimes.day',
+                    room: '$dayTimes.room._id',
+                    start: '$dayTimes.times.start',
+                    end: '$dayTimes.times.end',
+                  },
+                  subject: { $first: '$subject' },
+                  teacher: { $first: '$teacher' },
+                  dayTimes: {
+                    $addToSet: {
+                      day: '$dayTimes.day',
+                      room: '$dayTimes.room',
+                    },
+                  },
+                  times: {
+                    $addToSet: {
+                      day: '$dayTimes.day',
+                      start: '$dayTimes.times.start',
+                      end: '$dayTimes.times.end',
+                      courses: '$dayTimes.times.courses',
+                    },
+                  },
+                },
+              },
+
+              {
+                $project: {
+                  _id: 0,
+                  subject: 1,
+                  teacher: 1,
+                  dayTimes: {
+                    $map: {
+                      input: '$dayTimes',
+                      as: 'dt',
+                      in: {
+                        day: '$$dt.day',
+                        room: '$$dt.room',
+                        times: {
+                          $filter: {
+                            input: '$times',
+                            as: 't',
+                            cond: { $eq: ['$$t.day', '$$dt.day'] },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  // times: 1,
                 },
               },
             ],
@@ -579,6 +628,36 @@ class Room extends Model {
         {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
         },
+        // {
+        //   $unwind: '$schedules',
+        // },
+        // {
+        //   $unwind: '$schedules.dayTimes',
+        // },
+        // {
+        //   $unwind: '$schedules.dayTimes.times',
+        // },
+        // {
+        //   $group: {
+        //     _id: {
+        //       room_oid: '$_id',
+        //       room_code: '$code',
+        //       teacher: '$schedules.teacher._id',
+        //       subject: '$schedules.subject._id',
+        //       day: '$schedules.dayTimes.day',
+        //       room: '$schedules.dayTimes.room._id',
+        //       start: '$schedules.dayTimes.times.start',
+        //       end: '$schedules.dayTimes.times.end',
+        //     },
+        //     schedules: {
+        //       $addToSet: {
+        //         teacher: '$schedules.teacher',
+        //         subject: '$schedules.subject',
+        //         dayTimes: '$schedules.dayTimes',
+        //       },
+        //     },
+        //   },
+        // },
 
         {
           $project: {
@@ -589,7 +668,7 @@ class Room extends Model {
           },
         },
       ];
-      
+
       // if courseCode exists, then filter it by courseCode.
       // if (courseCode) {
       //   pipeline.push({
@@ -600,13 +679,45 @@ class Room extends Model {
       // }
 
       const data = await this.Room.aggregate(pipeline);
-      console.log("rooooooooms", data)
+      console.log('rooooooooms', data);
       return data;
     } catch (error) {
-      console.log("error",error)
+      console.log('error', error);
       throw error;
     }
   }
 }
 const room = new Room();
 export default room;
+
+// "dayTimes": [
+//    {
+//     "day": 2,
+//     "room": {
+//         "_id": "642cd2e4207c6f72972bac27",
+//         "code": "enk"
+//     },
+// 'times' : {
+//     "day": 2,
+//     "start": "6:30 AM",
+//     "end": "9:30 AM",
+//     "course": [
+//         {
+//             "_id": "642cd2fd207c6f72972bac33",
+//             "code": "fish",
+//             "name": "Fishing",
+//             "year": 1,
+//             "section": "A"
+//         },
+//         {
+//             "_id": "642cd2fd207c6f72972bac33",
+//             "code": "fish",
+//             "name": "Fishing",
+//             "year": 1,
+//             "section": "B"
+//         }
+//     ]
+// }
+//    }
+
+// ]
