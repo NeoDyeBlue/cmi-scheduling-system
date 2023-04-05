@@ -14,6 +14,7 @@ export function createInitialRoomLayout(
   //for each subject schedule
   roomSchedules?.forEach((subjSchedule) => {
     //get the scheduled courses of the subject if its more than 1 it is considered as merged classes
+    console.log(subjSchedule);
 
     subjSchedule.dayTimes.forEach((dayTime) => {
       /**
@@ -29,9 +30,11 @@ export function createInitialRoomLayout(
         //checks if the current courseYearSec is in the scheduled courses
         const inCourses = courses.some(
           (course) =>
-            `${course.code}${course.year}${course.section}` ==
+            course ==
             `${courseData.code}${courseData.year}${courseData.section}`
         );
+
+        console.log(courses, inCourses, courseData);
 
         const yStart = timeData.findIndex(
           (timePairs) => timePairs[0] == time.start
