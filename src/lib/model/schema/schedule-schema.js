@@ -23,6 +23,15 @@ const schedule = new mongoose.Schema(
           {
             start: { type: String },
             end: { type: String },
+            courses: [
+              new mongoose.Schema({
+                _id: { type: mongoose.Types.ObjectId, ref: 'Course' },
+                code: { type: String },
+                name: { type: String },
+                year: { type: Number },
+                section: { type: String },
+              }),
+            ],
           },
         ],
       }),

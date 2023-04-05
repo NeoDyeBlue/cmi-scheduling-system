@@ -323,6 +323,76 @@ class Course extends Model {
                   // semesterSubjects:"$$semesterSubjects",
                 },
               },
+
+              // get all sections that assigned to this subjects #################
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: '_id',
+                  let: { subject_oid: '$_id' },
+                  foreignField: 'yearSections.semesterSubjects.subjects._id',
+                  pipeline: [
+                    {
+                      $match: {
+                        'yearSections.semesterSubjects.semester': semester,
+                      },
+                    },
+                    { $unwind: '$yearSections' },
+                    { $unwind: '$yearSections.semesterSubjects' },
+                    {
+                      $group: {
+                        _id: {
+                          _id: '$_id',
+                          year: '$yearSections.year',
+                          section: '$yearSections.section',
+                          semester: '$yearSections.semesterSubjects.semester',
+                        },
+                        course_oid: { $first: '$_id' },
+                        code: { $first: '$code' },
+                        name: { $first: '$name' },
+                        year: { $first: '$yearSections.year' },
+                        section: { $first: '$yearSections.section' },
+                        isSectionHasTheSubject: {
+                          $first: {
+                            $cond: {
+                              if: {
+                                $and: [
+                                  {
+                                    $in: [
+                                      '$$subject_oid',
+                                      '$yearSections.semesterSubjects.subjects._id',
+                                    ],
+                                  },
+                                  {
+                                    $eq: [
+                                      '$yearSections.semesterSubjects.semester',
+                                      semester,
+                                    ],
+                                  },
+                                ],
+                              },
+                              then: true,
+                              else: false,
+                            },
+                          },
+                        },
+                      },
+                    },
+                    {
+                      $project: {
+                        _id: 0,
+                      },
+                    },
+                    {
+                      $match: {
+                        isSectionHasTheSubject: true,
+                      },
+                    },
+                  ],
+                  as: 'courses',
+                },
+              },
+
               {
                 $lookup: {
                   from: 'teachers',
@@ -411,45 +481,31 @@ class Course extends Model {
                           {
                             $unwind: '$schedules',
                           },
+                          // unwind the schedules.times
+                          // lookup the course and project name, code, year, section
                           {
                             $group: {
                               _id: '$schedules._id',
                               schedules: { $first: '$schedules' },
-                              course: { $first: '$course' },
+                              // course: { $first: '$course' },
                               subject: { $first: '$subject' },
                               yearSec: { $first: '$yearSec' },
                             },
                           },
-                          // yearSec on scourse
-                          // {
-                          //   $project: {
-                          //     schedules: 1,
-                          //     subject: 1,
-                          //     course: {
-                          //       year: '$yearSec.year',
-                          //       section: '$yearSec.section',
-                          //       code: '$course.code',
-                          //       name: '$course.name',
-                          //     },
-                          //   },
-                          // },
-                          // //  add fields on schedules.times
-
+                          /* 
+                          ########### 
+                          ########### FIX. IT SHOULD BE LOOKUP FOR COURSES INSIDE OF TIMES.COUSRS
+                          ###########
+                          ###########
+                          */
                           {
                             $addFields: {
-                              'schedules.times.course': '$course',
                               'schedules.times.subject': '$subject',
-                              'schedules.times.course': '$course',
+                              // 'schedules.times.course': '$course',
                               'schedules.room': '$schedules.room',
                             },
                           },
-                          {
-                            $addFields: {
-                              'schedules.times.course.year': '$yearSec.year',
-                              'schedules.times.course.section':
-                                '$yearSec.section',
-                            },
-                          },
+
                           // // remove room on schedule
                           {
                             $project: {
