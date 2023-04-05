@@ -108,7 +108,7 @@ export default function Schedule() {
 
   const schedulerData = useMemo(
     () => (result?.data[0] ? result.data[0] : null),
-    []
+    [result]
   );
 
   useEffect(

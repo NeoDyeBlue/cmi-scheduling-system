@@ -275,7 +275,10 @@ export default function Scheduler({
               <SchedulerLayoutItemButton
                 toolTipId="merge"
                 toolTipContent="Merge"
-                onClick={() => handleClassMerge(schedule)}
+                onClick={() => {
+                  handleClassMerge(schedule);
+                  setHoveredMergeable('');
+                }}
                 icon={<MdMergeType size={16} className="rotate-180" />}
                 onMouseEnter={() => setHoveredMergeable(subjectData.id)}
                 onMouseLeave={() => setHoveredMergeable('')}
