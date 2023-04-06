@@ -66,4 +66,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] update subject
 - [x] update course
 - [x] on save of the same room and section but differnt sem, the different sem schedule is also deleting.
-- [ ] fix room schedules affecting the course subjects and form data (f)
+- [x] fix room schedules affecting the course subjects and form data (f)
