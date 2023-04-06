@@ -15,12 +15,15 @@ const roomSampleDataForFetchingPerSemScheds = [
           name: 'Swirl',
           units: 3,
         },
-        course: {
-          code: 'bsgi',
-          name: 'Bachelor of Science in Genshin Impact',
-          year: 1,
-          section: 'A',
-        },
+        //to array of courses
+        courses: [
+          {
+            code: 'bsgi',
+            name: 'Bachelor of Science in Genshin Impact',
+            year: 1,
+            section: 'A',
+          },
+        ],
         dayTimes: [
           {
             day: 1,
