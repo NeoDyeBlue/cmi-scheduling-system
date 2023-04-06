@@ -15,15 +15,13 @@ const roomSampleDataForFetchingPerSemScheds = [
           name: 'Swirl',
           units: 3,
         },
-        //to array of courses
-        courses: [
-          {
-            code: 'bsgi',
-            name: 'Bachelor of Science in Genshin Impact',
-            year: 1,
-            section: 'A',
-          },
-        ],
+        //remove this
+        // course: {
+        //   code: 'bsgi',
+        //   name: 'Bachelor of Science in Genshin Impact',
+        //   year: 1,
+        //   section: 'A',
+        // },
         dayTimes: [
           {
             day: 1,
@@ -34,6 +32,15 @@ const roomSampleDataForFetchingPerSemScheds = [
             },
             times: [
               {
+                //add courses array here
+                courses: [
+                  {
+                    code: 'bsgi',
+                    name: 'Bachelor of Science in Genshin Impact',
+                    year: 1,
+                    section: 'A',
+                  },
+                ],
                 start: '8:00 AM',
                 end: '9:00 AM',
                 _id: '642537e0eaca9cecb03b0c22',
@@ -50,6 +57,15 @@ const roomSampleDataForFetchingPerSemScheds = [
             },
             times: [
               {
+                //add courses array here
+                courses: [
+                  {
+                    code: 'bsgi',
+                    name: 'Bachelor of Science in Genshin Impact',
+                    year: 1,
+                    section: 'A',
+                  },
+                ],
                 start: '9:00 AM',
                 end: '10:00 AM',
                 _id: '642537e0eaca9cecb03b0c24',
