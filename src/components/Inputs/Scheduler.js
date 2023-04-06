@@ -218,9 +218,7 @@ export default function Scheduler({
 
       if (schedule.static) {
         if (courses.length > 1) {
-          courseText = `${courses[0]} & ${courses.length - 1} other${
-            courses.length - 1 > 1 ? 's' : ''
-          }`;
+          courseText = `${courses[0]} & ${courses.length - 1}`;
         } else {
           courseText = courses[0];
         }
@@ -228,7 +226,7 @@ export default function Scheduler({
         if (courses.length > 1 && inSubjectCourses) {
           courseText = `${course.code}${course.year}${course.section} & ${
             courses.length - 1
-          } other${courses.length - 1 > 1 ? 's' : ''}`;
+          }`;
         }
       }
 
@@ -330,16 +328,12 @@ export default function Scheduler({
           </div>
           {(schedule.static || inSubjectCourses) && (
             <p className="max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase">
-              {/* {courses.join(', ')}
-              {schedule.static && courseText}
-              {schedule.static && courses.length <= 1 && courses[0]}
-              {!schedule.static &&
-                inSubjectCourses &&
-                `${course.code}${course.year}${course.section} & ${
-                  courses.length - 1
-                } other${courses.length - 1 > 1 ? 's' : ''}`}
-              {!schedule.static && courses.length <= 1 && courses[0]} */}
-              {courseText}
+              {courseText}{' '}
+              {courses.length > 1 && (
+                <span className="lowercase">
+                  {courses.length - 1 > 1 ? 'others' : 'other'}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -409,8 +403,6 @@ export default function Scheduler({
         timeData,
         course
       );
-
-      console.log(roomSchedules);
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
