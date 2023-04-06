@@ -446,6 +446,7 @@ class Schedule extends Model {
         {
           $group: {
             _id: '$semester',
+            semester: { $first: '$semester' },
             schedules: {
               $addToSet: {
                 subject: '$subject',
