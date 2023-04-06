@@ -169,6 +169,8 @@ export function createCourseSubjectSchedules(
   });
 
   const newRoomSubjectScheds = [];
+  const newRoomCourseSubjectScheds = [];
+  const newOtherCourseSubjectScheds = [];
   //for each schedIds
 
   subjSchedIdsParsed.forEach(({ code, teacher }) => {
@@ -178,7 +180,7 @@ export function createCourseSubjectSchedules(
      * this causes some subjects to be completed
      */
     let courseSubjSchedLayoutItems = [];
-    let otherSubjSchedLayoutItems;
+    let otherSubjSchedLayoutItems = [];
 
     subjSchedItems.forEach((item) => {
       const {
@@ -206,6 +208,13 @@ export function createCourseSubjectSchedules(
     const subjectData = subjectsData.find(
       (data) => data.id == `${code}~${teacher}`
     )?.data;
+
+    newRoomCourseSubjectScheds.push(
+      createSchedules(subjectData, courseSubjSchedLayoutItems, timeData, room)
+    );
+    newOtherCourseSubjectScheds.push(
+      createSchedules(subjectData, otherSubjSchedLayoutItems, timeData, room)
+    );
     //set the subject's times and days
     // const schedules = subjSchedLayoutItems.map((item) => ({
     //   day: item.x,
@@ -282,12 +291,14 @@ export function createCourseSubjectSchedules(
   return {
     roomId: room._id,
     roomCode: room.code,
-    schedules: newRoomSubjectScheds,
+    schedules: {
+      course: newRoomCourseSubjectScheds,
+      other: newOtherCourseSubjectScheds,
+    },
   };
 }
 
-function createSchedules(subjectData, subjSchedLayoutItems, timeData) {
-  let newSchedules = [];
+function createSchedules(subjectData, subjSchedLayoutItems, timeData, room) {
   const schedules = subjSchedLayoutItems.map((item) => ({
     day: item.x,
     time: {
@@ -347,7 +358,7 @@ function createSchedules(subjectData, subjSchedLayoutItems, timeData) {
   }
 
   //add to the sched array
-  newSchedules.push({
+  return {
     subject: {
       _id: subjectData._id,
       code: subjectData.code,
@@ -358,7 +369,5 @@ function createSchedules(subjectData, subjSchedLayoutItems, timeData) {
     },
     isCompleted: !isNotCompleted,
     schedules: [...groupedByDay],
-  });
-
-  return newSchedules;
+  };
 }

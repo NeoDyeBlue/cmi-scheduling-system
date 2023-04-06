@@ -398,7 +398,7 @@ export default function Scheduler({
       const roomSchedules = createCourseSubjectSchedules(
         subjSchedIds,
         layout.filter((item) => {
-          const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
+          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
           return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
         }),
         {
@@ -434,21 +434,23 @@ export default function Scheduler({
         }
       });
 
-      let mergedRoomScheds = [...roomSchedules.schedules];
+      let groupedCourseScheds = [...roomSchedules.schedules.course];
       if (otherRoomScheds.length) {
         otherRoomScheds
-          .map((room) => room.schedules)
+          .map((room) => room.schedules.course)
           .flat()
           .forEach((roomSched) => {
-            const existingSched = mergedRoomScheds.find(
+            //check if its in the array already
+            const existingSched = groupedCourseScheds.find(
               (mergedSched) =>
                 mergedSched.subject.code == roomSched.subject.code &&
                 mergedSched.teacher.teacherId == roomSched.teacher.teacherId
             );
-
             if (!existingSched) {
-              mergedRoomScheds.push(roomSched);
+              //if not existing
+              groupedCourseScheds.push(roomSched);
             } else {
+              //update the subject to add the schedule
               const merged = {
                 ...existingSched,
                 schedules: [
@@ -461,8 +463,9 @@ export default function Scheduler({
                 ],
               };
 
-              mergedRoomScheds = [
-                ...mergedRoomScheds.filter((mergedSched) => {
+              //filter the grouped scheds to remove the old subject data
+              groupedCourseScheds = [
+                ...groupedCourseScheds.filter((mergedSched) => {
                   return (
                     mergedSched.subject.code !== merged.subject.code &&
                     mergedSched.teacher.teacherId !== merged.teacher.teacherId
@@ -474,13 +477,30 @@ export default function Scheduler({
           });
       }
 
-      const updatedRoomSchedules = [roomSchedules, ...otherRoomScheds];
+      const updatedRoomSchedules = [
+        {
+          ...roomSchedules,
+          schedules: [
+            ...roomSchedules.schedules.course,
+            ...roomSchedules.schedules.other,
+          ],
+        },
+        ...otherRoomScheds.map((otherRoom) => ({
+          ...otherRoom,
+          schedules: [
+            ...otherRoom.schedules.course,
+            ...otherRoom.schedules.other,
+          ],
+        })),
+      ];
+
+      console.log(groupedCourseScheds);
 
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId } = parseLayoutItemId(item.i);
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
-      setSubjectScheds(mergedRoomScheds);
+      setSubjectScheds(groupedCourseScheds);
       setAllRoomSubjScheds(updatedRoomSchedules);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
