@@ -24,14 +24,16 @@ export const handler = async (req, res) => {
 
       if (data[0]) {
         const rooms = roomSchedules.filter((room) => {
-          return room.schedules.some((schedule) => {
-            return (
-              schedule.course.year === parseInt(year) &&
-              schedule.course.section === section
-            );
-          });
+          for (let schedule of room.schedules) {
+            return schedule.courseSections.some((course) => {
+              return (
+                course.yearSec.year === parseInt(year) &&
+                course.yearSec.section === section
+              );
+            });
+          }
         });
-        data[0]['rooms'] = roomSchedules;
+        data[0]['rooms'] = rooms;
       }
       return successResponse(req, res, data);
     } catch (error) {

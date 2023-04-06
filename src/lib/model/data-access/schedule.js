@@ -61,7 +61,7 @@ class Schedule extends Model {
       const currentSchedules = await this.Schedule.find({
         $or: filtersForSchedules,
       }).exec();
-      console.log('currentSchedules', currentSchedules);
+      // console.log('currentSchedules', currentSchedules);
 
       // delete schedules that has value empty array
       await this.Schedule.deleteMany({
@@ -83,6 +83,10 @@ class Schedule extends Model {
           },
         };
       });
+      console.log(
+        'toDeleteSchedsOptions',
+        JSON.stringify(toDeleteSchedsOptions)
+      );
       const deletedSchedules = await this.Schedule.bulkWrite(
         toDeleteSchedsOptions
       );
@@ -278,6 +282,7 @@ class Schedule extends Model {
         {
           $project: {
             _id: 1,
+            semester: 1,
             yearSec: 1,
             dayTimes: '$schedules',
             semester: 1,
@@ -292,23 +297,161 @@ class Schedule extends Model {
             },
           },
         },
-        // add year and section to the course
         {
-          $addFields: {
-            'course.year': '$yearSec.year',
-            'course.section': '$yearSec.section',
+          $project: {
+            _id: 1, // schedule oid
+            semester: 1,
+            course: 1,
+            yearSec: 1,
+            subject: 1,
+            teacher: 1,
+            dayTimes: {
+              // it happens when we try to schedules on rooms table.
+              $cond: {
+                if: { $eq: [roomCode, undefined] },
+                then: '$dayTimes',
+                else: {
+                  $filter: {
+                    input: '$dayTimes',
+                    as: 'day_time',
+                    cond: { $eq: ['$$day_time.room.code', roomCode] },
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        {
+          $unwind: '$dayTimes',
+        },
+        {
+          $unwind: '$dayTimes.times',
+        },
+        {
+          $project: {
+            'dayTimes._id': 0,
+            'dayTimes.times._id': 0,
+          },
+        },
+
+        {
+          $group: {
+            _id: {
+              teacher: '$teacher._id',
+              subject: '$subject._id',
+              day: '$dayTimes.day',
+              room: '$dayTimes.room._id',
+              start: '$dayTimes.times.start',
+              end: '$dayTimes.times.end',
+              semester: '$semester',
+            },
+            schedule_oid: { $push: '$_id' },
+            subject: { $first: '$subject' },
+            teacher: { $first: '$teacher' },
+            semester: { $first: '$semester' },
+            dayTimes: {
+              $addToSet: {
+                day: '$dayTimes.day',
+                room: '$dayTimes.room',
+              },
+            },
+            times: {
+              $addToSet: {
+                day: '$dayTimes.day',
+                start: '$dayTimes.times.start',
+                end: '$dayTimes.times.end',
+                courses: '$dayTimes.times.courses',
+              },
+            },
+            // to get all sections that in this schedule.
+            courseSections: {
+              $push: {
+                schedule_oid: '$_id',
+                course: '$course',
+                yearSec: '$yearSec',
+              },
+            },
+            // yearSec: { $first: '$yearSec' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            subject: 1,
+            teacher: 1,
+            semester: 1,
+            // courses: {
+            //   $map: {
+            //     input: '$courseSections',
+            //     as: 'section',
+            //     in: {
+            //       _id: '$$section.course._id',
+            //       schedule_oid: '$$section.schedule_oid',
+            //       code: '$$section.course.code',
+            //       name: '$$section.course.name',
+            //       year: '$$section.yearSec.year',
+            //       section: '$$section.yearSec.section',
+            //     },
+            //   },
+            // },
+            dayTimes: {
+              $map: {
+                input: '$dayTimes',
+                as: 'dt',
+                in: {
+                  day: '$$dt.day',
+                  room: '$$dt.room',
+                  times: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: '$times',
+                          as: 't',
+                          cond: { $eq: ['$$t.day', '$$dt.day'] },
+                        },
+                      },
+                      as: 'time',
+                      in: {
+                        start: '$$time.start',
+                        end: '$$time.end',
+                        courses: {
+                          $map: {
+                            input: '$courseSections',
+                            as: 'section',
+                            in: {
+                              _id: '$$section.course._id',
+                              schedule_oid: '$$section.schedule_oid',
+                              code: '$$section.course.code',
+                              name: '$$section.course.name',
+                              year: '$$section.yearSec.year',
+                              section: '$$section.yearSec.section',
+                            },
+                          },
+                        },
+                      },
+                    },
+                    // $filter: {
+                    //   input: '$times',
+                    //   as: 't',
+                    //   cond: { $eq: ['$$t.day', '$$dt.day'] },
+                    // },
+                  },
+                },
+              },
+            },
+            // times: 1,
           },
         },
         {
           $group: {
             _id: '$semester',
-            semester: { $first: '$semester' },
             schedules: {
               $addToSet: {
-                course: '$course',
                 subject: '$subject',
                 teacher: '$teacher',
-                yearSec: '$yearSec',
+                semester: '$semester',
+                courses: '$courses',
                 dayTimes: '$dayTimes',
               },
             },

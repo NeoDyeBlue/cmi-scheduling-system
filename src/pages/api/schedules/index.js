@@ -36,8 +36,18 @@ export const handler = async (req, res) => {
   if (req.method === 'GET') {
     try {
       // teacher is teacher _id.
-      const { roomcode: roomCode, teacher, course, year, section } = req.query;
-
+      const {
+        code: roomCode,
+        teacher,
+        course,
+        year,
+        section,
+      } = req.query;
+      console.log('roomCode', roomCode);
+      console.log('teacher', teacher);
+      console.log('course', course);
+      console.log('year', year);
+      console.log('section', section);
       const data = await schedule.getSchedulesBy({
         roomCode,
         teacher,

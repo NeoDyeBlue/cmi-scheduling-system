@@ -23,7 +23,7 @@ const schedule = new mongoose.Schema(
           {
             start: { type: String },
             end: { type: String },
-            courses: [
+            courses: [ // can now be deleted.
               new mongoose.Schema({
                 _id: { type: mongoose.Types.ObjectId, ref: 'Course' },
                 code: { type: String },
