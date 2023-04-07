@@ -55,13 +55,14 @@ export default function Scheduler({
     subjectScheds,
     subjectsData,
     roomsSubjSchedsLayouts,
+    roomsSubjScheds,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
     setAllRoomSubjScheds,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
-    hoveredMergeable,
+    selectedRooms,
     setHoveredMergeable,
   } = useSchedulerStore(
     useCallback(
@@ -80,6 +81,8 @@ export default function Scheduler({
         setOldSchedsData: state.setOldSchedsData,
         hoveredMergeable: state.hoveredMergeable,
         setHoveredMergeable: state.setHoveredMergeable,
+        selectedRooms: state.selectedRooms,
+        roomsSubjScheds: state.roomsSubjScheds,
       }),
       []
     ),
@@ -407,10 +410,8 @@ export default function Scheduler({
       );
 
       const otherRoomScheds = [];
-      console.log(roomsSubjSchedsLayouts);
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
         if (roomLayout.roomCode !== roomData.code) {
-          console.log(roomLayout);
           const schedules = createCourseSubjectSchedules(
             subjSchedIds,
             roomLayout.layout.filter((item) => {
@@ -425,8 +426,6 @@ export default function Scheduler({
             timeData,
             course
           );
-
-          console.log(schedules);
 
           otherRoomScheds.push(schedules);
         }
@@ -496,7 +495,6 @@ export default function Scheduler({
         const { subjectCode, teacherId } = parseLayoutItemId(item.i);
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
-      console.log(roomSchedules);
       setSubjectScheds(groupedCourseScheds);
       setAllRoomSubjScheds(updatedRoomSchedules);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
@@ -720,7 +718,9 @@ export default function Scheduler({
           )) ||
         [];
 
-      const inSchedulerDayTimes = subjectScheds
+      const inSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
         .filter(
           (subjSched) =>
             subjSched.teacher.teacherId == subjectData.teacher.teacherId
@@ -785,14 +785,17 @@ export default function Scheduler({
 
         existingSchedules.forEach((existingSchedule) => {
           //should exclude checking of existing times when is merged with the currently editing course
-          if (existingSchedule.room.code !== roomData.code) {
+          if (
+            existingSchedule.room.code !== roomData.code &&
+            !selectedRooms.some(
+              (room) => room.code == existingSchedule.room.code
+            )
+          ) {
             existingSchedule.times.forEach((scheduleTime) => {
-              console.log(scheduleTime);
               const subject = subjectScheds.find(
                 (subj) => subj.subject.code == scheduleTime.subject.code
               );
 
-              //needs more tests
               let coursesExist = false;
               if (subject && scheduleTime) {
                 const scheduleTimeCourses = scheduleTime.courses.map(
@@ -831,7 +834,7 @@ export default function Scheduler({
                   return time[1] == scheduleTime.end;
                 });
 
-                for (let i = timeStartIndex; i < timeEndIndex; i++) {
+                for (let i = timeStartIndex; i <= timeEndIndex; i++) {
                   unavailableTimesY.push(i);
                 }
               }
@@ -849,11 +852,13 @@ export default function Scheduler({
             return time[1] == scheduleTime.end;
           });
 
-          for (let i = timeStartIndex; i < timeEndIndex; i++) {
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
             unavailableTimesY.push(i);
           }
         });
       }
+
+      // console.log('Y', unavailableTimesY);
 
       //get all the schedule items from the same day
       let columnItemsUsedIndexes = [];
@@ -880,17 +885,20 @@ export default function Scheduler({
         .sort(function (a, b) {
           return a - b;
         });
-      let start = duplicatesRemoved[0];
-      let prev = duplicatesRemoved[0];
 
       for (let i = 0; i < duplicatesRemoved.length; i++) {
-        if (duplicatesRemoved[i] === prev + 1) {
-          prev = duplicatesRemoved[i];
-        } else {
-          unavailableTimeYPairs.push([start, prev]);
-          start = duplicatesRemoved[i];
-          prev = duplicatesRemoved[i];
+        const start = duplicatesRemoved[i];
+        let end = start;
+
+        while (
+          i < duplicatesRemoved.length - 1 &&
+          duplicatesRemoved[i + 1] === end + 1
+        ) {
+          end++;
+          i++;
         }
+
+        unavailableTimeYPairs.push([start, end]);
       }
 
       // create the restrictions
