@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
-import { subtractDuration, createTimePairs } from '@/utils/time-utils';
+import { createTimePairs } from '@/utils/time-utils';
 import {
   createInitialRoomLayout,
   parseLayoutItemId,
@@ -360,6 +360,7 @@ export default function Scheduler({
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
+      console.log('createNew');
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
         course,
@@ -367,6 +368,7 @@ export default function Scheduler({
         timeData
       );
       setLayout([...initialLayout, ...timeLayout.flat()]);
+      // setRoomSubjSchedsLayout(roomData.code, roomData._id, initialLayout);
     }
   }, []);
 
@@ -405,24 +407,28 @@ export default function Scheduler({
       );
 
       const otherRoomScheds = [];
+      console.log(roomsSubjSchedsLayouts);
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
         if (roomLayout.roomCode !== roomData.code) {
-          otherRoomScheds.push(
-            ...createCourseSubjectSchedules(
-              subjSchedIds,
-              roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-              }),
-              {
-                _id: roomLayout.roomId,
-                code: roomLayout.roomCode,
-              },
-              subjectsData,
-              timeData,
-              course
-            )
+          console.log(roomLayout);
+          const schedules = createCourseSubjectSchedules(
+            subjSchedIds,
+            roomLayout.layout.filter((item) => {
+              const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+              return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+            }),
+            {
+              _id: roomLayout.roomId,
+              code: roomLayout.roomCode,
+            },
+            subjectsData,
+            timeData,
+            course
           );
+
+          console.log(schedules);
+
+          otherRoomScheds.push(schedules);
         }
       });
 
@@ -486,12 +492,11 @@ export default function Scheduler({
         })),
       ];
 
-      console.log(groupedCourseScheds);
-
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId } = parseLayoutItemId(item.i);
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
+      console.log(roomSchedules);
       setSubjectScheds(groupedCourseScheds);
       setAllRoomSubjScheds(updatedRoomSchedules);
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);

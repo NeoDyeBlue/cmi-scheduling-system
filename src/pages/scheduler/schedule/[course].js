@@ -228,7 +228,7 @@ export default function Schedule() {
                 data: {
                   ...schedule.subject,
                   teacher: schedule.teacher,
-                  courses: schedule.courses,
+                  courses: schedule.subject.courses,
                 },
               });
             }
