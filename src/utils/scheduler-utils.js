@@ -337,7 +337,12 @@ export function createCourseSubjectSchedules(
   };
 }
 
-function createSchedules(subjectData, subjSchedLayoutItems, timeData, room) {
+function createSchedules(
+  subjectData,
+  subjSchedLayoutItems = [],
+  timeData = [],
+  room
+) {
   const schedules = subjSchedLayoutItems.map((item) => ({
     day: item.x,
     time: {
