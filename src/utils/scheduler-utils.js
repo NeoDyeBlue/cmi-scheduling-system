@@ -345,7 +345,7 @@ function createSchedules(subjectData, subjSchedLayoutItems, timeData, room) {
           start: daySchedule.time.start,
           end: daySchedule.time.end,
           courses: daySchedule.time.courses.map((course) => {
-            const courseData = subjectData.courses.find(
+            const courseData = subjectData?.courses?.find(
               (subjCourse) =>
                 course ==
                 `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
