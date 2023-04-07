@@ -67,11 +67,6 @@ class Course extends Model {
 
       const pipeline = [
         {
-          $sort: {
-            _id: 1,
-          },
-        },
-        {
           $match: {
             type: type,
           },
@@ -141,6 +136,12 @@ class Course extends Model {
             years: 1,
             sections: 1,
             yearSections: 1,
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
+            name: 1,
           },
         },
       ];
