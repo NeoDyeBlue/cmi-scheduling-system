@@ -1,15 +1,23 @@
 import teacher from '@/lib/model/data-access/Teacher';
 import schedule from '@/lib/model/data-access/schedule';
-import { parse, isBefore, isAfter, isEqual, format, parseISO } from 'date-fns';
+import {
+  parse,
+  isBefore,
+  isAfter,
+  isEqual,
+  format,
+  parseISO,
+  startOfWeek,
+  getDay,
+} from 'date-fns';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 
 export const handler = async (req, res) => {
   if (req.method === 'GET') {
     try {
-      const { day } = req.query;
       const data = await teacher.teacherStatus();
-      const currentSched = await schedule.currentSchedules({ day });
-
+      const today = getDay(new Date()) || 7;
+      const currentSched = await schedule.currentSchedules({ day: today });
       // today's hour
       const now = new Date();
       const nowString = format(now, 'h:mm a');
