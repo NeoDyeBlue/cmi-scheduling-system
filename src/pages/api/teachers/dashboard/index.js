@@ -58,45 +58,7 @@ export const handler = async (req, res) => {
       //   console.log('scheds', scheds);
       data[0]['currentSchedules'] = scheds;
 
-      return successResponse(req, res, [
-        {
-          partTime: 3,
-          fullTime: 15,
-          unscheduled: 17,
-          total: 18,
-          currentSchedules: [
-            {
-              teacher: {
-                _id: '642784c6b33fe4cc05644ba4',
-                firstName: 'Arashi',
-                lastName: 'Scaramouchie',
-                isFullTime: true,
-              },
-              schedule: {
-                course: {
-                  _id: '64279b71b9c030e3611641de',
-                  name: 'Sample Course',
-                  code: 'smplcourse',
-                },
-                subject: {
-                  _id: '642a57d86f9be0ee915a6986',
-                  code: 'cryst',
-                  name: 'crystalize reaction',
-                  units: 2,
-                },
-                room: {
-                  _id: '642786538cc63ec752404528',
-                  code: 'cb206',
-                },
-                time: {
-                  start: '7:00 AM',
-                  end: '9:00 AM',
-                },
-              },
-            },
-          ],
-        },
-      ]);
+      return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);
     }
