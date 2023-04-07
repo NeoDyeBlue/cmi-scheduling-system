@@ -80,7 +80,9 @@ export default function Home() {
             </p>
           </div>
           <div className="overflow-x-auto">
-            <OngoingScheduleTable data={sampleData} />
+            <OngoingScheduleTable
+              data={dashboardData?.currentSchedules || []}
+            />
           </div>
         </div>
       </div>
