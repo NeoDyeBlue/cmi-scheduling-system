@@ -34,3 +34,4 @@ yarn-error.log*
 #  uplaod image.
 public/images/teachers/
 
+/installer
