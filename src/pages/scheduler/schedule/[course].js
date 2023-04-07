@@ -358,27 +358,27 @@ export default function Schedule() {
       ...formData,
       // semester: schedulerData?.semester,
     });
-    try {
-      setIsSubmitting(true);
-      const res = await fetch('/api/schedules', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const result = await res.json();
-      if (result?.success) {
-        toast.success('Schedules saved');
-        setOldSchedsData(subjectScheds);
-        // mutate();
-      } else if (!result.success) {
-        toast.error("Can't save schedules");
-      }
-      setIsSubmitting(false);
-    } catch (error) {
-      console.log(error);
-      setIsSubmitting(false);
-      toast.error("Can't save schedules");
-    }
+    // try {
+    //   setIsSubmitting(true);
+    //   const res = await fetch('/api/schedules', {
+    //     method: 'POST',
+    //     body: JSON.stringify(formData),
+    //     headers: { 'Content-Type': 'application/json' },
+    //   });
+    //   const result = await res.json();
+    //   if (result?.success) {
+    //     toast.success('Schedules saved');
+    //     setOldSchedsData(subjectScheds);
+    //     // mutate();
+    //   } else if (!result.success) {
+    //     toast.error("Can't save schedules");
+    //   }
+    //   setIsSubmitting(false);
+    // } catch (error) {
+    //   console.log(error);
+    //   setIsSubmitting(false);
+    //   toast.error("Can't save schedules");
+    // }
   }
 
   async function onConfirmReset() {
