@@ -4,7 +4,7 @@ import { parse, differenceInMinutes } from 'date-fns';
 import { subtractDuration } from './time-utils';
 
 export function createInitialRoomLayout(
-  roomSchedules,
+  scheduleules,
   courseData,
   courseSubjects,
   timeData
@@ -12,7 +12,7 @@ export function createInitialRoomLayout(
   //get the existing room layout
   const roomSubjectsLayout = [];
   //for each subject schedule
-  roomSchedules?.forEach((subjSchedule) => {
+  scheduleules?.forEach((subjSchedule) => {
     //get the scheduled courses of the subject if its more than 1 it is considered as merged classes
 
     subjSchedule.dayTimes.forEach((dayTime) => {
@@ -147,6 +147,108 @@ export function getRemainingRowSpan(units = 1, subjectLayoutItems = []) {
   return unitsMaxSpan - totalRowSpanCount;
 }
 
+export function createCourseSubjectSchedules2(
+  subjSchedIds = [],
+  subjSchedItems = [],
+  room = { _id: '', code: '' },
+  subjectsData,
+  timeData,
+  course
+) {
+  //remove subjSchedIds that has no layout item
+  const filteredSubjSchedIds = subjSchedIds.filter((id) =>
+    subjSchedItems.some((item) => {
+      const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+      return id == `${subjectCode}~${teacherId}`;
+    })
+  );
+
+  const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
+    const { subjectCode, teacherId } = parseLayoutItemId(id);
+    return { code: subjectCode, teacher: teacherId };
+  });
+
+  const checkedItemIds = [];
+  const newRoomCourseSubjectScheds = [];
+  const newOtherCourseSubjectScheds = [];
+  //for each schedIds
+
+  subjSchedIdsParsed.forEach(({ code, teacher }) => {
+    //get the subject layout items of the same id
+    /**
+     * this needs tests
+     * this causes some subjects to be completed
+     */
+    let courseSubjSchedLayoutItems = [];
+    let otherSubjSchedLayoutItems = [];
+
+    subjSchedItems.forEach((item) => {
+      const {
+        subjectCode: itemSubjCode,
+        teacherId: itemTeacherId,
+        courses: itemCourses,
+      } = parseLayoutItemId(item.i);
+      console.log(
+        code,
+        teacher,
+        itemSubjCode,
+        itemTeacherId,
+        code == itemSubjCode &&
+          teacher == itemTeacherId &&
+          itemCourses.includes(`${course.code}${course.year}${course.section}`)
+      );
+      if (!checkedItemIds.includes(item.i)) {
+        if (
+          code == itemSubjCode &&
+          teacher == itemTeacherId &&
+          itemCourses.includes(`${course.code}${course.year}${course.section}`)
+        ) {
+          courseSubjSchedLayoutItems.push(item);
+          checkedItemIds.push(item.i);
+        } else {
+          otherSubjSchedLayoutItems.push(item);
+          checkedItemIds.push(item.i);
+        }
+      }
+    });
+
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${code}~${teacher}`
+    )?.data;
+
+    const courseSubjSched = createSchedules(
+      subjectData,
+      courseSubjSchedLayoutItems,
+      timeData,
+      room
+    );
+    if (courseSubjSched.schedules.length) {
+      newRoomCourseSubjectScheds.push(courseSubjSched);
+    }
+
+    console.log(courseSubjSchedLayoutItems, otherSubjSchedLayoutItems);
+    const otherCourseSubjSched = createSchedules(
+      subjectData,
+      otherSubjSchedLayoutItems,
+      timeData,
+      room
+    );
+    if (otherCourseSubjSched.schedules.length) {
+      console.log(otherCourseSubjSched);
+      newOtherCourseSubjectScheds.push(otherCourseSubjSched);
+    }
+  });
+
+  return {
+    roomId: room._id,
+    roomCode: room.code,
+    schedules: {
+      course: newRoomCourseSubjectScheds,
+      other: newOtherCourseSubjectScheds,
+    },
+  };
+}
+
 export function createCourseSubjectSchedules(
   subjSchedIds = [],
   subjSchedItems = [],
@@ -168,7 +270,7 @@ export function createCourseSubjectSchedules(
     return { code: subjectCode, teacher: teacherId };
   });
 
-  const newRoomSubjectScheds = [];
+  const checkedItemIds = [];
   const newRoomCourseSubjectScheds = [];
   const newOtherCourseSubjectScheds = [];
   //for each schedIds
@@ -182,110 +284,47 @@ export function createCourseSubjectSchedules(
     let courseSubjSchedLayoutItems = [];
     let otherSubjSchedLayoutItems = [];
 
-    subjSchedItems.forEach((item) => {
-      const {
-        subjectCode: itemSubjCode,
-        teacherId: itemTeacherId,
-        courses: itemCourses,
-      } = parseLayoutItemId(item.i);
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${code}~${teacher}`
+    )?.data;
+
+    const layoutItems = subjSchedItems.filter((item) => {
+      const { subjectCode: itemSubjCode, teacherId: itemTeacherId } =
+        parseLayoutItemId(item.i);
+      return itemSubjCode == code && itemTeacherId == teacher;
+    });
+
+    layoutItems.forEach((item) => {
+      const { courses: itemCourses } = parseLayoutItemId(item.i);
+
       if (
-        code == itemSubjCode &&
-        teacher == itemTeacherId &&
         itemCourses.includes(`${course.code}${course.year}${course.section}`)
       ) {
         courseSubjSchedLayoutItems.push(item);
       } else {
         otherSubjSchedLayoutItems.push(item);
       }
-      // return (
-      //   code == itemSubjCode &&
-      //   teacher == itemTeacherId &&
-      //   // courses.some((course) => itemCourses.includes(course))
-      //   itemCourses.includes(`${course.code}${course.year}${course.section}`)
-      // );
     });
 
-    const subjectData = subjectsData.find(
-      (data) => data.id == `${code}~${teacher}`
-    )?.data;
-
-    newRoomCourseSubjectScheds.push(
-      createSchedules(subjectData, courseSubjSchedLayoutItems, timeData, room)
+    const courseSubjSched = createSchedules(
+      subjectData,
+      courseSubjSchedLayoutItems,
+      timeData,
+      room
     );
-    newOtherCourseSubjectScheds.push(
-      createSchedules(subjectData, otherSubjSchedLayoutItems, timeData, room)
+    if (courseSubjSched.schedules.length) {
+      newRoomCourseSubjectScheds.push(courseSubjSched);
+    }
+
+    const otherCourseSubjSched = createSchedules(
+      subjectData,
+      otherSubjSchedLayoutItems,
+      timeData,
+      room
     );
-    //set the subject's times and days
-    // const schedules = subjSchedLayoutItems.map((item) => ({
-    //   day: item.x,
-    //   time: {
-    //     start: timeData[item.y][0],
-    //     end: timeData[item.y + item.h - 1][1],
-    //     courses: parseLayoutItemId(item.i).courses,
-    //   },
-    // }));
-
-    // //check if completed or not
-    // let totalMinutesDuration = 0;
-    // let isNotCompleted = true;
-    // schedules?.forEach((sched) => {
-    //   const start = parse(sched.time.start, 'hh:mm a', new Date());
-    //   const end = parse(sched.time.end, 'hh:mm a', new Date());
-
-    //   totalMinutesDuration += differenceInMinutes(end, start);
-    // });
-
-    // const hoursDuration = Math.floor(totalMinutesDuration / 60);
-    // const minutesDuration = totalMinutesDuration % 60;
-
-    // const { hours, minutes } = subtractDuration(
-    //   { hours: subjectData.units, minutes: 0 },
-    //   {
-    //     hours: hoursDuration,
-    //     minutes: minutesDuration,
-    //   }
-    // );
-
-    // if (hours <= 0 && minutes <= 0) {
-    //   isNotCompleted = false;
-    // }
-
-    // //group by day
-    // const groupedByDay = [];
-    // for (let day = 1; day <= 7; day++) {
-    //   const daySchedules = schedules.filter((schedule) => schedule.day == day);
-    //   if (daySchedules.length) {
-    //     groupedByDay.push({
-    //       day,
-    //       room,
-    //       times: daySchedules.map((daySchedule) => ({
-    //         start: daySchedule.time.start,
-    //         end: daySchedule.time.end,
-    //         courses: daySchedule.time.courses.map((course) => {
-    //           const courseData = subjectData.courses.find(
-    //             (subjCourse) =>
-    //               course ==
-    //               `${subjCourse.code}${subjCourse.year}${subjCourse.section}`
-    //           );
-    //           return courseData;
-    //         }),
-    //       })),
-    //     });
-    //   }
-    // }
-    // //add to the sched array
-    // newRoomSubjectScheds.push({
-    //   subject: {
-    //     _id: subjectData._id,
-    //     code: subjectData.code,
-    //   },
-    //   teacher: {
-    //     _id: subjectData.teacher._id,
-    //     teacherId: subjectData.teacher.teacherId,
-    //   },
-    //   isCompleted: !isNotCompleted,
-    //   schedules: [...groupedByDay],
-    // });
+    if (otherCourseSubjSched.schedules.length) {
+      newOtherCourseSubjectScheds.push(otherCourseSubjSched);
+    }
   });
 
   return {
@@ -371,3 +410,45 @@ function createSchedules(subjectData, subjSchedLayoutItems, timeData, room) {
     schedules: [...groupedByDay],
   };
 }
+
+// export function groupBySubject(schedules) {
+//   let groupedSujectScheds = [];
+
+//   console.log(schedules);
+//   schedules.forEach((schedule) => {
+//     //check if its in the array already
+//     const existingSched = groupedSujectScheds.find(
+//       (sched) =>
+//         sched.subject.code == schedule.subject.code &&
+//         sched.teacher.teacherId == schedule.teacher.teacherId
+//     );
+//     if (!existingSched) {
+//       //if not existing
+//       groupedSujectScheds.push(schedule);
+//     } else {
+//       //update the subject to add the schedule
+//       const merged = {
+//         ...existingSched,
+//         schedules: [
+//           ...existingSched.schedules.filter(
+//             (exist) => exist.room.code == roomData.code
+//           ),
+//           ...schedule.schedules.filter(
+//             (sched) => sched.room.code !== roomData.code
+//           ),
+//         ],
+//       };
+
+//       //filter the grouped scheds to remove the old subject data
+//       groupedSujectScheds = [
+//         ...groupedSujectScheds.filter((sched) => {
+//           return (
+//             sched.subject.code !== merged.subject.code &&
+//             sched.teacher.teacherId !== merged.teacher.teacherId
+//           );
+//         }),
+//         merged,
+//       ];
+//     }
+//   });
+// }

@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
-import { subtractDuration, createTimePairs } from '@/utils/time-utils';
+import { createTimePairs } from '@/utils/time-utils';
 import {
   createInitialRoomLayout,
   parseLayoutItemId,
@@ -55,13 +55,14 @@ export default function Scheduler({
     subjectScheds,
     subjectsData,
     roomsSubjSchedsLayouts,
+    roomsSubjScheds,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
     setAllRoomSubjScheds,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
-    hoveredMergeable,
+    selectedRooms,
     setHoveredMergeable,
   } = useSchedulerStore(
     useCallback(
@@ -80,6 +81,8 @@ export default function Scheduler({
         setOldSchedsData: state.setOldSchedsData,
         hoveredMergeable: state.hoveredMergeable,
         setHoveredMergeable: state.setHoveredMergeable,
+        selectedRooms: state.selectedRooms,
+        roomsSubjScheds: state.roomsSubjScheds,
       }),
       []
     ),
@@ -360,6 +363,7 @@ export default function Scheduler({
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
+      console.log('createNew');
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
         course,
@@ -367,6 +371,7 @@ export default function Scheduler({
         timeData
       );
       setLayout([...initialLayout, ...timeLayout.flat()]);
+      // setRoomSubjSchedsLayout(roomData.code, roomData._id, initialLayout);
     }
   }, []);
 
@@ -407,22 +412,22 @@ export default function Scheduler({
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
         if (roomLayout.roomCode !== roomData.code) {
-          otherRoomScheds.push(
-            ...createCourseSubjectSchedules(
-              subjSchedIds,
-              roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-              }),
-              {
-                _id: roomLayout.roomId,
-                code: roomLayout.roomCode,
-              },
-              subjectsData,
-              timeData,
-              course
-            )
+          const schedules = createCourseSubjectSchedules(
+            subjSchedIds,
+            roomLayout.layout.filter((item) => {
+              const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+              return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+            }),
+            {
+              _id: roomLayout.roomId,
+              code: roomLayout.roomCode,
+            },
+            subjectsData,
+            timeData,
+            course
           );
+
+          otherRoomScheds.push(schedules);
         }
       });
 
@@ -485,8 +490,6 @@ export default function Scheduler({
           ],
         })),
       ];
-
-      console.log(groupedCourseScheds);
 
       const subjSchedItems = layout.filter((item) => {
         const { subjectCode, teacherId } = parseLayoutItemId(item.i);
@@ -715,7 +718,9 @@ export default function Scheduler({
           )) ||
         [];
 
-      const inSchedulerDayTimes = subjectScheds
+      const inSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
         .filter(
           (subjSched) =>
             subjSched.teacher.teacherId == subjectData.teacher.teacherId
@@ -780,14 +785,17 @@ export default function Scheduler({
 
         existingSchedules.forEach((existingSchedule) => {
           //should exclude checking of existing times when is merged with the currently editing course
-          if (existingSchedule.room.code !== roomData.code) {
+          if (
+            existingSchedule.room.code !== roomData.code &&
+            !selectedRooms.some(
+              (room) => room.code == existingSchedule.room.code
+            )
+          ) {
             existingSchedule.times.forEach((scheduleTime) => {
-              console.log(scheduleTime);
               const subject = subjectScheds.find(
                 (subj) => subj.subject.code == scheduleTime.subject.code
               );
 
-              //needs more tests
               let coursesExist = false;
               if (subject && scheduleTime) {
                 const scheduleTimeCourses = scheduleTime.courses.map(
@@ -826,7 +834,7 @@ export default function Scheduler({
                   return time[1] == scheduleTime.end;
                 });
 
-                for (let i = timeStartIndex; i < timeEndIndex; i++) {
+                for (let i = timeStartIndex; i <= timeEndIndex; i++) {
                   unavailableTimesY.push(i);
                 }
               }
@@ -844,11 +852,13 @@ export default function Scheduler({
             return time[1] == scheduleTime.end;
           });
 
-          for (let i = timeStartIndex; i < timeEndIndex; i++) {
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
             unavailableTimesY.push(i);
           }
         });
       }
+
+      // console.log('Y', unavailableTimesY);
 
       //get all the schedule items from the same day
       let columnItemsUsedIndexes = [];
@@ -875,17 +885,20 @@ export default function Scheduler({
         .sort(function (a, b) {
           return a - b;
         });
-      let start = duplicatesRemoved[0];
-      let prev = duplicatesRemoved[0];
 
       for (let i = 0; i < duplicatesRemoved.length; i++) {
-        if (duplicatesRemoved[i] === prev + 1) {
-          prev = duplicatesRemoved[i];
-        } else {
-          unavailableTimeYPairs.push([start, prev]);
-          start = duplicatesRemoved[i];
-          prev = duplicatesRemoved[i];
+        const start = duplicatesRemoved[i];
+        let end = start;
+
+        while (
+          i < duplicatesRemoved.length - 1 &&
+          duplicatesRemoved[i + 1] === end + 1
+        ) {
+          end++;
+          i++;
         }
+
+        unavailableTimeYPairs.push([start, end]);
       }
 
       // create the restrictions
