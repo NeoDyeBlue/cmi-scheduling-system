@@ -247,6 +247,85 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async teacherStatus() {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $project: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            image: 1,
+            teacherId: 1,
+            type: 1,
+            preferredDayTimes: 1,
+          },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id',
+            foreignField: 'teacher',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            partTime: {
+              $sum: {
+                $cond: {
+                  if: { $gt: [{ $size: '$preferredDayTimes' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            fullTime: {
+              $sum: {
+                $cond: {
+                  if: { $eq: [{ $size: '$preferredDayTimes' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            unscheduled: {
+              $sum: {
+                $cond: {
+                  if: { $eq: [{ $size: '$schedules' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            total: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+          },
+        },
+      ];
+      const data = await this.Teacher.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const teacher = new Teacher();
 export default teacher;

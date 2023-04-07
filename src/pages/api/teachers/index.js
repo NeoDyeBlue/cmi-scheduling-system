@@ -37,7 +37,6 @@ export const handler = async (req, res) => {
       // const limit = 2;
       // const page = 1;
       const { limit, page } = req.query;
-
       const data = await teacher.getTeacherPaginate({ limit, page });
       return successResponse(req, res, data);
     } catch (error) {

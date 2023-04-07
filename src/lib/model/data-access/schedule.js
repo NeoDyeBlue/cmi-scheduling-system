@@ -431,6 +431,7 @@ class Schedule extends Model {
                         },
                       },
                     },
+
                     // $filter: {
                     //   input: '$times',
                     //   as: 't',
@@ -470,6 +471,135 @@ class Schedule extends Model {
       const data = await this.Schedule.find({ course: course_id })
         .select('-schedules')
         .exec();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async currentSchedules({ day }) {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $unwind: '$schedules',
+        },
+        {
+          $unwind: '$schedules.times',
+        },
+        {
+          $match: {
+            'schedules.day': parseInt(day),
+          },
+        },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  code: 1,
+                  name: 1,
+                  units: 1,
+                },
+              },
+            ],
+            as: 'subject',
+          },
+        },
+        {
+          $lookup: {
+            from: 'teachers',
+            localField: 'teacher',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  isFullTime: {
+                    $cond: {
+                      if: { $eq: [{ $size: '$preferredDayTimes' }, 0] },
+                      then: true,
+                      else: false,
+                    },
+                  },
+                },
+              },
+            ],
+            as: 'teacher',
+          },
+        },
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'course',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  code: 1,
+                  name: 1,
+                },
+              },
+            ],
+            as: 'course',
+          },
+        },
+        {
+          $project: {
+            course: { $arrayElemAt: ['$course', 0] },
+            subject: { $arrayElemAt: ['$subject', 0] },
+            teacher: { $arrayElemAt: ['$teacher', 0] },
+            schedules: 1,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              teacher: '$teacher._id',
+              subject: '$subject._id',
+              day: '$schedules.day',
+              room: '$schedules.room._id',
+              start: '$schedules.times.start',
+              end: '$schedules.times.end',
+            },
+            teacher: {
+              $first: '$teacher',
+            },
+            subject: { $first: '$subject' },
+            course: { $first: '$course' },
+            room: { $first: '$schedules.room' },
+          },
+        },
+
+        {
+          $addFields: {
+            schedule: {
+              course: '$course',
+              subject: '$subject',
+              room: '$room',
+              time: {
+                start: '$_id.start',
+                end: '$_id.end',
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            teacher: 1,
+            schedule: 1,
+          },
+        },
+      ];
+      const data = await this.Schedule.aggregate(pipeline);
       return data;
     } catch (error) {
       throw error;
