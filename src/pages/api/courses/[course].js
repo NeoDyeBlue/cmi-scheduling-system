@@ -20,7 +20,6 @@ export const handler = async (req, res) => {
         year,
         section,
       });
-      console.log('roomSchedules', roomSchedules);
 
       if (data[0]) {
         const rooms = roomSchedules.filter((room) => {

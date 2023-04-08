@@ -374,6 +374,46 @@ class Course extends Model {
                         },
                       },
                     },
+                    // lookup for schedules by teacher, subject, course, semester, year, section
+
+                    // {
+                    //   $lookup: {
+                    //     from: 'schedules',
+                    //     localField: 'course_oid',
+                    //     let: {
+                    //       year: '$year',
+                    //       section: '$section',
+                    //       subject_oid: '$$subject_oid',
+                    //     },
+                    //     foreignField: 'course',
+                    //     pipeline: [
+                    //       {
+                    //         $match: {
+                    //           $expr: {
+                    //             $and: [
+                    //               { $eq: ['$yearSec.year', '$$year'] },
+                    //               { $eq: ['$yearSec.section', '$$section'] },
+                    //               { $eq: ['$subject', '$$subject_oid'] },
+                    //               { $eq: ['$semester', semester] },
+                    //             ],
+                    //           },
+                    //         },
+                    //       },
+                    //       {
+                    //         $project: {
+                    //           _id: 1,
+                    //           course: 1,
+                    //           semester: 1,
+                    //           subject: 1,
+                    //           teacher: 1,
+                    //           yearSec: 1,
+                    //         },
+                    //       },
+                    //     ],
+                    //     as: 'subjectScheds',
+                    //   },
+                    // },
+
                     {
                       $project: {
                         _id: 0,
