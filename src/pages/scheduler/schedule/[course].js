@@ -123,6 +123,7 @@ export default function Schedule() {
   useEffect(() => {
     async function getSchedulerData() {
       if (Object.keys(router.query).length) {
+        reset(); // reset the zustand state
         try {
           const res = await fetch(
             `/api/courses/${router.query.course}?${new URLSearchParams({
