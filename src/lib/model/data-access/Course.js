@@ -470,6 +470,7 @@ class Course extends Model {
                           },
                           {
                             $project: {
+                              _id: 1,
                               course: 1,
                               subject: 1,
                               teacher: 1,
@@ -513,9 +514,31 @@ class Course extends Model {
                             },
                           },
                           {
+                            $lookup: {
+                              from: 'teachers',
+                              localField: 'teacher',
+                              foreignField: '_id',
+                              pipeline: [
+                                {
+                                  $project: {
+                                    _id: 1,
+                                    teacherId: 1,
+                                    firstName: 1,
+                                    lastName: 1,
+                                  },
+                                },
+                              ],
+                              as: 'teacher',
+                            },
+                          },
+                          {
                             $project: {
+                              _id: 1, // schedule oid
                               schedules: 1,
                               yearSec: 1,
+                              teacher: {
+                                $arrayElemAt: ['$teacher', 0],
+                              },
                               subject: {
                                 $arrayElemAt: ['$subject', 0],
                               },
@@ -527,35 +550,107 @@ class Course extends Model {
                           {
                             $unwind: '$schedules',
                           },
-                          // unwind the schedules.times
-                          // lookup the course and project name, code, year, section
-                          {
-                            $group: {
-                              _id: '$schedules._id',
-                              schedules: { $first: '$schedules' },
-                              // course: { $first: '$course' },
-                              subject: { $first: '$subject' },
-                              yearSec: { $first: '$yearSec' },
-                            },
-                          },
-                          /* 
-                          ########### 
-                          ########### FIX. IT SHOULD BE LOOKUP FOR COURSES INSIDE OF TIMES.COUSRS
-                          ###########
-                          ###########
-                          */
-                          {
-                            $addFields: {
-                              'schedules.times.subject': '$subject',
-                              // 'schedules.times.course': '$course',
-                              'schedules.room': '$schedules.room',
-                            },
-                          },
-
-                          // // remove room on schedule
+                          { $unwind: '$schedules.times' },
                           {
                             $project: {
-                              schedules: 1,
+                              'schedules._id': 0,
+                              'schedules.times._id': 0,
+                            },
+                          },
+                          {
+                            $group: {
+                              _id: {
+                                teacher: '$teacher._id',
+                                subject: '$subject._id',
+                                day: '$schedules.day',
+                                room: '$schedules.room._id',
+                                start: '$schedules.times.start',
+                                end: '$schedules.times.end',
+                              },
+                              subject: { $first: '$subject' },
+                              teacher: { $first: '$teacher' },
+                              dayTimes: {
+                                $addToSet: {
+                                  day: '$schedules.day',
+                                  room: '$schedules.room',
+                                },
+                              },
+                              times: {
+                                $addToSet: {
+                                  day: '$schedules.day',
+                                  start: '$schedules.times.start',
+                                  end: '$schedules.times.end',
+                                  courses: '$schedules.times.courses',
+                                },
+                              },
+                              // to get all sections that in this schedule.
+                              courseSections: {
+                                $push: {
+                                  schedule_oid: '$_id',
+                                  course: '$course',
+                                  yearSec: '$yearSec', // I think there's something wrong here.
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 0,
+                              subject: 1,
+                              teacher: 1,
+                              courseSections: 1,
+                              dayTimes: {
+                                $map: {
+                                  input: '$dayTimes',
+                                  as: 'dt',
+                                  in: {
+                                    day: '$$dt.day',
+                                    room: '$$dt.room',
+                                    times: {
+                                      $map: {
+                                        input: {
+                                          $filter: {
+                                            input: [
+                                              { $arrayElemAt: ['$times', 0] },
+                                            ],
+                                            as: 't',
+                                            cond: {
+                                              $eq: ['$$t.day', '$$dt.day'],
+                                            },
+                                          },
+                                        },
+                                        as: 'time',
+                                        in: {
+                                          start: '$$time.start',
+                                          end: '$$time.end',
+                                          courses: {
+                                            $map: {
+                                              input: '$courseSections',
+                                              as: 'section',
+                                              in: {
+                                                _id: '$$section.course._id',
+                                                schedule_oid:
+                                                  '$$section.schedule_oid',
+                                                code: '$$section.course.code',
+                                                name: '$$section.course.name',
+                                                year: '$$section.yearSec.year',
+                                                section:
+                                                  '$$section.yearSec.section',
+                                              },
+                                            },
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                              // times: 1,
+                            },
+                          },
+                          {
+                            $project: {
+                              dayTimes: {$arrayElemAt: ['$dayTimes', 0]},
                             },
                           },
                         ],
@@ -573,7 +668,7 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
-                        existingSchedules: '$existingSchedules.schedules',
+                        existingSchedules: '$existingSchedules.dayTimes',
                         //  {
                         //   $arrayElemAt: ['$existingSchedules.schedules', 0],
                         // },
