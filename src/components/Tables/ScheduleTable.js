@@ -87,8 +87,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
     return newData;
   }, [data, weekDays]);
 
-  // console.log(groupedByDay);
-
   const columns = useMemo(
     () => [
       {
@@ -168,7 +166,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
 
   function findSchedule(data, day) {
     const schedule = data.find((sched) => sched.day == day);
-    return schedule ? schedule.slots : [];
+    return schedule?.slots || [];
   }
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
@@ -215,7 +213,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
             // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
           )}
         >
-          {type !== 'teachers' && rowSpan > 4 ? (
+          {type !== 'teachers' && rowSpan > 3 ? (
             <ImageWithFallback
               src={slot?.teacher?.image}
               alt="teacher image"
@@ -252,7 +250,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               {slot?.teacher?.firstName} {slot?.teacher?.lastName}
             </p>
           )}
-          {type !== 'courses' && (
+          {type !== 'courses' && rowSpan > 2 && (
             <p className="text-xs font-bold uppercase text-primary-500">
               {courseText}{' '}
               {slot.courses.length > 1 && (

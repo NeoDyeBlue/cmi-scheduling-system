@@ -41,6 +41,11 @@ export default function PerSemScheduleTable({
 
   const perSemSchedules = useMemo(() => result?.data, [result]);
 
+  console.log(perSemSchedules);
+  console.log(
+    perSemSchedules?.find((schedule) => schedule.semester == '1').schedules
+  );
+
   return (
     <Tabs
       className="flex flex-col"
@@ -116,7 +121,7 @@ export default function PerSemScheduleTable({
                 }
                 title={title}
                 subtitle="1st Semester Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
@@ -133,7 +138,7 @@ export default function PerSemScheduleTable({
                 }
                 title={title}
                 subtitle="2nd Semester Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
@@ -151,7 +156,7 @@ export default function PerSemScheduleTable({
                 }
                 title={title}
                 subtitle="Specials Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
@@ -169,7 +174,7 @@ export default function PerSemScheduleTable({
                 }
                 title={title}
                 subtitle="Summer Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
