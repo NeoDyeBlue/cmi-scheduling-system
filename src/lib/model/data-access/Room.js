@@ -821,7 +821,6 @@ class Room extends Model {
         {
           $match: { 'schedules.0': { $exists: true } }, // Filter out documents with empty schedules arrays
         },
-
         {
           $project: {
             _id: 1,
