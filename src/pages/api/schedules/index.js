@@ -8,57 +8,61 @@ export const handler = async (req, res) => {
       // console.log('formData', JSON.stringify(formData));
 
       // create schedule
-      let schedules = [];
-      for (let room of formData.roomSchedules) {
-        for (let roomSchedules of room.schedules) {
-          let schedule = {};
-          schedule['subject'] = roomSchedules.subject._id;
-          schedule['teacher'] = roomSchedules.teacher._id;
-          schedule['isCompleted'] = roomSchedules.isCompleted;
-          schedule['semester'] = formData.semester;
-          schedule['schedules'] = [];
-          for (let dayTimes of roomSchedules.schedules) {
-            for (let time of dayTimes.times) {
-              for (let course of time.courses) {
-                if (course?.subjectScheds?.length) {
-                  for (let subjSched of course.subjectScheds) {
-                    if (subjSched?.teacher === schedule?.teacher?._id) {
-                      console.log('subjSched._id', subjSched._id);
-                      schedule['_id'] = subjSched._id;
-                    } else {
-                      schedule['_id'] = mongoose.Types.ObjectId();
-                      console.log(
-                        ' mongoose.Types.ObjectId();',
-                        mongoose.Types.ObjectId()
-                      );
+
+      const existingSchedules = [];
+      const constructSchedules = formData.roomSchedules.flatMap(
+        (roomSchedule) =>
+          roomSchedule.schedules.flatMap((schedule) => {
+            return schedule.schedules.flatMap((sched) => {
+              return sched.times.flatMap((time) => {
+                return time.courses.flatMap((course) => {
+                  let schedule_id = null;
+                  if (course?.subjectScheds?.length) {
+                    for (let subjSched of course.subjectScheds) {
+                      if (subjSched?.teacher === schedule?.teacher?._id) {
+                        schedule_id = subjSched._id;
+                      } else {
+                        schedule_id = mongoose.Types.ObjectId();
+                      }
                     }
                   }
-                }
-                schedule['course'] = course._id;
-                schedule['yearSec'] = {
-                  year: course.year,
-                  section: course.section,
-                };
-                // do not push schedule if already on an array.
-                if (
-                  !schedules.some(
-                    (sched) =>
-                      sched.subject === schedule.subject &&
-                      sched.teacher === schedule.teacher &&
-                      sched.semester === schedule.semester &&
-                      sched.course === schedule.course &&
-                      sched.yearSec.year === schedule.yearSec.year &&
-                      sched.yearSec.section === schedule.yearSec.section
-                  )
-                ) {
-                  schedules.push(schedule);
-                }
-              }
-            }
-          }
-        }
-      }
+                  const scheduleToAdd = {
+                    _id: schedule_id,
+                    teacher: schedule.teacher._id,
+                    subject: schedule.subject._id,
+                    isCompleted: schedule.isCompleted,
+                    semester: formData.semester,
+                    schedules: [],
+                    course: course._id,
+                    yearSec: { year: course.year, section: course.section },
+                  };
+                  // check if there's an existing schedule with the same properties
+                  const isExistingSchedule = existingSchedules.some(
+                    (existingSchedule) => {
+                      return (
+                        existingSchedule.teacher === scheduleToAdd.teacher &&
+                        existingSchedule.subject === scheduleToAdd.subject &&
+                        existingSchedule.semester === scheduleToAdd.semester &&
+                        existingSchedule.course === scheduleToAdd.course &&
+                        existingSchedule.yearSec.year ===
+                          scheduleToAdd.yearSec.year &&
+                        existingSchedule.yearSec.section ===
+                          scheduleToAdd.yearSec.section
+                      );
+                    }
+                  );
+                  if (!isExistingSchedule) {
+                    // add the new schedule to the existingSchedules array
+                    existingSchedules.push(scheduleToAdd);
 
+                    return scheduleToAdd;
+                  }
+                });
+              });
+            });
+          })
+      );
+      const schedules = constructSchedules.filter((cs) => cs !== undefined);
       for (let room of formData.roomSchedules) {
         for (let roomSched of room.schedules) {
           for (let dayTime of roomSched.schedules) {
@@ -68,9 +72,11 @@ export const handler = async (req, res) => {
                   if (
                     course._id === schedule.course &&
                     course.year === schedule.yearSec.year &&
-                    course.section === schedule.yearSec.section
+                    course.section === schedule.yearSec.section &&
+                    roomSched.subject._id === schedule.subject &&
+                    roomSched.teacher._id === schedule.teacher
                   ) {
-                    // before adding, check by day, room, times start, and if there's no duplicate.
+                    // before adding, check by day if there's no duplication.
                     let isSchedExists = schedule['schedules'].some(
                       (sched) => sched.day === dayTime.day
                     );
@@ -100,7 +106,7 @@ export const handler = async (req, res) => {
           }
         }
       }
-
+      console.log('formData', JSON.stringify(formData));
       const data = await schedule.createSchedule({
         schedules,
         formData,

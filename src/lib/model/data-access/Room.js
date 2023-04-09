@@ -777,7 +777,7 @@ class Room extends Model {
                           $map: {
                             input: {
                               $filter: {
-                                input: [{ $arrayElemAt: ['$times', 0] }],
+                                input:  [{ $arrayElemAt: ['$times', 0] }],
                                 as: 't',
                                 cond: { $eq: ['$$t.day', '$$dt.day'] },
                               },
