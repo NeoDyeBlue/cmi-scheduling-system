@@ -802,11 +802,6 @@ class Room extends Model {
                               },
                             },
                           },
-                          // $filter: {
-                          //   input: '$times',
-                          //   as: 't',
-                          //   cond: { $eq: ['$$t.day', '$$dt.day'] },
-                          // },
                         },
                       },
                     },

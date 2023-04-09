@@ -581,6 +581,7 @@ class Course extends Model {
                                   start: '$schedules.times.start',
                                   end: '$schedules.times.end',
                                   courses: '$schedules.times.courses',
+                                  
                                 },
                               },
                               // to get all sections that in this schedule.
@@ -623,6 +624,7 @@ class Course extends Model {
                                         in: {
                                           start: '$$time.start',
                                           end: '$$time.end',
+                                          subject: '$subject',
                                           courses: {
                                             $map: {
                                               input: '$courseSections',
@@ -650,7 +652,7 @@ class Course extends Model {
                           },
                           {
                             $project: {
-                              dayTimes: {$arrayElemAt: ['$dayTimes', 0]},
+                              dayTimes: { $arrayElemAt: ['$dayTimes', 0] },
                             },
                           },
                         ],
