@@ -9,12 +9,13 @@ class Schedule extends Model {
   }
   // just a snippet for schedule.
   async createSchedule({ schedules, courseSubjectScheds }) {
+    // console.log(JSON.stringify(schedules))
     try {
       const schedulesBulksOptions = schedules.map((schedule) => {
         return {
           updateOne: {
             filter: {
-              _id: schedule._id,
+              _id: schedule._id ? schedule._id : mongoose.Types.ObjectId() ,
               teacher: schedule.teacher,
               subject: schedule.subject,
               course: schedule.course,
@@ -85,8 +86,8 @@ class Schedule extends Model {
         };
       });
       console.log(
-        'toDeleteSchedsOptions',
-        JSON.stringify(toDeleteSchedsOptions)
+        'toDeleteItems',
+        toDeleteItems
       );
       const deletedSchedules = await this.Schedule.bulkWrite(
         toDeleteSchedsOptions
@@ -94,7 +95,7 @@ class Schedule extends Model {
 
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
-      console.log('data---------', data);
+      // console.log('data---------', data);
       return data;
     } catch (error) {
       console.log('error---------', error);

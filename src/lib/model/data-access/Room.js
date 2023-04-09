@@ -842,7 +842,7 @@ class Room extends Model {
       // }
 
       const data = await this.Room.aggregate(pipeline);
-      console.log('rooooooooms', JSON.stringify(data));
+      // console.log('rooooooooms', JSON.stringify(data));
       return data;
     } catch (error) {
       console.log('error', error);
