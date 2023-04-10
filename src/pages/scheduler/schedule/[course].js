@@ -291,6 +291,7 @@ export default function Schedule() {
         interval={30}
         semester={schedulerData?.semester}
         roomData={room}
+        onMerge={submitChanges}
       />
     </TabPanel>
   ));
@@ -321,6 +322,10 @@ export default function Schedule() {
       if (result?.success) {
         toast.success('Schedules saved');
         setOldSchedsData(subjectScheds);
+        setSchedulerData(result.data[0]);
+        /**
+         * ILL ADD A STATE UPDATE HERE FOR THE SCHEDULER DATA
+         */
         // mutate();
       } else if (!result.success) {
         toast.error("Can't save schedules");

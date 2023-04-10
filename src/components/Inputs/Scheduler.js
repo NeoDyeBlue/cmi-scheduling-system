@@ -36,6 +36,7 @@ export default function Scheduler({
   const [isDragging, setIsDragging] = useState(false);
   const [isMergeConfirmOpen, setIsMergeConfirmOpen] = useState(false);
   const [toMergeSchedule, setToMergeSchedule] = useState(null);
+  const [toRemoveMerged, setToRemoveMerged] = useState(null);
   const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
 
@@ -292,7 +293,12 @@ export default function Scheduler({
                 toolTipId="remove"
                 toolTipContent="Remove"
                 onClick={(e) => {
-                  removeLayoutItem(schedule.i);
+                  if (courses.length > 1) {
+                    setIsRemoveConfirmOpen(true);
+                    setToRemoveMerged(schedule.i);
+                  } else {
+                    removeLayoutItem(schedule.i);
+                  }
                 }}
                 icon={<MdRemove size={16} />}
               />
@@ -349,7 +355,6 @@ export default function Scheduler({
 
   //for setting initial layout
   useEffect(() => {
-    console.log('here');
     //get the existing room layout
     const existingRoomLayout = roomsSubjSchedsLayouts.find(
       (room) => room.roomCode == roomData.code
@@ -357,7 +362,6 @@ export default function Scheduler({
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
-      console.log('createNew');
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
         course,
@@ -400,7 +404,8 @@ export default function Scheduler({
         },
         subjectsData,
         timeData,
-        course
+        course,
+        selectedRooms
       );
 
       const otherRoomScheds = [];
@@ -418,9 +423,9 @@ export default function Scheduler({
             },
             subjectsData,
             timeData,
-            course
+            course,
+            selectedRooms
           );
-
           otherRoomScheds.push(schedules);
         }
       });
@@ -1286,7 +1291,10 @@ export default function Scheduler({
     <div className="min-w-[900px]">
       <Confirmation
         isOpen={isMergeConfirmOpen}
-        onCancel={() => setIsMergeConfirmOpen(false)}
+        onCancel={() => {
+          setIsMergeConfirmOpen(false);
+          setToMergeSchedule(null);
+        }}
         onConfirm={onConfirmMerge}
         label="Merge Subject Schedules?"
         message="This will remove all placed individual same subject and teacher schedules of the current course."

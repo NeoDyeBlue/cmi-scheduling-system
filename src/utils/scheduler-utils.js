@@ -153,7 +153,8 @@ export function createCourseSubjectSchedules(
   room = { _id: '', code: '' },
   subjectsData,
   timeData,
-  course
+  course,
+  selectedRooms
 ) {
   //remove subjSchedIds that has no layout item
   const filteredSubjSchedIds = subjSchedIds.filter((id) =>
@@ -168,7 +169,6 @@ export function createCourseSubjectSchedules(
     return { code: subjectCode, teacher: teacherId };
   });
 
-  const checkedItemIds = [];
   const newRoomCourseSubjectScheds = [];
   const newOtherCourseSubjectScheds = [];
   //for each schedIds
@@ -208,7 +208,8 @@ export function createCourseSubjectSchedules(
       subjectData,
       courseSubjSchedLayoutItems,
       timeData,
-      room
+      room,
+      selectedRooms
     );
     if (courseSubjSched.schedules.length) {
       newRoomCourseSubjectScheds.push(courseSubjSched);
@@ -218,7 +219,8 @@ export function createCourseSubjectSchedules(
       subjectData,
       otherSubjSchedLayoutItems,
       timeData,
-      room
+      room,
+      selectedRooms
     );
     if (otherCourseSubjSched.schedules.length) {
       newOtherCourseSubjectScheds.push(otherCourseSubjSched);
@@ -239,8 +241,10 @@ function createSchedules(
   subjectData,
   subjSchedLayoutItems = [],
   timeData = [],
-  room
+  room,
+  selectedRooms
 ) {
+  // console.log(subjectData);
   const schedules = subjSchedLayoutItems.map((item) => ({
     day: item.x,
     time: {
@@ -298,6 +302,20 @@ function createSchedules(
       });
     }
   }
+
+  // subjectData.teacher.existingSchedules.forEach(schedule => {
+  //   if (!selectedRooms.map(room => room._id).includes(schedule.room._id)) {
+  //     schedule.times.forEach(time => {
+  //       if (time.subject._id == subjectData._id) {
+  //         groupedByDay.push({
+  //           day: schedule.day,
+  //           room: schedule.room,
+  //           times:
+  //         })
+  //       }
+  //     })
+  //   }
+  // })
 
   //add to the sched array
   return {

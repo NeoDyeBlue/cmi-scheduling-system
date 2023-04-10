@@ -675,8 +675,7 @@ const schedulerData2 = {
               code: 'dontdelete-jp',
               year: 1,
               section: 'A',
-              //add merged field if ung course natoh is kasama sa merged same narin cguro sa rooms
-              merged: true,
+              //removed merged field
             },
             {
               _id: '642a2d8fe769e5c289c2f080',
@@ -684,8 +683,7 @@ const schedulerData2 = {
               code: 'dontdelete-jp',
               year: 1,
               section: 'B',
-              //add merged field if ung course natoh is kasama sa merged same narin cguro sa rooms
-              merged: true,
+              //removed merged field
             },
           ],
           assignedTeachers: [
@@ -697,6 +695,10 @@ const schedulerData2 = {
               type: 'full-time',
               preferredDayTimes: [],
               teacherId: '11-1112',
+              //add this instead
+              mergedCourses: [
+                // add merged courses of the same subject and same teacher
+              ],
               existingSchedules: [
                 {
                   day: 2,
