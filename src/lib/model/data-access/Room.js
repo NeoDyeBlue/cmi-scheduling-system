@@ -243,6 +243,7 @@ class Room extends Model {
                                 year: '$year',
                                 section: '$section',
                                 subject_oid: '$$subject_oid',
+                                course_oid: '$course_oid',
                               },
                               foreignField: 'course',
                               pipeline: [
@@ -258,6 +259,7 @@ class Room extends Model {
                                           ],
                                         },
                                         { $eq: ['$subject', '$$subject_oid'] },
+                                        { $eq: ['$course', '$$course_oid'] },
                                         { $eq: ['$semester', semester] },
                                       ],
                                     },
@@ -271,6 +273,34 @@ class Room extends Model {
                                     subject: 1,
                                     teacher: 1,
                                     yearSec: 1,
+                                    schedules: 1,
+                                  },
+                                },
+                                { $unwind: '$schedules' },
+                                { $unwind: '$schedules.times' },
+                                {
+                                  $addFields: {
+                                    isMerged: {
+                                      $cond: {
+                                        if: {
+                                          $gt: [
+                                            {
+                                              $size: [
+                                                '$schedules.times.courses',
+                                              ],
+                                            },
+                                            1,
+                                          ],
+                                        },
+                                        then: true,
+                                        else: false,
+                                      },
+                                    },
+                                  },
+                                },
+                                {
+                                  $project: {
+                                    schedules: 0,
                                   },
                                 },
                               ],
@@ -280,6 +310,22 @@ class Room extends Model {
                           {
                             $project: {
                               _id: 0,
+                            },
+                          },
+                          {
+                            $addFields: {
+                              _id: '$course_oid',
+                              merged: {
+                                $cond: {
+                                  if: {
+                                    $gt: ['$subjectScheds', 0],
+                                  },
+                                  then: {
+                                    $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                                  },
+                                  else: false,
+                                },
+                              },
                             },
                           },
                           {
@@ -579,6 +625,7 @@ class Room extends Model {
                                 year: '$year',
                                 section: '$section',
                                 subject_oid: '$$subject_oid',
+                                course_oid: '$course_oid',
                               },
                               foreignField: 'course',
                               pipeline: [
@@ -587,13 +634,9 @@ class Room extends Model {
                                     $expr: {
                                       $and: [
                                         { $eq: ['$yearSec.year', '$$year'] },
-                                        {
-                                          $eq: [
-                                            '$yearSec.section',
-                                            '$$section',
-                                          ],
-                                        },
+                                        { $eq: ['$yearSec.section', '$$section'] },
                                         { $eq: ['$subject', '$$subject_oid'] },
+                                        { $eq: ['$course', '$$course_oid'] },
                                         { $eq: ['$semester', semester] },
                                       ],
                                     },
@@ -607,6 +650,30 @@ class Room extends Model {
                                     subject: 1,
                                     teacher: 1,
                                     yearSec: 1,
+                                    schedules: 1,
+                                  },
+                                },
+                                { $unwind: '$schedules' },
+                                { $unwind: '$schedules.times' },
+                                {
+                                  $addFields: {
+                                    isMerged: {
+                                      $cond: {
+                                        if: {
+                                          $gt: [
+                                            { $size: ['$schedules.times.courses'] },
+                                            1,
+                                          ],
+                                        },
+                                        then: true,
+                                        else: false,
+                                      },
+                                    },
+                                  },
+                                },
+                                {
+                                  $project: {
+                                    schedules: 0,
                                   },
                                 },
                               ],
@@ -616,6 +683,22 @@ class Room extends Model {
                           {
                             $project: {
                               _id: 0,
+                            },
+                          },
+                          {
+                            $addFields: {
+                              _id: '$course_oid',
+                              merged: {
+                                $cond: {
+                                  if: {
+                                    $gt: ['$subjectScheds', 0],
+                                  },
+                                  then: {
+                                    $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                                  },
+                                  else: false,
+                                },
+                              },
                             },
                           },
                           {
@@ -777,7 +860,7 @@ class Room extends Model {
                           $map: {
                             input: {
                               $filter: {
-                                input:  [{ $arrayElemAt: ['$times', 0] }],
+                                input: [{ $arrayElemAt: ['$times', 0] }],
                                 as: 't',
                                 cond: { $eq: ['$$t.day', '$$dt.day'] },
                               },

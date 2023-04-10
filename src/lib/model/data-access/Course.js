@@ -286,6 +286,7 @@ class Course extends Model {
     }
   }
   // ----------------------------------------------------
+  // ################### SCHEDULERDATA ##########################
   async getCourseSubjectTeachers({ courseCode, semester, year, section }) {
     try {
       // look up for subjects
@@ -375,7 +376,6 @@ class Course extends Model {
                       },
                     },
                     // lookup for schedules by teacher, subject, course, semester, year, section
-
                     {
                       $lookup: {
                         from: 'schedules',
@@ -384,6 +384,7 @@ class Course extends Model {
                           year: '$year',
                           section: '$section',
                           subject_oid: '$$subject_oid',
+                          course_oid: '$course_oid',
                         },
                         foreignField: 'course',
                         pipeline: [
@@ -394,6 +395,7 @@ class Course extends Model {
                                   { $eq: ['$yearSec.year', '$$year'] },
                                   { $eq: ['$yearSec.section', '$$section'] },
                                   { $eq: ['$subject', '$$subject_oid'] },
+                                  { $eq: ['$course', '$$course_oid'] },
                                   { $eq: ['$semester', semester] },
                                 ],
                               },
@@ -407,6 +409,30 @@ class Course extends Model {
                               subject: 1,
                               teacher: 1,
                               yearSec: 1,
+                              schedules: 1,
+                            },
+                          },
+                          { $unwind: '$schedules' },
+                          { $unwind: '$schedules.times' },
+                          {
+                            $addFields: {
+                              isMerged: {
+                                $cond: {
+                                  if: {
+                                    $gt: [
+                                      { $size: ['$schedules.times.courses'] },
+                                      1,
+                                    ],
+                                  },
+                                  then: true,
+                                  else: false,
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 0,
                             },
                           },
                         ],
@@ -422,6 +448,17 @@ class Course extends Model {
                     {
                       $addFields: {
                         _id: '$course_oid',
+                        merged: {
+                          $cond: {
+                            if: {
+                              $gt: ['$subjectScheds', 0],
+                            },
+                            then: {
+                              $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                            },
+                            else: false,
+                          },
+                        },
                       },
                     },
                     {
@@ -581,7 +618,6 @@ class Course extends Model {
                                   start: '$schedules.times.start',
                                   end: '$schedules.times.end',
                                   courses: '$schedules.times.courses',
-                                  
                                 },
                               },
                               // to get all sections that in this schedule.
