@@ -18,23 +18,14 @@ import {
   createCourseSubjectSchedules,
 } from '@/utils/scheduler-utils';
 import { SchedulerLayoutItemButton } from '../Buttons';
-
-/**
- * MERGE TEST
- * Condition for merging:
- * - same room
- * - same teacher
- * - same year
- *
- * Possible solution via modal
- * - on merge click show the possible options for merging
- */
+import { Modal, Confirmation } from '../Modals';
 
 export default function Scheduler({
   startTime = '1:00 AM',
   endTime = '12:00 AM',
   interval = 30,
   roomData,
+  onMerge = () => {},
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -43,6 +34,9 @@ export default function Scheduler({
   // const [subjectsData, setSubjectsData] = useState([]);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMergeConfirmOpen, setIsMergeConfirmOpen] = useState(false);
+  const [toMergeSchedule, setToMergeSchedule] = useState(null);
+  const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
 
   // const [scheduleLayout, setScheduleLayout] = useState([]);
@@ -62,6 +56,7 @@ export default function Scheduler({
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
+    setSubjectsData,
     selectedRooms,
     setHoveredMergeable,
   } = useSchedulerStore(
@@ -83,6 +78,7 @@ export default function Scheduler({
         setHoveredMergeable: state.setHoveredMergeable,
         selectedRooms: state.selectedRooms,
         roomsSubjScheds: state.roomsSubjScheds,
+        setSubjectsData: state.setSubjectsData,
       }),
       []
     ),
@@ -212,10 +208,7 @@ export default function Scheduler({
           courseItem == `${course.code}${course.year}${course.section}`
       );
 
-      const mergeable =
-        isSameSubjectAndTeacher &&
-        !inSubjectCourses &&
-        schedule.h <= remainingRowSpan;
+      const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
 
       let courseText = '';
 
@@ -277,7 +270,8 @@ export default function Scheduler({
                 toolTipId="merge"
                 toolTipContent="Merge"
                 onClick={() => {
-                  handleClassMerge(schedule);
+                  setIsMergeConfirmOpen(true);
+                  setToMergeSchedule(schedule);
                   setHoveredMergeable('');
                 }}
                 icon={<MdMergeType size={16} className="rotate-180" />}
@@ -521,15 +515,18 @@ export default function Scheduler({
    * @param {String} layoutItemId - the layout "i" in SUBJCODE~##-####~nanoId format
    */
 
-  function updateSubjSchedsMaxH(layoutSource, layoutItemId) {
+  function updateSubjSchedsMaxH(
+    layoutSource,
+    layoutItemId,
+    roomLayouts = roomsSubjSchedsLayouts
+  ) {
     //parse layoutItemId
     const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItemId);
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
-    //get the layout items with the same ids
-    // console.log(roomSubjSchedItems);
+
     //get the layout from other rooms
-    const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
+    const otherRoomLayouts = roomLayouts.filter(
       (roomLayout) => roomLayout.roomCode !== roomData.code
     );
     //get the subject's data
@@ -947,11 +944,108 @@ export default function Scheduler({
     const newLayoutItem = { ...layoutItem, i: newItemId, static: false };
 
     const mergedItemsLayout = mergeYAdjacentSubjScheds(
-      [...layout.filter((item) => item.i !== layoutItem.i), newLayoutItem],
+      [
+        ...layout.filter((item) => {
+          const {
+            subjectCode: itemSubjectCode,
+            teacherId: itemTeacherId,
+            courses: itemCourses,
+          } = parseLayoutItemId(item.i);
+          if (subjectCode == itemSubjectCode && teacherId == itemTeacherId) {
+            if (itemCourses.length == 1) {
+              return (
+                itemCourses[0] !==
+                  `${course.code}${course.year}${course.section}` &&
+                item.i !== layoutItem.i
+              );
+            }
+          }
+          return item.i !== layoutItem.i;
+        }),
+        newLayoutItem,
+      ],
       newLayoutItem
     );
 
-    updateSubjSchedsMaxH(mergedItemsLayout, newItemId);
+    const subjSchedIds = subjectsData.map((data) => data.id);
+    let updatedOtherRoomLayouts = [
+      {
+        roomCode: roomData.code,
+        roomId: roomData._id,
+        layout: mergedItemsLayout.filter((item) => {
+          const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
+            parseLayoutItemId(item.i);
+          return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
+        }),
+      },
+    ];
+
+    roomsSubjSchedsLayouts.forEach((room) => {
+      if (room.roomId !== roomData._id) {
+        let newLayout = [];
+        room.layout.forEach((item) => {
+          const {
+            subjectCode: itemSubjectCode,
+            teacherId: itemTeacherId,
+            courses: itemCourses,
+          } = parseLayoutItemId(item.i);
+          if (
+            itemSubjectCode == subjectCode &&
+            itemTeacherId == teacherId &&
+            checkIfEqualCourses(itemCourses, courses)
+          ) {
+            newLayout.push({
+              ...item,
+              i: createLayoutItemId(subjectCode, teacherId, [
+                ...courses,
+                `${course.code}${course.year}${course.section}`,
+              ]),
+              static: false,
+            });
+          } else if (
+            itemSubjectCode !== subjectCode &&
+            itemTeacherId !== teacherId
+          ) {
+            newLayout.push(item);
+          }
+        });
+        updatedOtherRoomLayouts.push({
+          roomId: room.roomId,
+          roomCode: room.roomCode,
+          layout: newLayout,
+        });
+      }
+    });
+
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    );
+    const newSubjectData = {
+      ...subjectData,
+      data: {
+        ...subjectData.data,
+        courses: subjectData.data.courses.map((itemCourse) => {
+          if (
+            [
+              ...courses,
+              `${course.code}${course.year}${course.section}`,
+            ].includes(
+              `${itemCourse.code}${itemCourse.year}${itemCourse.section}`
+            )
+          ) {
+            return { ...itemCourse, merged: true };
+          }
+          return { ...itemCourse, merged: false };
+        }),
+      },
+    };
+
+    setSubjectsData([
+      ...subjectsData.filter((data) => data.id !== newSubjectData.id),
+      newSubjectData,
+    ]);
+
+    updateSubjSchedsMaxH(mergedItemsLayout, newItemId, updatedOtherRoomLayouts);
   }
 
   function handleSplitMerge(layoutItem) {
@@ -972,15 +1066,85 @@ export default function Scheduler({
       newLayoutItem
     );
 
-    updateSubjSchedsMaxH(mergedItemsLayout, newItemId);
+    const subjSchedIds = subjectsData.map((data) => data.id);
+    let updatedOtherRoomLayouts = [
+      {
+        roomCode: roomData.code,
+        roomId: roomData._id,
+        layout: mergedItemsLayout.filter((item) => {
+          const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
+            parseLayoutItemId(item.i);
+          return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
+        }),
+      },
+    ];
 
-    // updateSubjSchedsMaxH(
-    //   [
-    //     ...layout.filter((item) => item.i !== layoutItem.i),
-    //     { ...layoutItem, i: newItemId, static: true },
-    //   ],
-    //   newItemId
-    // );
+    roomsSubjSchedsLayouts.forEach((room) => {
+      if (room.roomId !== roomData._id) {
+        let newLayout = [];
+        room.layout.forEach((item) => {
+          const {
+            subjectCode: itemSubjectCode,
+            teacherId: itemTeacherId,
+            courses: itemCourses,
+          } = parseLayoutItemId(item.i);
+          if (
+            itemSubjectCode == subjectCode &&
+            itemTeacherId == teacherId &&
+            checkIfEqualCourses(itemCourses, courses)
+          ) {
+            newLayout.push({
+              ...item,
+              i: createLayoutItemId(
+                subjectCode,
+                teacherId,
+                courses.filter(
+                  (courseYearSec) =>
+                    courseYearSec !==
+                    `${course.code}${course.year}${course.section}`
+                )
+              ),
+              static: true,
+            });
+          } else if (
+            itemSubjectCode !== subjectCode &&
+            itemTeacherId !== teacherId
+          ) {
+            newLayout.push(item);
+          }
+        });
+        updatedOtherRoomLayouts.push({
+          roomId: room.roomId,
+          roomCode: room.roomCode,
+          layout: newLayout,
+        });
+      }
+    });
+
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    );
+    const newSubjectData = {
+      ...subjectData,
+      data: {
+        ...subjectData.data,
+        courses: subjectData.data.courses.map((course) => {
+          if (
+            courses.includes(`${course.code}${course.year}${course.section}`)
+          ) {
+            return { ...course, merged: false };
+          }
+          return { ...course, merged: false };
+        }),
+      },
+    };
+
+    setSubjectsData([
+      ...subjectsData.filter((data) => data.id !== newSubjectData.id),
+      newSubjectData,
+    ]);
+
+    updateSubjSchedsMaxH(mergedItemsLayout, newItemId, updatedOtherRoomLayouts);
   }
 
   function handleLayoutChange(newLayout) {
@@ -990,16 +1154,39 @@ export default function Scheduler({
     }
   }
 
+  function onConfirmMerge() {
+    handleClassMerge(toMergeSchedule);
+    onMerge();
+    setToMergeSchedule(null);
+    setIsMergeConfirmOpen(false);
+  }
+
   //needs attention
   function onDrop(newLayout, layoutItem, _event) {
     try {
-      const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
+      const subjectDataId = JSON.parse(
+        _event.dataTransfer.getData('text/plain')
+      );
+
+      const data = subjectsData.find(
+        (subjectsData) => subjectsData.id == subjectDataId.id
+      )?.data;
+
+      let itemCourses = [`${course.code}${course.year}${course.section}`];
+      data.courses.forEach((dataCourse) => {
+        const toStringCourse = `${dataCourse.code}${dataCourse.year}${dataCourse.section}`;
+        if (!itemCourses.includes(toStringCourse) && dataCourse.merged) {
+          itemCourses.push(toStringCourse);
+        }
+      });
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const layoutItemId = createLayoutItemId(
           data.code,
           data.teacher.teacherId,
-          [`${course.code}${course.year}${course.section}`]
+          itemCourses
         );
+
+        console.log(data);
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
@@ -1097,6 +1284,13 @@ export default function Scheduler({
 
   return (
     <div className="min-w-[900px]">
+      <Confirmation
+        isOpen={isMergeConfirmOpen}
+        onCancel={() => setIsMergeConfirmOpen(false)}
+        onConfirm={onConfirmMerge}
+        label="Merge Subject Schedules?"
+        message="This will remove all placed individual same subject and teacher schedules of the current course."
+      />
       <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}
       </div>

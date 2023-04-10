@@ -49,7 +49,6 @@ export default function Schedule() {
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
     setAllRoomSubjScheds,
-    setRoomSubjSchedsLayout,
     setOldSchedsData,
     reset,
   } = useSchedulerStore(
@@ -91,34 +90,6 @@ export default function Schedule() {
   const [error, setError] = useState(null);
   const [schedulerData, setSchedulerData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
-  // const {
-  //   data: result,
-  //   isLoading,
-  //   error,
-  //   mutate,
-  // } = useSWR(
-  //   Object.keys(router.query).length
-  //     ? [
-  //         '/api/courses',
-  //         {
-  //           course: courseCode,
-  //           semester,
-  //           year,
-  //           section,
-  //           p: 'draggable',
-  //         },
-  //       ]
-  //     : null,
-  //   courseFetcher,
-  //   {
-  //     revalidateOnMount: true,
-  //     refreshInterval: 0,
-  //   }
-  // );
-
-  // const schedulerData = useMemo(() => {
-  //   return result?.data[0] ? result.data[0] : null;
-  // }, [result]);
 
   useEffect(() => {
     async function getSchedulerData() {
@@ -156,26 +127,6 @@ export default function Schedule() {
         // const initialSubjectScheds = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
-            //add to course subjects data
-            // teacher.existingSchedules.forEach((schedule) => {
-            //   schedule.times.forEach((time) => {
-            //     if (time.subject._id == subject._id) {
-            //       time.courses.forEach((course) => {
-            //         if (
-            //           !subjectCourseYearSections.some(
-            //             (courseYrSec) =>
-            //               courseYrSec.code == course.code &&
-            //               courseYrSec.year == course.year &&
-            //               courseYrSec.section == course.section
-            //           )
-            //         ) {
-            //           subjectCourseYearSections.push(course);
-            //         }
-            //       });
-            //     }
-            //   });
-            // });
-
             const dataId = `${subject.code}~${teacher.teacherId}`;
             const { teachers, ...newData } = subject;
             courseSubjectsData.push({

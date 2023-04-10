@@ -104,7 +104,10 @@ export default function DraggableSchedule({ data }) {
       onDragEnd={() => setDraggingSubject(null)}
       onDragStart={(e) => {
         e.dataTransfer.clearData();
-        e.dataTransfer.setData('text/plain', JSON.stringify(data));
+        e.dataTransfer.setData(
+          'text/plain',
+          JSON.stringify({ id: `${data.code}~${data.teacher.teacherId}` })
+        );
         setDraggingSubject(data);
       }}
     >
