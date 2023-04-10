@@ -540,21 +540,18 @@ class Course extends Model {
                             $unwind: '$schedules.times',
                           },
                           {
-                            $project: {
-                              courses: '$schedules.timescourses',
-                            },
+                            $unwind: '$schedules.times.courses'
                           },
+                          {
+                            $project: {
+                              courses : '$schedules.times.courses'
+                            }
+                          }
                         ],
                         as: 'assignedCourses',
                       },
                     },
-                    //       teacher: schedule.teacher,
-                    // subject: schedule.subject,
-                    // course: schedule.course,
-                    // semester: schedule.semester,
-                    // yearSec: {
-                    //   year: schedule.yearSec.year,
-                    //   section: schedule.yearSec.section,
+
 
                     {
                       $lookup: {
