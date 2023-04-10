@@ -530,6 +530,7 @@ class Course extends Model {
                           {
                             $project: {
                               schedules: 1,
+                              course_oid: '$$course_oid',
                             },
                           },
                           {
@@ -538,17 +539,13 @@ class Course extends Model {
                           {
                             $unwind: '$schedules.times',
                           },
-
-                          {
-                            $unwind: '$schedules.times.courses',
-                          },
                           {
                             $project: {
-                              courses: '$schedules.times.courses',
+                              courses: '$schedules.timescourses',
                             },
                           },
                         ],
-                        as: 'mergedCourses',
+                        as: 'assignedCourses',
                       },
                     },
                     //       teacher: schedule.teacher,
@@ -772,7 +769,7 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
-                        mergedCourses: '$mergedCourses.courses',
+                        assignedCourses: '$assignedCourses.courses',
                         existingSchedules: '$existingSchedules.dayTimes',
                         //  {
                         //   $arrayElemAt: ['$existingSchedules.schedules', 0],
