@@ -27,7 +27,7 @@ export default function CourseForm({
       semesterSubjects: [
         { semester: '1', subjects: [] },
         { semester: '2', subjects: [] },
-        { semester: 'special', subjects: [] },
+        // { semester: 'special', subjects: [] },
         { semester: 'summer', subjects: [] },
       ],
     },
