@@ -311,7 +311,10 @@ class Course extends Model {
         {
           $lookup: {
             from: 'subjects',
-            let: { semesterSubjects: '$yearSections.semesterSubjects' },
+            let: {
+              semesterSubjects: '$yearSections.semesterSubjects',
+              course_oid: '$_id',
+            },
             localField: 'yearSections.semesterSubjects.subjects._id',
             foreignField: '_id',
             pipeline: [
@@ -322,6 +325,7 @@ class Course extends Model {
                   name: 1,
                   units: 1,
                   assignedTeachers: 1,
+                  course_oid: '$$course_oid',
                   // semesterSubjects:"$$semesterSubjects",
                 },
               },
@@ -479,6 +483,7 @@ class Course extends Model {
               {
                 $lookup: {
                   from: 'teachers',
+                  let: { subject_oid: '$_id', course_oid: '$course_oid' },
                   localField: 'assignedTeachers.teacher',
                   foreignField: '_id',
                   pipeline: [
@@ -491,8 +496,69 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
+                        subject_oid: '$$subject_oid',
+                        course_oid: '$$course_oid',
                       },
                     },
+                    // get courses that merged to this subject,teacher, course, year, sec, time start, end
+                    // filter schedule from teacher, course, year, semester, section, subject,
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: 'subject_oid',
+                        let: {
+                          teacher_oid: '$_id',
+                          course_oid: '$$course_oid',
+                          subject_oid: '$$subject_oid',
+                        },
+                        foreignField: 'subject',
+                        pipeline: [
+                          {
+                            $match: {
+                              $expr: {
+                                $and: [
+                                  { $eq: ['$yearSec.year', parseInt(year)] },
+                                  { $eq: ['$yearSec.section', section] },
+                                  { $eq: ['$subject', '$$subject_oid'] },
+                                  { $eq: ['$course', '$$course_oid'] },
+                                  { $eq: ['$teacher', '$$teacher_oid'] },
+                                  { $eq: ['$semester', semester] },
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 1,
+                            },
+                          },
+                          {
+                            $unwind: '$schedules',
+                          },
+                          {
+                            $unwind: '$schedules.times',
+                          },
+
+                          {
+                            $unwind: '$schedules.times.courses',
+                          },
+                          {
+                            $project: {
+                              courses: '$schedules.times.courses',
+                            },
+                          },
+                        ],
+                        as: 'mergedCourses',
+                      },
+                    },
+                    //       teacher: schedule.teacher,
+                    // subject: schedule.subject,
+                    // course: schedule.course,
+                    // semester: schedule.semester,
+                    // yearSec: {
+                    //   year: schedule.yearSec.year,
+                    //   section: schedule.yearSec.section,
+
                     {
                       $lookup: {
                         from: 'schedules',
@@ -706,6 +772,7 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
+                        mergedCourses: '$mergedCourses.courses',
                         existingSchedules: '$existingSchedules.dayTimes',
                         //  {
                         //   $arrayElemAt: ['$existingSchedules.schedules', 0],

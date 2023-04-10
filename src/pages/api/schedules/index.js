@@ -153,7 +153,7 @@ export const handler = async (req, res) => {
         }
       }
       data[0]['rooms'] = rooms;
-      // console.log("data",data)
+      console.log("data=----------",JSON.stringify(data), "----------")
       return successResponse(req, res, data);
     } catch (error) {
       console.log("derrrrrr", error)
