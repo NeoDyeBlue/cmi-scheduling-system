@@ -41,11 +41,6 @@ export default function PerSemScheduleTable({
 
   const perSemSchedules = useMemo(() => result?.data, [result]);
 
-  console.log(perSemSchedules);
-  console.log(
-    perSemSchedules?.find((schedule) => schedule.semester == '1').schedules
-  );
-
   return (
     <Tabs
       className="flex flex-col"
