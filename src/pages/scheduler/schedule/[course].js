@@ -196,6 +196,7 @@ export default function Schedule() {
     setFormData({
       course,
       roomSchedules: roomsSubjScheds,
+      // rooms,
       semester: schedulerData?.semester,
     });
   }, [course, roomsSubjScheds, schedulerData?.semester]);

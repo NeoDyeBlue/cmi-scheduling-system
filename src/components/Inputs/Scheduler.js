@@ -1178,7 +1178,7 @@ export default function Scheduler({
       )?.data;
 
       let itemCourses = [`${course.code}${course.year}${course.section}`];
-      data.courses.forEach((dataCourse) => {
+      data.teacher.mergedCourses.forEach((dataCourse) => {
         const toStringCourse = `${dataCourse.code}${dataCourse.year}${dataCourse.section}`;
         if (!itemCourses.includes(toStringCourse) && dataCourse.merged) {
           itemCourses.push(toStringCourse);
@@ -1298,6 +1298,20 @@ export default function Scheduler({
         onConfirm={onConfirmMerge}
         label="Merge Subject Schedules?"
         message="This will remove all placed individual same subject and teacher schedules of the current course."
+      />
+      <Confirmation
+        isOpen={isRemoveConfirmOpen}
+        onCancel={() => {
+          setIsRemoveConfirmOpen(false);
+          setToRemoveMerged('');
+        }}
+        onConfirm={() => {
+          removeLayoutItem(toRemoveMerged);
+          setToRemoveMerged('');
+          setIsRemoveConfirmOpen(false);
+        }}
+        label="Remove Merged Item?"
+        message="It will also remove the schedule from the other classes"
       />
       <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}

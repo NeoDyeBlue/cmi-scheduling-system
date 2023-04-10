@@ -5,7 +5,7 @@ import TeacherTypeBadge from './TeacherTypeBadge';
 import { useEffect, useState, useCallback } from 'react';
 import classNames from 'classnames';
 import { parse, differenceInMinutes } from 'date-fns';
-import { MdCheck } from 'react-icons/md';
+import { MdCheck, MdMergeType } from 'react-icons/md';
 import { subtractDuration } from '@/utils/time-utils';
 import { shallow } from 'zustand/shallow';
 
@@ -14,16 +14,17 @@ import { shallow } from 'zustand/shallow';
  */
 export default function DraggableSchedule({ data }) {
   const [isDraggable, setIsDraggable] = useState(true);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const [isMerged, setIsMerged] = useState(false);
   const [remainingTime, setRemainingTime] = useState({
     hours: data.units,
     minutes: 0,
   });
   //stores
-  const { subjectScheds, setDraggingSubject, hoveredMergeable } =
+  const { subjectScheds, setDraggingSubject, hoveredMergeable, course } =
     useSchedulerStore(
       useCallback(
         (state) => ({
+          course: state.course,
           subjectScheds: state.subjectScheds,
           setDraggingSubject: state.setDraggingSubject,
           hoveredMergeable: state.hoveredMergeable,
@@ -32,6 +33,20 @@ export default function DraggableSchedule({ data }) {
       ),
       shallow
     );
+
+  useEffect(() => {
+    setIsMerged(
+      data?.teacher?.assignedCourses?.length > 1 &&
+        data?.teacher?.assignedCourses.some(
+          (assignedCourse) =>
+            assignedCourse.code == course.code &&
+            assignedCourse.year == course.year &&
+            assignedCourse.section == course.section
+        )
+        ? true
+        : false
+    );
+  }, [data, course]);
 
   useEffect(() => {
     if (data?.teacher) {
@@ -112,9 +127,12 @@ export default function DraggableSchedule({ data }) {
       }}
     >
       <div className="flex flex-col overflow-hidden">
-        <p className="overflow-hidden text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
-          {data.code}
-        </p>
+        <div className="flex justify-between gap-2">
+          <p className="overflow-hidden text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
+            {data.code}
+          </p>
+          {isMerged && <MdMergeType size={16} />}
+        </div>
         <p className="mb-1 text-xs">{data.name}</p>
       </div>
       <div className="flex flex-col text-ship-gray-600 group-hover:text-white">
