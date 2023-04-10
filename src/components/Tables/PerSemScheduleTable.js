@@ -62,9 +62,9 @@ export default function PerSemScheduleTable({
               <Tab selectedClassName="tab-active" className="tab-sm">
                 2nd sem
               </Tab>
-              <Tab selectedClassName="tab-active" className="tab-sm">
+              {/* <Tab selectedClassName="tab-active" className="tab-sm">
                 Special
-              </Tab>
+              </Tab> */}
               <Tab selectedClassName="tab-active" className="tab-sm">
                 Summer
               </Tab>
@@ -98,8 +98,6 @@ export default function PerSemScheduleTable({
                   } else if (activeTab == tabs[1]) {
                     return secondSemTableRef?.current;
                   } else if (activeTab == tabs[2]) {
-                    return specialSemTableRef?.current;
-                  } else if (activeTab == tabs[3]) {
                     return summerSemTableRef?.current;
                   }
                 }}
@@ -140,7 +138,7 @@ export default function PerSemScheduleTable({
               />
             </div>
           </TabPanel>
-          <TabPanel>
+          {/* <TabPanel>
             <div className="overflow-x-auto">
               <ScheduleTable
                 ref={specialSemTableRef}
@@ -157,7 +155,7 @@ export default function PerSemScheduleTable({
                 type={type}
               />
             </div>
-          </TabPanel>
+          </TabPanel> */}
           <TabPanel>
             <div className="overflow-x-auto">
               <ScheduleTable
