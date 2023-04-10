@@ -1,6 +1,8 @@
 import schedule from '@/lib/model/data-access/Schedule';
 import { successResponse, errorResponse } from '@/utils/response.utils';
 import mongoose from 'mongoose';
+import Course from '@/lib/model/data-access/Course';
+import Room from '@/lib/model/data-access/Room';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
@@ -106,13 +108,55 @@ export const handler = async (req, res) => {
           }
         }
       }
-      console.log('formData', JSON.stringify(formData));
-      const data = await schedule.createSchedule({
+      await schedule.createSchedule({
         schedules,
         formData,
       });
+      // dahil kailang ng frontend ng schedulerData sa response ng pag save,
+      // kaya isesend back natin ang sechedulerData
+      const { course, semester } = formData;
+
+      let year = course.year;
+      let section = course.section;
+      let courseCode = course.code;
+      const data = await Course.getCourseSubjectTeachers({
+        courseCode: courseCode.toLowerCase(),
+        semester,
+        year,
+        section,
+      });
+      const roomSchedules = await Room.getAllRoomSchedules({
+        semester,
+        courseCode,
+        year,
+        section,
+      });
+      const rooms = [];
+      for (let room of roomSchedules) {
+        let found = false;
+        for (let schedule of room.schedules) {
+          if (
+            schedule.courseSections.some((course) => {
+              return (
+                course.course.code === courseCode &&
+                course.yearSec.year === parseInt(year) &&
+                course.yearSec.section === section
+              );
+            })
+          ) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          rooms.push(room);
+        }
+      }
+      data[0]['rooms'] = rooms;
+      // console.log("data",data)
       return successResponse(req, res, data);
     } catch (error) {
+      console.log("derrrrrr", error)
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
