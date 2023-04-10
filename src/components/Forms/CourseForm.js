@@ -182,12 +182,12 @@ export default function CourseForm({
                             >
                               2nd sem
                             </Tab>
-                            <Tab
+                            {/* <Tab
                               selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
                               className="tab-sm"
                             >
                               Special
-                            </Tab>
+                            </Tab> */}
                             <Tab
                               selectedClassName="bg-ship-gray-500 text-white hover:text-white hover:bg-ship-gray-500"
                               className="tab-sm"
@@ -219,7 +219,7 @@ export default function CourseForm({
                               }}
                             />
                           </TabPanel>
-                          <TabPanel>
+                          {/* <TabPanel>
                             <MultiComboBox
                               placeholder="Enter subject code or name"
                               name={`yearSections[${index}].semesterSubjects[2].subjects`}
@@ -229,7 +229,7 @@ export default function CourseForm({
                                 type: courseFormik.values.type,
                               }}
                             />
-                          </TabPanel>
+                          </TabPanel> */}
                           <TabPanel>
                             <MultiComboBox
                               placeholder="Enter subject code or name"

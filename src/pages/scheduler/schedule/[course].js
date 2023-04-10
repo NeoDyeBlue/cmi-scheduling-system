@@ -17,7 +17,6 @@ import { Confirmation } from '@/components/Modals';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader, PopupLoader } from '@/components/Loaders';
-import useSWR from 'swr';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
@@ -94,7 +93,7 @@ export default function Schedule() {
   useEffect(() => {
     async function getSchedulerData() {
       if (Object.keys(router.query).length) {
-        reset(); // reset the zustand state
+        // reset(); // reset the zustand state
         try {
           const res = await fetch(
             `/api/courses/${router.query.course}?${new URLSearchParams({
@@ -124,7 +123,6 @@ export default function Schedule() {
     () => {
       if (schedulerData && !subjectsData.length) {
         const courseSubjectsData = [];
-        // const initialSubjectScheds = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
             const dataId = `${subject.code}~${teacher.teacherId}`;
@@ -198,7 +196,6 @@ export default function Schedule() {
     setFormData({
       course,
       roomSchedules: roomsSubjScheds,
-      // rooms,
       semester: schedulerData?.semester,
     });
   }, [course, roomsSubjScheds, schedulerData?.semester]);
