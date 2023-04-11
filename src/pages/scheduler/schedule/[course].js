@@ -17,13 +17,18 @@ import { Confirmation } from '@/components/Modals';
 import { useRouter } from 'next/router';
 import { shallow } from 'zustand/shallow';
 import { FullPageLoader, PopupLoader } from '@/components/Loaders';
-import useSWR from 'swr';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
+const courseFetcher = ([url, args]) =>
+  fetch(
+    `${url}/${args.course}?${new URLSearchParams(
+      _.omit(args, 'course')
+    ).toString()}`
+  ).then((r) => r.json());
 export default function Schedule() {
   const router = useRouter();
   const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
@@ -33,6 +38,7 @@ export default function Schedule() {
     subjectScheds,
     courseSubjects,
     selectedRooms,
+    roomsSubjScheds,
     roomsSubjSchedsLayouts,
     oldSchedsData,
     setCourseSubjects,
@@ -41,7 +47,7 @@ export default function Schedule() {
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
-    setRoomSubjSchedsLayout,
+    setAllRoomSubjScheds,
     setOldSchedsData,
     reset,
   } = useSchedulerStore(
@@ -52,6 +58,7 @@ export default function Schedule() {
         subjectScheds: state.subjectScheds,
         courseSubjects: state.courseSubjects,
         selectedRooms: state.selectedRooms,
+        roomsSubjScheds: state.roomsSubjScheds,
         roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
         oldSchedsData: state.oldSchedsData,
         setCourseSubjects: state.setCourseSubjects,
@@ -59,6 +66,7 @@ export default function Schedule() {
         setCourse: state.setCourse,
         setSubjectScheds: state.setSubjectScheds,
         setSelectedRooms: state.setSelectedRooms,
+        setAllRoomSubjScheds: state.setAllRoomSubjScheds,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
         setOldSchedsData: state.setOldSchedsData,
         setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
@@ -77,89 +85,56 @@ export default function Schedule() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [formData, setFormData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [schedulerData, setSchedulerData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
-  const {
-    data: result,
-    isLoading,
-    error,
-    mutate,
-  } = useSWR(
-    Object.keys(router.query).length
-      ? `/api/courses/${courseCode}?${new URLSearchParams({
-          semester,
-          year,
-          section,
-          p: 'draggable',
-        }).toString()}`
-      : null,
-    null,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnMount: true,
-      revalidateOnReconnect: false,
-    }
-  );
 
-  const schedulerData = useMemo(
-    () => (result?.data[0] ? result.data[0] : null),
-    [result]
-  );
+  useEffect(() => {
+    async function getSchedulerData() {
+      if (Object.keys(router.query).length) {
+        // reset(); // reset the zustand state
+        try {
+          const res = await fetch(
+            `/api/courses/${router.query.course}?${new URLSearchParams({
+              ..._.pick(router.query, ['semester', 'year', 'section']),
+              p: 'draggable',
+            }).toString()}`
+          );
+
+          const result = await res.json();
+
+          if (result && result.success) {
+            setSchedulerData(result?.data[0]);
+          } else {
+            setError(error);
+          }
+          setIsLoading(false);
+        } catch (error) {
+          setError(error);
+          setIsLoading(false);
+        }
+      }
+    }
+    getSchedulerData();
+  }, [router.query]);
 
   useEffect(
     () => {
       if (schedulerData && !subjectsData.length) {
         const courseSubjectsData = [];
-        // const initialSubjectScheds = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
-            //add to course subjects data
-            const dataId = `${subject.code}~${teacher.teacherId}~${schedulerData?.course.code}${schedulerData?.course.year}${schedulerData?.course.section}`;
+            const dataId = `${subject.code}~${teacher.teacherId}`;
             const { teachers, ...newData } = subject;
             courseSubjectsData.push({
               id: dataId,
-              data: { ...newData, teacher, course: schedulerData?.course },
+              data: {
+                ...newData,
+                teacher,
+                courses: subject.courses,
+              },
             });
-
-            //check if addable to initial subject scheds
-            // if (teacher.existingSchedules.length) {
-            //   const courseSubjectSchedules = [];
-            //   teacher.existingSchedules.forEach((dayTimes) => {
-            //     const subjectTimes = [];
-
-            //     dayTimes.times.forEach((time) => {
-            //       if (
-            //         `${schedulerData.course.code}${schedulerData.course.year}${schedulerData.course.section}` ==
-            //           `${time.course.code}${time.course.year}${time.course.section}` &&
-            //         time.subject.code == subject.code
-            //       ) {
-            //         subjectTimes.push({ start: time.start, end: time.end });
-            //       }
-            //     });
-
-            //     if (subjectTimes.length) {
-            //       courseSubjectSchedules.push({
-            //         day: dayTimes.day,
-            //         room: dayTimes.room,
-            //         times: subjectTimes,
-            //       });
-            //     }
-            //   });
-
-            //   if (courseSubjectSchedules.length) {
-            //     initialSubjectScheds.push({
-            //       subject: {
-            //         _id: subject._id,
-            //         code: subject.code,
-            //       },
-            //       teacher: {
-            //         _id: teacher._id,
-            //         teacherId: teacher.teacherId,
-            //       },
-            //       schedules: courseSubjectSchedules,
-            //     });
-            //   }
-            // }
           });
         });
         const roomLayouts = [];
@@ -177,8 +152,6 @@ export default function Schedule() {
           });
         });
         setAllRoomSubjSchedsLayout(roomLayouts);
-        // setSubjectScheds(initialSubjectScheds);
-        // setOldSchedsData(initialSubjectScheds);
         setCourseSubjects(schedulerData?.subjects);
         setCourse(schedulerData?.course);
         setSubjectsData(courseSubjectsData);
@@ -195,7 +168,7 @@ export default function Schedule() {
         const roomSubjectsData = [];
         selectedRooms.forEach((room) => {
           room.schedules.forEach((schedule) => {
-            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}~${schedule.course.code}${schedule.course.year}${schedule.course.section}`;
+            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}`;
             if (
               !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)
@@ -205,7 +178,7 @@ export default function Schedule() {
                 data: {
                   ...schedule.subject,
                   teacher: schedule.teacher,
-                  course: schedule.course,
+                  courses: schedule.subject.courses,
                 },
               });
             }
@@ -222,11 +195,11 @@ export default function Schedule() {
     // const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
     setFormData({
       course,
-      subjectScheds,
+      roomSchedules: roomsSubjScheds,
       // rooms,
       semester: schedulerData?.semester,
     });
-  }, [course, subjectScheds, schedulerData?.semester]);
+  }, [course, roomsSubjScheds, schedulerData?.semester]);
 
   useEffect(
     () => {
@@ -253,6 +226,29 @@ export default function Schedule() {
     [resetScheduler]
   );
 
+  const draggableSchedules = useMemo(
+    () =>
+      courseSubjects.map((subject, subjIndex) => {
+        const { teachers, ...newData } = subject;
+        if (subject.assignedTeachers.length) {
+          return subject?.assignedTeachers.map((teacher, teacherIndex) => (
+            <DraggableSchedule
+              key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
+              data={{ ...newData, teacher, course }}
+            />
+          ));
+        } else {
+          return (
+            <DraggableSchedule
+              key={subjIndex}
+              data={{ ...newData, teacher: null, course }}
+            />
+          );
+        }
+      }),
+    [subjectsData]
+  );
+
   if (!schedulerData && isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
   }
@@ -266,16 +262,6 @@ export default function Schedule() {
       />
     );
   }
-
-  const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
-    const { teachers, ...newData } = subject;
-    return subject?.assignedTeachers.map((teacher, teacherIndex) => (
-      <DraggableSchedule
-        key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-        data={{ ...newData, teacher, course }}
-      />
-    ));
-  });
 
   const selectedRoomTabs = selectedRooms.map((room, index) => (
     <Tab
@@ -307,12 +293,13 @@ export default function Schedule() {
         interval={30}
         semester={schedulerData?.semester}
         roomData={room}
+        onMerge={submitChanges}
       />
     </TabPanel>
   ));
 
   function checkForChanges() {
-    const hasChanges = _.isEqual(subjectScheds, oldSchedsData);
+    const hasChanges = _.isEqual(roomsSubjScheds, oldSchedsData);
     if (!hasChanges && oldSchedsData.length) {
       setIsCancelConfirmOpen(true);
     } else {
@@ -337,7 +324,11 @@ export default function Schedule() {
       if (result?.success) {
         toast.success('Schedules saved');
         setOldSchedsData(subjectScheds);
-        mutate();
+        setSchedulerData(result.data[0]);
+        /**
+         * ILL ADD A STATE UPDATE HERE FOR THE SCHEDULER DATA
+         */
+        // mutate();
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
@@ -354,9 +345,10 @@ export default function Schedule() {
     setAllRoomSubjSchedsLayout([]);
     setSelectedRooms([]);
     setSubjectScheds([]);
+    setAllRoomSubjScheds([]);
     setFormData({
       course,
-      subjectScheds: [],
+      roomSchedules: [],
       semester: schedulerData?.semester,
     });
 
@@ -375,9 +367,13 @@ export default function Schedule() {
         ],
       }))
       .filter((items) => items.schedules.length);
+
+    const newRoomsSubjScheds = roomsSubjScheds.filter(
+      (room) => room.roomCode !== toRemoveRoom
+    );
     setFormData({
       course,
-      subjectScheds: newSubjScheds,
+      roomsSubjScheds: newRoomsSubjScheds,
       semester: schedulerData?.semester,
     });
     setSubjectScheds(newSubjScheds);
@@ -392,9 +388,6 @@ export default function Schedule() {
 
     setRemoveRoom(true);
   }
-
-  // console.log('old', oldSchedsData);
-  // console.log('new', subjectScheds);
 
   return (
     <>
@@ -473,7 +466,7 @@ export default function Schedule() {
             <Button
               small
               onClick={submitChanges}
-              disabled={_.isEqual(subjectScheds, oldSchedsData)}
+              disabled={_.isEqual(roomsSubjScheds, oldSchedsData)}
             >
               Done
             </Button>

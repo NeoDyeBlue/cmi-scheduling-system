@@ -3,11 +3,14 @@ import { create } from 'zustand';
 const initialState = {
   course: null,
   courseSubjects: [],
+  mergedClasses: [],
   subjectsData: [],
   draggingSubject: null,
   selectedRooms: [],
   subjectScheds: [],
+  roomsSubjScheds: [],
   roomsSubjSchedsLayouts: [],
+  hoveredMergeable: '',
   oldSchedsData: [],
 };
 
@@ -42,6 +45,16 @@ const useSchedulerStore = create((set, get) => ({
       roomsSubjSchedsLayouts: payload,
     }));
   },
+  setMergedClasses: (payload) => {
+    set(() => ({
+      mergedClasses: payload,
+    }));
+  },
+  setAllRoomSubjScheds: (payload) => {
+    set(() => ({
+      roomsSubjScheds: payload,
+    }));
+  },
   setRoomSubjSchedsLayout: (roomCode, roomId, layout) => {
     const filteredLayouts = get().roomsSubjSchedsLayouts.filter(
       (layoutObj) => layoutObj.roomCode !== roomCode
@@ -51,6 +64,19 @@ const useSchedulerStore = create((set, get) => ({
         ...filteredLayouts,
         { roomCode, roomId, layout },
       ],
+    }));
+  },
+  setRoomSubjScheds: (roomCode, roomId, schedules) => {
+    const filteredSchedules = get().roomsSubjScheds.filter(
+      (roomSched) => roomSched.roomCode !== roomCode
+    );
+    set(() => ({
+      roomsSubjScheds: [...filteredSchedules, { roomCode, roomId, schedules }],
+    }));
+  },
+  setHoveredMergeable: (payload) => {
+    set(() => ({
+      hoveredMergeable: payload,
     }));
   },
   setOldSchedsData: (payload) => {

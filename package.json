@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "node install.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "nanoid": "^4.0.1",
     "next": "13.1.6",
     "next-swagger-doc": "^0.3.6",
+    "node-windows": "^1.0.0-beta.8",
     "react": "18.2.0",
     "react-custom-scrollbars-2": "^4.5.0",
     "react-dnd": "^16.0.1",

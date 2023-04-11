@@ -8,12 +8,14 @@ class Schedule extends Model {
     super();
   }
   // just a snippet for schedule.
-  async createSchedule({ schedules, courseSubjectScheds }) {
+  async createSchedule({ schedules, formData }) {
+    // console.log(JSON.stringify(schedules))
     try {
       const schedulesBulksOptions = schedules.map((schedule) => {
         return {
           updateOne: {
             filter: {
+              _id: schedule._id ? schedule._id : mongoose.Types.ObjectId(),
               teacher: schedule.teacher,
               subject: schedule.subject,
               course: schedule.course,
@@ -47,16 +49,18 @@ class Schedule extends Model {
       // store all schedules to remove to an array.
 
       // get all schedules of the course-year-section
-
-      const { course } = courseSubjectScheds;
+      const filtersForSchedules = formData.roomSchedules.map((room) => {
+        return {
+          'schedules.room._id': room.roomId,
+          semester: formData.semester,
+        };
+      });
+      console.log('filtersForSchedules', filtersForSchedules);
       const currentSchedules = await this.Schedule.find({
-        course: course._id,
-        yearSec: {
-          year: course.year,
-          section: course.section,
-        },
+        $or: filtersForSchedules,
       }).exec();
-
+      // console.log('currentSchedules', currentSchedules);
+      // console.log('currentSchedules', currentSchedules);
       // delete schedules that has value empty array
       await this.Schedule.deleteMany({
         schedules: { $size: 0 },
@@ -65,12 +69,14 @@ class Schedule extends Model {
       // if elements of currentSchedules is not exists in schedules it will remove.
       const toDeleteItems = currentSchedules.filter((currentSched) => {
         return !schedules.some((sched) => {
-          return sched.subject === currentSched.subject;
+          return (
+            sched.subject === currentSched.subject &&
+            sched.semester === currentSched.semester &&
+            sched.yearSec.year === currentSched.yearSec.year &&
+            sched.yearSec.section === currentSched.yearSec.section
+          );
         });
       });
-      console.log('course', course);
-      console.log('currentSchedules', currentSchedules);
-      console.log('toDeleteItems', toDeleteItems);
       const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
         return {
           deleteMany: {
@@ -80,15 +86,15 @@ class Schedule extends Model {
           },
         };
       });
-      const deletedSchedules = await this.Schedule.bulkWrite(
-        toDeleteSchedsOptions
-      );
+      // console.log('toDeleteItems', JSON.stringify(toDeleteItems));
+      await this.Schedule.bulkWrite(toDeleteSchedsOptions);
 
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
+      // console.log('data---------', data);
       return data;
     } catch (error) {
-      console.log('error', error);
+      console.log('error---------', error);
       throw error;
     }
   }
@@ -149,7 +155,24 @@ class Schedule extends Model {
         };
       });
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
-      console.log('deleted schedules', data);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async bulkDeleteSchedulesByTeacher({ teachers, subject }) {
+    try {
+      const deleteScheduleBulkOptions = teachers.map((teacher) => {
+        return {
+          deleteMany: {
+            filter: {
+              teacher: teacher.teacher.toString(),
+              subject: subject,
+            },
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(deleteScheduleBulkOptions);
       return data;
     } catch (error) {
       throw error;
@@ -257,6 +280,7 @@ class Schedule extends Model {
         {
           $project: {
             _id: 1,
+            semester: 1,
             yearSec: 1,
             dayTimes: '$schedules',
             semester: 1,
@@ -271,11 +295,151 @@ class Schedule extends Model {
             },
           },
         },
-        // add year and section to the course
         {
-          $addFields: {
-            'course.year': '$yearSec.year',
-            'course.section': '$yearSec.section',
+          $project: {
+            _id: 1, // schedule oid
+            semester: 1,
+            course: 1,
+            yearSec: 1,
+            subject: 1,
+            teacher: 1,
+            dayTimes: {
+              // it happens when we try to schedules on rooms table.
+              $cond: {
+                if: { $eq: [roomCode, undefined] },
+                then: '$dayTimes',
+                else: {
+                  $filter: {
+                    input: '$dayTimes',
+                    as: 'day_time',
+                    cond: { $eq: ['$$day_time.room.code', roomCode] },
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        {
+          $unwind: '$dayTimes',
+        },
+        {
+          $unwind: '$dayTimes.times',
+        },
+        {
+          $project: {
+            'dayTimes._id': 0,
+            'dayTimes.times._id': 0,
+          },
+        },
+
+        {
+          $group: {
+            _id: {
+              teacher: '$teacher._id',
+              subject: '$subject._id',
+              day: '$dayTimes.day',
+              room: '$dayTimes.room._id',
+              start: '$dayTimes.times.start',
+              end: '$dayTimes.times.end',
+              semester: '$semester',
+            },
+            schedule_oid: { $push: '$_id' },
+            subject: { $first: '$subject' },
+            teacher: { $first: '$teacher' },
+            semester: { $first: '$semester' },
+            dayTimes: {
+              $addToSet: {
+                day: '$dayTimes.day',
+                room: '$dayTimes.room',
+              },
+            },
+            times: {
+              $addToSet: {
+                day: '$dayTimes.day',
+                start: '$dayTimes.times.start',
+                end: '$dayTimes.times.end',
+                courses: '$dayTimes.times.courses',
+              },
+            },
+            // to get all sections that in this schedule.
+            courseSections: {
+              $push: {
+                schedule_oid: '$_id',
+                course: '$course',
+                yearSec: '$yearSec',
+              },
+            },
+            // yearSec: { $first: '$yearSec' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            subject: 1,
+            teacher: 1,
+            semester: 1,
+            // courses: {
+            //   $map: {
+            //     input: '$courseSections',
+            //     as: 'section',
+            //     in: {
+            //       _id: '$$section.course._id',
+            //       schedule_oid: '$$section.schedule_oid',
+            //       code: '$$section.course.code',
+            //       name: '$$section.course.name',
+            //       year: '$$section.yearSec.year',
+            //       section: '$$section.yearSec.section',
+            //     },
+            //   },
+            // },
+            dayTimes: {
+              $map: {
+                input: '$dayTimes',
+                as: 'dt',
+                in: {
+                  day: '$$dt.day',
+                  room: '$$dt.room',
+                  times: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: '$times',
+                          as: 't',
+                          cond: { $eq: ['$$t.day', '$$dt.day'] },
+                        },
+                      },
+                      as: 'time',
+                      in: {
+                        start: '$$time.start',
+                        end: '$$time.end',
+                        courses: {
+                          $map: {
+                            input: '$courseSections',
+                            as: 'section',
+                            in: {
+                              _id: '$$section.course._id',
+                              schedule_oid: '$$section.schedule_oid',
+                              code: '$$section.course.code',
+                              name: '$$section.course.name',
+                              year: '$$section.yearSec.year',
+                              section: '$$section.yearSec.section',
+                            },
+                          },
+                        },
+                      },
+                    },
+
+                    // $filter: {
+                    //   input: '$times',
+                    //   as: 't',
+                    //   cond: { $eq: ['$$t.day', '$$dt.day'] },
+                    // },
+                  },
+                },
+              },
+            },
+            // times: 1,
           },
         },
         {
@@ -284,39 +448,154 @@ class Schedule extends Model {
             semester: { $first: '$semester' },
             schedules: {
               $addToSet: {
-                course: '$course',
                 subject: '$subject',
                 teacher: '$teacher',
-                yearSec: '$yearSec',
+                semester: '$semester',
+                courses: '$courses',
                 dayTimes: '$dayTimes',
               },
             },
           },
         },
+      ];
+      const data = await this.Schedule.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getSchedulesBycourse({ course_id }) {
+    try {
+      const data = await this.Schedule.find({ course: course_id })
+        .select('-schedules')
+        .exec();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async currentSchedules({ day }) {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $unwind: '$schedules',
+        },
+        {
+          $unwind: '$schedules.times',
+        },
+        {
+          $match: {
+            'schedules.day': parseInt(day),
+          },
+        },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  code: 1,
+                  name: 1,
+                  units: 1,
+                },
+              },
+            ],
+            as: 'subject',
+          },
+        },
+        {
+          $lookup: {
+            from: 'teachers',
+            localField: 'teacher',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  firstName: 1,
+                  lastName: 1,
+                  isFullTime: {
+                    $cond: {
+                      if: { $eq: [{ $size: '$preferredDayTimes' }, 0] },
+                      then: true,
+                      else: false,
+                    },
+                  },
+                },
+              },
+            ],
+            as: 'teacher',
+          },
+        },
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'course',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  code: 1,
+                  name: 1,
+                },
+              },
+            ],
+            as: 'course',
+          },
+        },
+        {
+          $project: {
+            course: { $arrayElemAt: ['$course', 0] },
+            subject: { $arrayElemAt: ['$subject', 0] },
+            teacher: { $arrayElemAt: ['$teacher', 0] },
+            schedules: 1,
+          },
+        },
+        {
+          $group: {
+            _id: {
+              teacher: '$teacher._id',
+              subject: '$subject._id',
+              day: '$schedules.day',
+              room: '$schedules.room._id',
+              start: '$schedules.times.start',
+              end: '$schedules.times.end',
+            },
+            teacher: {
+              $first: '$teacher',
+            },
+            subject: { $first: '$subject' },
+            course: { $first: '$course' },
+            room: { $first: '$schedules.room' },
+          },
+        },
 
-        // filter only the dayTimes of specific room per schedule.
-        // {
-        //   $project: {
-
-        //     subject: 1,
-        //     teacher: 1,
-        //     existingSchedules: 1,
-        //     semester: '$semester',
-        //     dayTimes: {
-        //       $filter: {
-        //         input: '$dayTimes',
-        //         as: 'day_time',
-        //         cond: { $eq: ['$$day_time.room.code', roomCode] },
-        //       },
-        //     },
-        //     course: {
-        //       code: '$course.code',
-        //       name: '$course.name',
-        //       year: '$yearSec.year',
-        //       section: '$yearSec.section',
-        //     },
-        //   },
-        // },
+        {
+          $addFields: {
+            schedule: {
+              course: '$course',
+              subject: '$subject',
+              room: '$room',
+              time: {
+                start: '$_id.start',
+                end: '$_id.end',
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            teacher: 1,
+            schedule: 1,
+          },
+        },
       ];
       const data = await this.Schedule.aggregate(pipeline);
       return data;

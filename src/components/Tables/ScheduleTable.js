@@ -54,6 +54,8 @@ const ScheduleTable = forwardRef(function ScheduleTable(
     return pairedTimes;
   }, [startTime, endTime, interval]);
 
+  console.log(data);
+
   const groupedByDay = useMemo(() => {
     const newData = [];
     weekDays.forEach((day, dayIndex) => {
@@ -65,7 +67,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               slots.push({
                 teacher: schedule.teacher,
                 subject: schedule.subject,
-                course: schedule.course,
+                courses: time.courses,
                 room: dayTime.room,
                 time: {
                   start: time.start,
@@ -86,8 +88,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
 
     return newData;
   }, [data, weekDays]);
-
-  // console.log(groupedByDay);
 
   const columns = useMemo(
     () => [
@@ -168,7 +168,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
 
   function findSchedule(data, day) {
     const schedule = data.find((sched) => sched.day == day);
-    return schedule ? schedule.slots : [];
+    return schedule?.slots || [];
   }
 
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
@@ -182,11 +182,23 @@ const ScheduleTable = forwardRef(function ScheduleTable(
       (timePairs) => timePairs[1] == slot.time.end
     );
 
+    const rowSpan = Math.abs(timeEndIndex + 1 - timeStartIndex);
+
+    let courseText = '';
+
+    if (slot.courses.length > 1) {
+      courseText = `${slot.courses[0]?.code}${slot.courses[0]?.year}${
+        slot.courses[0]?.section
+      } & ${slot.courses.length - 1}`;
+    } else {
+      courseText = `${slot.courses[0]?.code}${slot.courses[0]?.year}${slot.courses[0]?.section}`;
+    }
+
     return (
       <td
         key={cellIndex}
         {...cell.getCellProps({
-          rowSpan: timeEndIndex + 1 - timeStartIndex,
+          rowSpan,
         })}
         className={classNames(
           'relative min-w-[150px] overflow-hidden border-2 border-indigo-300 bg-indigo-50 text-center text-sm'
@@ -196,15 +208,14 @@ const ScheduleTable = forwardRef(function ScheduleTable(
       >
         <div
           style={{
-            maxHeight: `${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px`,
+            maxHeight: `${40 * rowSpan}px`,
           }}
           className={classNames(
             'relative flex flex-col items-center justify-center gap-1 overflow-hidden p-4 text-center'
             // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
           )}
         >
-          {type !== 'teachers' &&
-          Math.abs(timeEndIndex + 1 - timeStartIndex) > 2 ? (
+          {type !== 'teachers' && rowSpan > 3 ? (
             <ImageWithFallback
               src={slot?.teacher?.image}
               alt="teacher image"
@@ -214,34 +225,41 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
             />
           ) : null}
-          {type !== 'teachers' && type !== 'rooms' ? (
+          <div>
+            <p
+              className={classNames('font-bold uppercase', {
+                'text-xs': rowSpan == 1,
+                'text-lg': rowSpan !== 1,
+              })}
+            >
+              {slot?.subject?.code}
+            </p>
+            {rowSpan > 1 && <p className="text-xs">{slot?.subject?.name}</p>}
+          </div>
+          {type !== 'teachers' && type !== 'rooms' && rowSpan > 2 ? (
             <>
-              <p
-                className={classNames('font-medium', {
-                  'font-display font-semibold': type !== 'courses',
-                })}
-              >
-                {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
+              <p className={classNames('font-bold')}>
+                {slot?.teacher?.firstName} {slot?.teacher?.lastName}
               </p>
               <p className="font-medium uppercase">{slot?.room?.code}</p>
             </>
           ) : null}
-          {type == 'teachers' && (
+          {type == 'teachers' && rowSpan > 1 && (
             <p className="font-medium uppercase">{slot?.room?.code}</p>
           )}
-          {type == 'rooms' && (
-            <p className="font-medium">
-              {slot?.teacher?.firstName?.charAt(0)}. {slot?.teacher?.lastName}
+          {type == 'rooms' && rowSpan > 1 && (
+            <p className="font-bold">
+              {slot?.teacher?.firstName} {slot?.teacher?.lastName}
             </p>
           )}
-          <div>
-            <p className="text-lg font-bold uppercase">{slot?.subject?.code}</p>
-            <p className="text-xs">{slot?.subject?.name}</p>
-          </div>
-          {type !== 'courses' && (
-            <p className="font-semibold uppercase">
-              {slot?.course?.code} {slot?.course?.year}
-              {slot?.course?.section}
+          {type !== 'courses' && rowSpan > 2 && (
+            <p className="text-xs font-bold uppercase text-primary-500">
+              {courseText}{' '}
+              {slot.courses.length > 1 && (
+                <span className="lowercase">
+                  {slot.courses.length - 1 > 1 ? 'others' : 'other'}
+                </span>
+              )}
             </p>
           )}
         </div>

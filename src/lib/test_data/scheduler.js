@@ -657,4 +657,606 @@ const courses = [
   },
 ];
 
-export { schedulerData, rooms, courses };
+const schedulerData2 = {
+  code: 200,
+  data: [
+    {
+      subjects: [
+        {
+          _id: '642a2dc0e769e5c289c2f0aa',
+          code: 'mergeable subj',
+          name: 'Mergeable Subject',
+          units: 3,
+          //add courses that has this subject
+          courses: [
+            {
+              _id: '642a2d8fe769e5c289c2f080',
+              name: 'For Merge Test',
+              code: 'dontdelete-jp',
+              year: 1,
+              section: 'A',
+              //removed merged field
+            },
+            {
+              _id: '642a2d8fe769e5c289c2f080',
+              name: 'For Merge Test',
+              code: 'dontdelete-jp',
+              year: 1,
+              section: 'B',
+              //removed merged field
+            },
+          ],
+          assignedTeachers: [
+            {
+              _id: '642784c6b33fe4cc05644ba4',
+              firstName: 'Arashi',
+              lastName: 'Scaramouchie',
+              image: '/images/teachers/642784c6b33fe4cc05644ba4.jpeg',
+              type: 'full-time',
+              preferredDayTimes: [],
+              teacherId: '11-1112',
+              //add this instead
+              mergedCourses: [
+                // add merged courses of the same subject and same teacher
+              ],
+              existingSchedules: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:30 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                      //change to array of courses
+                      courses: [
+                        {
+                          _id: '642a2d8fe769e5c289c2f080',
+                          name: 'For Merge Test',
+                          code: 'dontdelete-jp',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      subject: {
+                        _id: '642a2dc0e769e5c289c2f0aa',
+                        code: 'mergeable subj',
+                        name: 'Mergeable Subject',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '9:30 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                      //change to array of courses
+                      courses: [
+                        {
+                          _id: '642a2d8fe769e5c289c2f080',
+                          name: 'For Merge Test',
+                          code: 'dontdelete-jp',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      subject: {
+                        _id: '642a2dc0e769e5c289c2f0aa',
+                        code: 'mergeable subj',
+                        name: 'Mergeable Subject',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      course: {
+        _id: '642a2d8fe769e5c289c2f080',
+        code: 'dontdelete-jp',
+        name: 'For Merge Test',
+        year: 1,
+        section: 'B',
+      },
+      semester: '1',
+      completed: false,
+      rooms: [
+        {
+          _id: '642a2de0e769e5c289c2f0b4',
+          code: 'mergeable room',
+          name: 'Mergeable Room',
+          schedules: [
+            {
+              _id: '642a2f19dea3f2bcc8df8c12',
+              teacher: {
+                _id: '642784c6b33fe4cc05644ba4',
+                firstName: 'Arashi',
+                lastName: 'Scaramouchie',
+                teacherId: '11-1112',
+              },
+              subject: {
+                _id: '642a2dc0e769e5c289c2f0aa',
+                code: 'mergeable subj',
+                name: 'Mergeable Subject',
+                units: 3,
+                // add courses that has this subject
+                courses: [
+                  {
+                    _id: '642a2d8fe769e5c289c2f080',
+                    name: 'For Merge Test',
+                    code: 'dontdelete-jp',
+                    year: 1,
+                    section: 'A',
+                  },
+                  {
+                    _id: '642a2d8fe769e5c289c2f080',
+                    name: 'For Merge Test',
+                    code: 'dontdelete-jp',
+                    year: 1,
+                    section: 'B',
+                  },
+                ],
+              },
+              //remove array of courses here if kaya or possible
+              // courses: [
+              //   {
+              //     code: 'dontdelete-jp',
+              //     name: 'For Merge Test',
+              //     year: 1,
+              //     section: 'A',
+              //   },
+              // ],
+              dayTimes: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      //add array of courses here if kaya
+                      courses: [
+                        {
+                          code: 'dontdelete-jp',
+                          name: 'For Merge Test',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      start: '7:30 AM',
+                      end: '9:00 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+                {
+                  day: 3,
+                  room: {
+                    _id: '642a2de0e769e5c289c2f0b4',
+                    code: 'mergeable room',
+                  },
+                  times: [
+                    {
+                      courses: [
+                        {
+                          code: 'dontdelete-jp',
+                          name: 'For Merge Test',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      start: '7:30 AM',
+                      end: '9:00 AM',
+                      _id: '642a2e22e769e5c289c2f0e4',
+                    },
+                  ],
+                  _id: '642a2e22e769e5c289c2f0e3',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  success: true,
+};
+
+const schedulerData3 = {
+  code: 200,
+  data: [
+    {
+      subjects: [
+        {
+          _id: '642785768cc63ec752404496',
+          code: 'oop',
+          name: 'Object Oriented Programming',
+          units: 3,
+          assignedTeachers: [
+            {
+              _id: '6427846fb33fe4cc05644b99',
+              firstName: 'Venti',
+              lastName: 'Shoganutty',
+              image: '/images/teachers/6427846fb33fe4cc05644b99.jpeg',
+              type: 'part-time',
+              preferredDayTimes: [
+                {
+                  day: 1,
+                  start: '08:00',
+                  end: '17:00',
+                  _id: '64278472b33fe4cc05644b9c',
+                },
+                {
+                  day: 2,
+                  start: '07:00',
+                  end: '08:00',
+                  _id: '64278472b33fe4cc05644b9d',
+                },
+              ],
+              teacherId: '11-1111',
+              existingSchedules: [
+                {
+                  day: 4,
+                  room: {
+                    _id: '642cd2e4207c6f72972bac27',
+                    code: 'enk',
+                  },
+                  times: [
+                    {
+                      start: '8:00 AM',
+                      end: '8:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      _id: '642d5089207c6f72972bae4f',
+                      subject: {
+                        _id: '642785768cc63ec752404496',
+                        code: 'oop',
+                        name: 'Object Oriented Programming',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                    {
+                      start: '10:00 AM',
+                      end: '10:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      _id: '642d5089207c6f72972bae50',
+                      subject: {
+                        _id: '642785768cc63ec752404496',
+                        code: 'oop',
+                        name: 'Object Oriented Programming',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642d5089207c6f72972bae4e',
+                },
+              ],
+            },
+          ],
+          courses: [
+            {
+              //add schedule oid here?
+              _id: '642cd2fd207c6f72972bac33',
+              code: 'fish',
+              name: 'Fishing',
+              year: 1,
+              section: 'B',
+              isSectionHasTheSubject: true,
+            },
+            {
+              _id: '642cd2fd207c6f72972bac33',
+              code: 'fish',
+              name: 'Fishing',
+              year: 1,
+              section: 'A',
+              isSectionHasTheSubject: true,
+            },
+          ],
+        },
+        {
+          _id: '642cd2d0207c6f72972bac1e',
+          code: 'wet',
+          name: 'Applicaon of Hydro',
+          units: 3,
+          assignedTeachers: [
+            {
+              _id: '642cd2a8207c6f72972bac08',
+              firstName: 'Kokomi',
+              lastName: 'Sangonomiya',
+              image: '/images/teachers/642cd2a8207c6f72972bac08.jpeg',
+              type: 'full-time',
+              preferredDayTimes: [],
+              teacherId: '19-9999',
+              existingSchedules: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642cd2e4207c6f72972bac27',
+                    code: 'enk',
+                  },
+                  times: [
+                    {
+                      start: '7:30 AM',
+                      end: '10:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                      _id: '642d5089207c6f72972bae52',
+                      subject: {
+                        _id: '642cd2d0207c6f72972bac1e',
+                        code: 'wet',
+                        name: 'Applicaon of Hydro',
+                        units: 3,
+                        semester: '1',
+                      },
+                    },
+                  ],
+                  _id: '642d5089207c6f72972bae51',
+                },
+              ],
+            },
+          ],
+          courses: [
+            {
+              _id: '642cd2fd207c6f72972bac33',
+              code: 'fish',
+              name: 'Fishing',
+              year: 1,
+              section: 'A',
+              isSectionHasTheSubject: true,
+            },
+            {
+              _id: '642cd2fd207c6f72972bac33',
+              code: 'fish',
+              name: 'Fishing',
+              year: 1,
+              section: 'B',
+              isSectionHasTheSubject: true,
+            },
+          ],
+        },
+      ],
+      course: {
+        _id: '642cd2fd207c6f72972bac33',
+        code: 'fish',
+        name: 'Fishing',
+        year: 1,
+        section: 'A',
+      },
+      semester: '1',
+      completed: false,
+      rooms: [
+        {
+          _id: '642cd2e4207c6f72972bac27',
+          code: 'enk',
+          name: 'enkanomiya',
+          schedules: [
+            {
+              subject: {
+                _id: '642785768cc63ec752404496',
+                code: 'oop',
+                name: 'Object Oriented Programming',
+                units: 3,
+                courses: [
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'B',
+                    isSectionHasTheSubject: true,
+                  },
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'A',
+                    isSectionHasTheSubject: true,
+                  },
+                ],
+              },
+              teacher: {
+                _id: '6427846fb33fe4cc05644b99',
+                firstName: 'Venti',
+                lastName: 'Shoganutty',
+                teacherId: '11-1111',
+              },
+              dayTimes: [
+                {
+                  day: 4,
+                  room: {
+                    _id: '642cd2e4207c6f72972bac27',
+                    code: 'enk',
+                  },
+                  times: [
+                    {
+                      day: 4,
+                      start: '8:00 AM',
+                      end: '8:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              subject: {
+                _id: '642785768cc63ec752404496',
+                code: 'oop',
+                name: 'Object Oriented Programming',
+                units: 3,
+                courses: [
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'B',
+                    isSectionHasTheSubject: true,
+                  },
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'A',
+                    isSectionHasTheSubject: true,
+                  },
+                ],
+              },
+              teacher: {
+                _id: '6427846fb33fe4cc05644b99',
+                firstName: 'Venti',
+                lastName: 'Shoganutty',
+                teacherId: '11-1111',
+              },
+              dayTimes: [
+                {
+                  day: 4,
+                  room: {
+                    _id: '642cd2e4207c6f72972bac27',
+                    code: 'enk',
+                  },
+                  times: [
+                    {
+                      day: 4,
+                      start: '10:00 AM',
+                      end: '10:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              subject: {
+                _id: '642cd2d0207c6f72972bac1e',
+                code: 'wet',
+                name: 'Applicaon of Hydro',
+                units: 3,
+                courses: [
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'A',
+                    isSectionHasTheSubject: true,
+                  },
+                  {
+                    _id: '642cd2fd207c6f72972bac33',
+                    course_oid: '642cd2fd207c6f72972bac33',
+                    code: 'fish',
+                    name: 'Fishing',
+                    year: 1,
+                    section: 'B',
+                    isSectionHasTheSubject: true,
+                  },
+                ],
+              },
+              teacher: {
+                _id: '642cd2a8207c6f72972bac08',
+                firstName: 'Kokomi',
+                lastName: 'Sangonomiya',
+                teacherId: '19-9999',
+              },
+              dayTimes: [
+                {
+                  day: 2,
+                  room: {
+                    _id: '642cd2e4207c6f72972bac27',
+                    code: 'enk',
+                  },
+                  times: [
+                    {
+                      day: 2,
+                      start: '7:30 AM',
+                      end: '10:30 AM',
+                      courses: [
+                        {
+                          _id: '642cd2fd207c6f72972bac33',
+                          code: 'fish',
+                          name: 'Fishing',
+                          year: 1,
+                          section: 'A',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  success: true,
+};
+
+export { schedulerData, rooms, courses, schedulerData2 };

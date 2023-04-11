@@ -13,14 +13,16 @@ import SubjectTable from './SubjectTable';
 export default function PerTypeSubjectTable({ type }) {
   const tabs = ['1', '2'];
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const [activeTab, setActiveTab] = useState(tabs[0]);
   // const subjects = useMemo(() => data, [data]);
 
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: '/api/subjects',
+    url: `/api/subjects${searchValue ? '/search' : ''}`,
     limit: 10,
     query: {
       type,
+      ...(searchValue ? { q: searchValue } : {}),
       semester: activeTab,
     },
   });
@@ -43,7 +45,10 @@ export default function PerTypeSubjectTable({ type }) {
       </Modal>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="w-full max-w-[350px]">
-          <SearchForm placeholder={`Search subjects`} />
+          <SearchForm
+            placeholder={`Search subjects`}
+            onSearch={(value) => setSearchValue(value)}
+          />
         </div>
         <CreateButton onClick={() => setIsModalOpen(true)} text="New Subject" />
       </div>

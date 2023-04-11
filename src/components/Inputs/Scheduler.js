@@ -1,22 +1,36 @@
 import GridLayout, { WidthProvider } from 'react-grid-layout';
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { parse, format, differenceInMinutes } from 'date-fns';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { parse, format, areIntervalsOverlapping } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import { MdRemove, MdMerge } from 'react-icons/md';
+import { MdRemove, MdMergeType, MdCallSplit } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
-import { subtractDuration } from '@/utils/time-utils';
 import { createTimePairs } from '@/utils/time-utils';
-import { createInitialRoomLayout } from '@/utils/scheduler-utils';
+import {
+  createInitialRoomLayout,
+  parseLayoutItemId,
+  createLayoutItemId,
+  hasEqualCourses,
+  getRemainingRowSpan,
+  getSubjectScheduleLayoutItems,
+  createCourseSubjectSchedules,
+  getMergedUsedRooms,
+  createMergedClassLayout,
+  createSplitMergedClassLayout,
+} from '@/utils/scheduler-utils';
+import { PopupLoader } from '../Loaders';
+import { SchedulerLayoutItemButton } from '../Buttons';
+import { Confirmation } from '../Modals';
+import { toast } from 'react-hot-toast';
 
 export default function Scheduler({
   startTime = '1:00 AM',
   endTime = '12:00 AM',
   interval = 30,
   roomData,
-  semester,
+  semester = '',
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
@@ -25,8 +39,12 @@ export default function Scheduler({
   // const [subjectsData, setSubjectsData] = useState([]);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMergeConfirmOpen, setIsMergeConfirmOpen] = useState(false);
+  const [toMergeSchedule, setToMergeSchedule] = useState(null);
+  const [toRemoveMerged, setToRemoveMerged] = useState(null);
+  const [isRemoveConfirmOpen, setIsRemoveConfirmOpen] = useState(false);
+  const [isFetchingOtherRooms, setIsFetchingOtherRooms] = useState(false);
   const [restrictionLayouItemIds, setRestrictionLayoutItemIds] = useState([]);
-  const scheduleItemRefs = useRef([]);
 
   // const [scheduleLayout, setScheduleLayout] = useState([]);
 
@@ -38,11 +56,18 @@ export default function Scheduler({
     subjectScheds,
     subjectsData,
     roomsSubjSchedsLayouts,
+    roomsSubjScheds,
     setSubjectScheds,
     setRoomSubjSchedsLayout,
+    setAllRoomSubjScheds,
     setAllRoomSubjSchedsLayout,
     oldSchedsData,
     setOldSchedsData,
+    setSubjectsData,
+    selectedRooms,
+    setSelectedRooms,
+    setHoveredMergeable,
+    hoveredMergeable,
   } = useSchedulerStore(
     useCallback(
       (state) => ({
@@ -56,7 +81,14 @@ export default function Scheduler({
         setSubjectScheds: state.setSubjectScheds,
         setRoomSubjSchedsLayout: state.setRoomSubjSchedsLayout,
         setAllRoomSubjSchedsLayout: state.setAllRoomSubjSchedsLayout,
+        setAllRoomSubjScheds: state.setAllRoomSubjScheds,
         setOldSchedsData: state.setOldSchedsData,
+        hoveredMergeable: state.hoveredMergeable,
+        setHoveredMergeable: state.setHoveredMergeable,
+        selectedRooms: state.selectedRooms,
+        setSelectedRooms: state.setSelectedRooms,
+        roomsSubjScheds: state.roomsSubjScheds,
+        setSubjectsData: state.setSubjectsData,
       }),
       []
     ),
@@ -139,60 +171,102 @@ export default function Scheduler({
 
   const scheduleCells = layout
     .filter((item) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        item.i
-      );
+      const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+
       return subjectsData.some(
-        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+        (data) => data.id == `${subjectCode}~${teacherId}`
       );
     })
-    .map((schedule, index) => {
+    .map((schedule) => {
+      const { subjectCode, teacherId, courses } = parseLayoutItemId(schedule.i);
       const data = subjectsData.find((subject) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-          schedule.i
-        );
-        return subject.id == `${subjectCode}~${teacherId}~${courseYearSec}`;
+        return subject.id == `${subjectCode}~${teacherId}`;
       })?.data;
 
-      // return (
-      //   <SchedulerLayoutItem
-      //     key={schedule.i}
-      //     isResizing={isResizing}
-      //     layoutItemData={schedule}
-      //     subjectData={data}
-      //     onRemove={() => {
-      //       removeLayoutItem(schedule.i);
-      //       scheduleItemRefs.current.splice(index, 1);
-      //     }}
-      //     className={classNames(
-      //       'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
-      //       {
-      //         'border-warning-400 bg-warning-100':
-      //           data?.teacher?.type == 'part-time' && !schedule.static,
-      //         'border-success-400 bg-success-100':
-      //           data?.teacher?.type == 'full-time' && !schedule.static,
-      //         'border border-gray-400 bg-gray-100': schedule.static,
-      //       },
-      //       {
-      //         'cursor-default': schedule.static,
-      //         'cursor-move': !schedule.static,
-      //       }
-      //     )}
-      //     ref={(el) => (scheduleItemRefs.current[index] = el)}
-      //     // data-grid={schedule}
-      //   />
+      let isMerging = false;
+
+      if (hoveredMergeable) {
+        const {
+          subjectCode: hoveredSubjectCode,
+          teacherId: hoveredTeacherId,
+          courses: hoveredCourses,
+        } = parseLayoutItemId(hoveredMergeable.layoutItem);
+        isMerging =
+          subjectCode == hoveredSubjectCode &&
+          teacherId == hoveredTeacherId &&
+          hasEqualCourses(courses, hoveredCourses);
+      }
+
+      const subjSchedIds = subjectsData.map((data) => data.id);
+      const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
+        (roomLayout) => roomLayout.roomCode !== roomData.code
+      );
+      const { subjectLayoutItems } = getSubjectScheduleLayoutItems(
+        subjectCode,
+        teacherId,
+        layout,
+        otherRoomLayouts,
+        subjSchedIds,
+        course
+      );
+
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${subjectCode}~${teacherId}`
+      );
+
+      // const remainingRowSpan = getRemainingRowSpan(
+      //   subjectData.data.units,
+      //   subjectLayoutItems
       // );
+
+      const isSameSubjectAndTeacher = courseSubjects.some(
+        (courseSubject) =>
+          courseSubject.code == subjectCode &&
+          courseSubject.assignedTeachers.some(
+            (teacher) => teacher.teacherId == teacherId
+          )
+      );
+
+      const inSubjectCourses = courses.some(
+        (courseItem) =>
+          courseItem == `${course.code}${course.year}${course.section}`
+      );
+
+      const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
+
+      let courseText = '';
+
+      if (schedule.static) {
+        if (courses.length > 1) {
+          courseText = `${courses[0]} & ${courses.length - 1}`;
+        } else {
+          courseText = courses[0];
+        }
+      } else if (!schedule.static) {
+        if (courses.length > 1 && inSubjectCourses) {
+          courseText = `${course.code}${course.year}${course.section} & ${
+            courses.length - 1
+          }`;
+        }
+      }
 
       return (
         <div
           key={schedule.i}
           className={classNames(
-            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border p-2',
+            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border-2 p-2',
             {
               'border-warning-400 bg-warning-100':
-                data?.teacher?.type == 'part-time' && !schedule.static,
+                data?.teacher?.type == 'part-time' &&
+                !schedule.static &&
+                courses.length <= 1,
               'border-success-400 bg-success-100':
-                data?.teacher?.type == 'full-time' && !schedule.static,
+                data?.teacher?.type == 'full-time' &&
+                !schedule.static &&
+                courses.length <= 1,
+              'border-info-400 bg-info-100':
+                (!schedule.static && courses.length > 1 && inSubjectCourses) ||
+                isMerging,
               'border border-gray-400 bg-gray-100': schedule.static,
             },
             {
@@ -201,42 +275,108 @@ export default function Scheduler({
             }
           )}
         >
-          {!schedule.static && (
-            <button
-              onClick={(e) => {
-                removeLayoutItem(schedule.i);
-              }}
-              className={classNames(
-                `absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center
-                      justify-center rounded-full border border-gray-200 bg-white text-center
-                      `,
-                {
-                  'group-hover:flex': !isResizing,
+          {schedule.static && mergeable ? (
+            <p
+              className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white"
+              onMouseEnter={() =>
+                setHoveredMergeable({
+                  subjectDataId: subjectData.id,
+                  layoutItem: schedule.i,
+                })
+              }
+              onMouseLeave={() => setHoveredMergeable('')}
+            >
+              mergeable
+            </p>
+          ) : null}
+          <div
+            className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
+              'group-hover:flex': !isResizing,
+            })}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {schedule.static && mergeable && (
+              <SchedulerLayoutItemButton
+                toolTipId="merge"
+                toolTipContent="Merge"
+                onClick={() => {
+                  setToMergeSchedule(schedule);
+                  setHoveredMergeable(null);
+                  setIsMergeConfirmOpen(true);
+                }}
+                icon={<MdMergeType size={16} className="rotate-180" />}
+                onMouseEnter={() =>
+                  setHoveredMergeable({
+                    subjectDataId: subjectData.id,
+                    layoutItem: schedule.i,
+                  })
                 }
+                onMouseLeave={() => setHoveredMergeable(null)}
+              />
+            )}
+            {!schedule.static && courses.length > 1 && inSubjectCourses && (
+              <SchedulerLayoutItemButton
+                toolTipId="split"
+                toolTipContent="Split"
+                onClick={() => handleSplitMerge(schedule)}
+                icon={<MdCallSplit size={16} />}
+              />
+            )}
+            {!schedule.static && (
+              <SchedulerLayoutItemButton
+                toolTipId="remove"
+                toolTipContent="Remove"
+                onClick={(e) => {
+                  if (courses.length > 1) {
+                    setIsRemoveConfirmOpen(true);
+                    setToRemoveMerged(schedule.i);
+                  } else {
+                    removeLayoutItem(schedule.i);
+                  }
+                }}
+                icon={<MdRemove size={16} />}
+              />
+            )}
+          </div>
+          {schedule.h > 2 ? (
+            <ImageWithFallback
+              src={data?.teacher?.image}
+              alt="teacher image"
+              width={36}
+              height={36}
+              draggable={false}
+              fallbackSrc="/images/default-teacher.jpg"
+              className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+            />
+          ) : null}
+          <div className="flex flex-col text-center">
+            <p
+              className={classNames('font-display font-semibold uppercase', {
+                'text-xs': schedule.h == 1,
+                // 'text-sm': schedule.h == 2,
+              })}
+            >
+              {data.code}
+            </p>
+            {schedule.h > 1 && (
+              <p className="text-xs font-medium">
+                {data?.teacher?.firstName} {data?.teacher?.lastName}
+              </p>
+            )}
+          </div>
+          {(schedule.static || inSubjectCourses) && (
+            <p
+              className={classNames(
+                'max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase'
+                // { 'text-xs': schedule.h <= 2 }
               )}
             >
-              <MdRemove size={16} />
-            </button>
-          )}
-          <ImageWithFallback
-            src={data?.teacher?.image}
-            alt="teacher image"
-            width={36}
-            height={36}
-            draggable={false}
-            fallbackSrc="/images/default-teacher.jpg"
-            className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-          />
-          <div className="flex flex-col text-center">
-            <p className="font-display font-semibold uppercase">{data.code}</p>
-            <p className="text-xs font-medium">
-              {data?.teacher?.firstName} {data?.teacher?.lastName}
-            </p>
-          </div>
-          {schedule.static && (
-            <p className="text-center text-sm font-medium uppercase">
-              {data.course.code} {data.course.year}
-              {data.course.section}
+              {courseText}{' '}
+              {courses.length > 1 && (
+                <span className="lowercase">
+                  {courses.length - 1 > 1 ? 'others' : 'other'}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -260,11 +400,7 @@ export default function Scheduler({
       (room) => room.roomCode == roomData.code
     );
     if (existingRoomLayout?.layout) {
-      setLayout([
-        ...headers,
-        ...existingRoomLayout.layout,
-        ...timeLayout.flat(),
-      ]);
+      setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
@@ -272,7 +408,8 @@ export default function Scheduler({
         courseSubjects,
         timeData
       );
-      setLayout([...headers, ...initialLayout, ...timeLayout.flat()]);
+      setLayout([...initialLayout, ...timeLayout.flat()]);
+      // setRoomSubjSchedsLayout(roomData.code, roomData._id, initialLayout);
     }
   }, []);
 
@@ -295,99 +432,118 @@ export default function Scheduler({
   useEffect(
     () => {
       const subjSchedIds = subjectsData.map((data) => data.id);
+      const roomLayoutItems = layout.filter((item) => {
+        const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+        return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      });
 
-      const courseSchedsData = createCourseSubjectSchedules(
-        subjSchedIds,
-        layout.filter((item) => {
-          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-            item.i
-          );
-          return (
-            subjSchedIds.includes(
-              `${subjectCode}~${teacherId}~${courseYearSec}`
-            ) && !item.static
-          );
-        }),
-        {
-          _id: roomData._id,
-          code: roomData.code,
-        }
-      );
+      if (roomLayoutItems.length) {
+        const roomSchedules = createCourseSubjectSchedules(
+          subjSchedIds,
+          roomLayoutItems,
+          {
+            _id: roomData._id,
+            code: roomData.code,
+          },
+          subjectsData,
+          timeData,
+          course,
+          selectedRooms
+        );
 
-      const otherRoomScheds = [];
-      roomsSubjSchedsLayouts.forEach((roomLayout) => {
-        if (roomLayout.roomCode !== roomData.code) {
-          otherRoomScheds.push(
-            ...createCourseSubjectSchedules(
+        const otherRoomScheds = [];
+        roomsSubjSchedsLayouts.forEach((roomLayout) => {
+          if (roomLayout.roomCode !== roomData.code) {
+            const schedules = createCourseSubjectSchedules(
               subjSchedIds,
               roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId, courseYearSec } =
-                  parseSubjSchedId(item.i);
-                return (
-                  subjSchedIds.includes(
-                    `${subjectCode}~${teacherId}~${courseYearSec}`
-                  ) && !item.static
-                );
+                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
               }),
               {
                 _id: roomLayout.roomId,
                 code: roomLayout.roomCode,
-              }
-            )
-          );
-        }
-      });
-
-      let mergedScheds = [...courseSchedsData];
-      if (otherRoomScheds.length) {
-        otherRoomScheds.forEach((roomSched) => {
-          const existingSched = mergedScheds.find(
-            (mergedSched) =>
-              mergedSched.subject.code == roomSched.subject.code &&
-              mergedSched.teacher.teacherId == roomSched.teacher.teacherId
-          );
-
-          if (!existingSched) {
-            mergedScheds.push(roomSched);
-          } else {
-            const merged = {
-              ...existingSched,
-              schedules: [
-                ...existingSched.schedules.filter(
-                  (exist) => exist.room.code == roomData.code
-                ),
-                ...roomSched.schedules.filter(
-                  (sched) => sched.room.code !== roomData.code
-                ),
-              ],
-            };
-
-            mergedScheds = [
-              ...mergedScheds.filter((mergedSched) => {
-                return (
-                  mergedSched.subject.code !== merged.subject.code &&
-                  mergedSched.teacher.teacherId !== merged.teacher.teacherId
-                );
-              }),
-              merged,
-            ];
+              },
+              subjectsData,
+              timeData,
+              course,
+              selectedRooms
+            );
+            otherRoomScheds.push(schedules);
           }
         });
-      }
-      const subjSchedItems = layout.filter((item) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-          item.i
-        );
-        return subjSchedIds.includes(
-          `${subjectCode}~${teacherId}~${courseYearSec}`
-        );
-      });
-      setSubjectScheds(mergedScheds);
-      // console.log(subjSchedItems, subjSchedIds, subjectsData);
-      setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
 
-      if (!oldSchedsData.length && mergedScheds.length) {
-        setOldSchedsData(mergedScheds);
+        let groupedCourseScheds = [...roomSchedules.schedules.course];
+        if (otherRoomScheds.length) {
+          otherRoomScheds
+            .map((room) => room.schedules.course)
+            .flat()
+            .forEach((roomSched) => {
+              //check if its in the array already
+              const existingSched = groupedCourseScheds.find(
+                (mergedSched) =>
+                  mergedSched.subject.code == roomSched.subject.code &&
+                  mergedSched.teacher.teacherId == roomSched.teacher.teacherId
+              );
+              if (!existingSched) {
+                //if not existing
+                groupedCourseScheds.push(roomSched);
+              } else {
+                //update the subject to add the schedule
+                const merged = {
+                  ...existingSched,
+                  schedules: [
+                    ...existingSched.schedules.filter(
+                      (exist) => exist.room.code == roomData.code
+                    ),
+                    ...roomSched.schedules.filter(
+                      (sched) => sched.room.code !== roomData.code
+                    ),
+                  ],
+                };
+
+                //filter the grouped scheds to remove the old subject data
+                groupedCourseScheds = [
+                  ...groupedCourseScheds.filter((mergedSched) => {
+                    return (
+                      mergedSched.subject.code !== merged.subject.code &&
+                      mergedSched.teacher.teacherId !== merged.teacher.teacherId
+                    );
+                  }),
+                  merged,
+                ];
+              }
+            });
+        }
+
+        const updatedRoomSchedules = [
+          {
+            ...roomSchedules,
+            schedules: [
+              ...roomSchedules.schedules.course,
+              ...roomSchedules.schedules.other,
+            ],
+          },
+          ...otherRoomScheds.map((otherRoom) => ({
+            ...otherRoom,
+            schedules: [
+              ...otherRoom.schedules.course,
+              ...otherRoom.schedules.other,
+            ],
+          })),
+        ];
+
+        const subjSchedItems = layout.filter((item) => {
+          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+          return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+        });
+        setSubjectScheds(groupedCourseScheds);
+        setAllRoomSubjScheds(updatedRoomSchedules);
+        setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
+
+        if (!oldSchedsData.length && updatedRoomSchedules.length) {
+          setOldSchedsData(updatedRoomSchedules);
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -395,168 +551,10 @@ export default function Scheduler({
   );
 
   //other funcs
-  function createCourseSubjectSchedules(
-    subjSchedIds = [],
-    subjSchedItems = [],
-    room = { _id: '', code: '' }
-  ) {
-    //remove subjSchedIds that has no layout item
-    const filteredSubjSchedIds = subjSchedIds.filter((id) =>
-      subjSchedItems.some((item) => {
-        const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-          item.i
-        );
-        return id == `${subjectCode}~${teacherId}~${courseYearSec}`;
-      })
-    );
 
-    const subjSchedIdsParsed = filteredSubjSchedIds.map((id) => {
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(id);
-      return { code: subjectCode, teacher: teacherId, courseYearSec };
-    });
-
-    const newRoomSubjectScheds = [];
-    //for each schedIds
-
-    subjSchedIdsParsed.forEach(({ code, teacher, courseYearSec }) => {
-      //get the subject layout items of the same id
-      const subjSchedLayoutItems = subjSchedItems.filter((item) => {
-        const {
-          subjectCode: itemSubjCode,
-          teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
-        return (
-          code == itemSubjCode &&
-          teacher == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
-        );
-      });
-
-      const subjectData = subjectsData.find(
-        (data) => data.id == `${code}~${teacher}~${courseYearSec}`
-      );
-      //set the subject's times and days
-      const schedules = subjSchedLayoutItems.map((layout) => ({
-        day: layout.x,
-        time: {
-          start: timeData[layout.y][0],
-          end: timeData[layout.y + layout.h - 1][1],
-        },
-      }));
-
-      //check if completed or not
-      let totalMinutesDuration = 0;
-      let isNotCompleted = true;
-      schedules?.forEach((sched) => {
-        const start = parse(sched.time.start, 'hh:mm a', new Date());
-        const end = parse(sched.time.end, 'hh:mm a', new Date());
-
-        totalMinutesDuration += differenceInMinutes(end, start);
-      });
-
-      const hoursDuration = Math.floor(totalMinutesDuration / 60);
-      const minutesDuration = totalMinutesDuration % 60;
-
-      const { hours, minutes } = subtractDuration(
-        { hours: subjectData.data.units, minutes: 0 },
-        {
-          hours: hoursDuration,
-          minutes: minutesDuration,
-        }
-      );
-
-      if (hours <= 0 && minutes <= 0) {
-        isNotCompleted = false;
-      }
-
-      //group by day
-      const groupedByDay = [];
-      for (let day = 1; day <= 7; day++) {
-        const daySchedules = schedules.filter(
-          (schedule) => schedule.day == day
-        );
-        if (daySchedules.length) {
-          groupedByDay.push({
-            day,
-            room,
-            times: daySchedules.map((daySchedule) => ({
-              start: daySchedule.time.start,
-              end: daySchedule.time.end,
-            })),
-          });
-        }
-      }
-      //add to the sched array
-      newRoomSubjectScheds.push({
-        subject: {
-          _id: subjectData.data._id,
-          code: subjectData.data.code,
-        },
-        teacher: {
-          _id: subjectData.data.teacher._id,
-          teacherId: subjectData.data.teacher.teacherId,
-        },
-        isCompleted: !isNotCompleted,
-        schedules: [...groupedByDay],
-      });
-    });
-
-    let newScheds = [];
-
-    // if (subjectScheds.length) {
-    //   subjectScheds.forEach((subjSched) => {
-    //     const newSubjSched = newRoomSubjectScheds.find(
-    //       (newRoomSubjSched) =>
-    //         subjSched.subject.code == newRoomSubjSched.subject.code &&
-    //         subjSched.teacher.teacherId == newRoomSubjSched.teacher.teacherId
-    //     );
-
-    //     //check if new sched exists then update the new room scheds
-    //     if (newSubjSched) {
-    //       newScheds.push({
-    //         ...newSubjSched,
-    //         schedules: [
-    //           ...subjSched.schedules.filter(
-    //             (sched) => sched.room.code !== room.code
-    //           ),
-    //           ...newSubjSched.schedules,
-    //         ],
-    //       });
-    //     } else {
-    //       newScheds.push({
-    //         ...subjSched,
-    //         schedules: [
-    //           ...subjSched.schedules.filter(
-    //             (sched) => sched.room.code !== room.code
-    //           ),
-    //         ],
-    //       });
-    //     }
-    //   });
-    // } else {
-    //   newScheds = newRoomSubjectScheds;
-    // }
-
-    return newRoomSubjectScheds;
-
-    // return [
-    //   ...newScheds.filter((newSched) => newSched.schedules.length),
-    //   ...newRoomSubjectScheds.filter(
-    //     (sched) =>
-    //       !newScheds.some(
-    //         (newSched) =>
-    //           sched.subject.code == newSched.subject.code &&
-    //           sched.teacher.teacherId == newSched.teacher.teacherId
-    //       )
-    //   ),
-    // ];
-  }
-
-  function parseSubjSchedId(id, separator = '~') {
-    const [subjectCode, teacherId, courseYearSec, nanoId] = id.split(separator);
-    return { subjectCode, teacherId, courseYearSec, nanoId };
-  }
+  // console.log(JSON.stringify(roomsSubjScheds));
+  // console.log('---------------------');
+  // console.log(JSON.stringify(oldSchedsData));
 
   function removeLayoutItem(layoutId) {
     const newLayout = layout.filter((item) => item.i !== layoutId);
@@ -570,68 +568,42 @@ export default function Scheduler({
    * @param {String} layoutItemId - the layout "i" in SUBJCODE~##-####~nanoId format
    */
 
-  function updateSubjSchedsMaxH(layoutSource, layoutItemId) {
+  function updateSubjSchedsMaxH(
+    layoutSource,
+    layoutItemId,
+    roomLayouts = roomsSubjSchedsLayouts
+  ) {
     //parse layoutItemId
-    const { subjectCode, teacherId, courseYearSec } =
-      parseSubjSchedId(layoutItemId);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItemId);
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
-    //get the layout items with the same ids
-    const roomSubjSchedItems = layoutSource.filter((item) => {
-      const {
-        subjectCode: itemSubjectCode,
-        teacherId: itemTeacherId,
-        courseYearSec: itemCourseYearSec,
-      } = parseSubjSchedId(item.i);
-      return subjSchedIds.includes(
-        `${itemSubjectCode}~${itemTeacherId}~${itemCourseYearSec}`
-      );
-    });
+
     //get the layout from other rooms
-    const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
+    const otherRoomLayouts = roomLayouts.filter(
       (roomLayout) => roomLayout.roomCode !== roomData.code
     );
     //get the subject's data
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
-
-    // console.log(subjectData);
 
     //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
-      const unitsMaxSpan = subjectData.units * 2;
-      const subjSchedItems = [
-        ...roomSubjSchedItems,
-        ...(otherRoomLayouts.length ? otherRoomLayouts : [])
-          .map((obj) => obj.layout)
-          .flat(),
-      ].filter((item) => {
-        const {
-          subjectCode: itemSubjectCode,
-          teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
-        return (
-          subjectCode == itemSubjectCode &&
-          teacherId == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
-        );
-      });
-
-      const { totalRowSpanCount } = subjSchedItems.reduce(
-        (accumulator, currentItem) => {
-          return {
-            totalRowSpanCount: (accumulator.totalRowSpanCount += currentItem.h),
-            itemCount: (accumulator.itemCount += 1),
-          };
-        },
-        { totalRowSpanCount: 0, itemCount: 0 }
+      const { roomItems, subjectLayoutItems } = getSubjectScheduleLayoutItems(
+        subjectCode,
+        teacherId,
+        layoutSource,
+        otherRoomLayouts,
+        subjSchedIds,
+        course
       );
 
-      const remainingRowSpan = unitsMaxSpan - totalRowSpanCount;
+      const remainingRowSpan = getRemainingRowSpan(
+        subjectData.units,
+        subjectLayoutItems
+      );
 
-      const updatedSubjSchedItems = subjSchedItems.map((item) => ({
+      const updatedSubjSchedItems = subjectLayoutItems.map((item) => ({
         ...item,
         maxH: remainingRowSpan + item.h,
       }));
@@ -657,20 +629,19 @@ export default function Scheduler({
         roomCode: roomData.code,
         roomId: roomData._id,
         layout: [
-          ...roomSubjSchedItems.filter(
+          ...roomItems.filter(
             (item) =>
               !updatedSubjSchedItems.some(
                 (updatedItem) => updatedItem.i == item.i
               )
           ),
           ...updatedSubjSchedItems.filter((updatedItem) =>
-            roomSubjSchedItems.some((item) => updatedItem.i == item.i)
+            roomItems.some((item) => updatedItem.i == item.i)
           ),
         ],
       };
-
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
-      setLayout([...headers, ...newRoomLayout.layout, ...timeLayout.flat()]);
+      setLayout([...newRoomLayout.layout, ...timeLayout.flat()]);
     } else {
       setLayout(layoutSource);
     }
@@ -689,23 +660,21 @@ export default function Scheduler({
     layoutItem,
     fromDrop = false
   ) {
-    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-      layoutItem.i
-    );
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
     if (subjectData) {
       const subjSchedItems = layoutSource.filter((item) => {
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          courseYearSec: itemCourseYearSec,
-        } = parseSubjSchedId(item.i);
+          courses: itemCourses,
+        } = parseLayoutItemId(item.i);
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          courseYearSec == itemCourseYearSec
+          hasEqualCourses(courses, itemCourses)
         );
       });
 
@@ -782,7 +751,7 @@ export default function Scheduler({
    * @param {Object} subjectData
    */
 
-  function createRestrictions(layoutSource, subjectData) {
+  function createRestrictions(layoutSource, subjectData, layoutItem) {
     const endX = 7;
 
     const restrictedAreas = [];
@@ -799,13 +768,18 @@ export default function Scheduler({
           )) ||
         [];
 
+      // console.log(subjectScheds, roomsSubjScheds);
+
       const inSchedulerDayTimes = subjectScheds
-        .filter(
-          (subjSched) =>
-            subjSched.teacher.teacherId == subjectData.teacher.teacherId
-        )
+        // .map((room) => room.schedules)
+        // .flat()
+        // .filter(
+        //   (subjSched) =>
+        //     subjSched.teacher.teacherId == subjectData.teacher.teacherId
+        // )
         .map((subj) => subj.schedules)
         .flat();
+
       const inSchedulerTimes = inSchedulerDayTimes
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
@@ -856,25 +830,68 @@ export default function Scheduler({
 
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingSchedules.length) {
-        existingSchedules.forEach((scheduleDays) => {
-          scheduleDays.times.forEach((scheduleTime) => {
-            if (
-              `${course.code}${course.year}${course.section}` !==
-                `${scheduleTime.course.code}${scheduleTime.course.year}${scheduleTime.course.section}` ||
-              scheduleTime.subject.semester !== semester
-            ) {
-              const timeStartIndex = timeData.findIndex((time) => {
-                return time[0] == scheduleTime.start;
-              });
-              const timeEndIndex = timeData.findIndex((time) => {
-                return time[1] == scheduleTime.end;
-              });
+        let parsedLayoutItemId = null;
+        if (layoutItem) {
+          parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
+        }
 
-              for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-                unavailableTimesY.push(i);
+        existingSchedules.forEach((existingSchedule) => {
+          //should exclude checking of existing times when is merged with the currently editing course
+          if (
+            existingSchedule.room.code !== roomData.code &&
+            !selectedRooms.some(
+              (room) => room.code == existingSchedule.room.code
+            )
+          ) {
+            existingSchedule.times.forEach((scheduleTime) => {
+              const subject = subjectScheds.find(
+                (subj) => subj.subject.code == scheduleTime.subject.code
+              );
+
+              let coursesExist = false;
+              if (subject && scheduleTime) {
+                const scheduleTimeCourses = scheduleTime.courses.map(
+                  (schedTimeCourse) =>
+                    `${schedTimeCourse.code}${schedTimeCourse.year}${schedTimeCourse.section}`
+                );
+
+                coursesExist = subject.schedules.some((schedule) => {
+                  return schedule.times.some((time) => {
+                    return time.courses.some((course) => {
+                      return scheduleTimeCourses.includes(course);
+                    });
+                  });
+                });
               }
-            }
-          });
+              if (
+                !scheduleTime.courses.some(
+                  (scheduleCourse) =>
+                    `${course.code}${course.year}${course.section}` ==
+                    `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
+                ) &&
+                !(
+                  parsedLayoutItemId &&
+                  parsedLayoutItemId.courses.some(
+                    (itemCourse) =>
+                      itemCourse ==
+                      `${course.code}${course.year}${course.section}`
+                  )
+                ) &&
+                !coursesExist
+              ) {
+                const timeStartIndex = timeData.findIndex((time) => {
+                  return time[0] == scheduleTime.start;
+                });
+                const timeEndIndex = timeData.findIndex((time) => {
+                  return time[1] == scheduleTime.end;
+                });
+
+                for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+                  unavailableTimesY.push(i);
+                }
+              }
+            });
+          }
         });
       }
 
@@ -893,11 +910,11 @@ export default function Scheduler({
         });
       }
 
+      // console.log('Y', unavailableTimesY);
+
       //get all the schedule items from the same day
       let columnItemsUsedIndexes = [];
-      const columnItems = layoutSource.filter(
-        (item) => item.x == x && item.y !== 0
-      );
+      const columnItems = layoutSource.filter((item) => item.x == x);
       columnItems.forEach((item) => {
         for (let i = item.y; i < item.y + item.h; i++) {
           columnItemsUsedIndexes.push(i);
@@ -920,17 +937,20 @@ export default function Scheduler({
         .sort(function (a, b) {
           return a - b;
         });
-      let start = duplicatesRemoved[0];
-      let prev = duplicatesRemoved[0];
 
-      for (let i = 1; i <= duplicatesRemoved.length; i++) {
-        if (duplicatesRemoved[i] === prev + 1) {
-          prev = duplicatesRemoved[i];
-        } else {
-          unavailableTimeYPairs.push([start, prev]);
-          start = duplicatesRemoved[i];
-          prev = duplicatesRemoved[i];
+      for (let i = 0; i < duplicatesRemoved.length; i++) {
+        const start = duplicatesRemoved[i];
+        let end = start;
+
+        while (
+          i < duplicatesRemoved.length - 1 &&
+          duplicatesRemoved[i + 1] === end + 1
+        ) {
+          end++;
+          i++;
         }
+
+        unavailableTimeYPairs.push([start, end]);
       }
 
       // create the restrictions
@@ -969,6 +989,283 @@ export default function Scheduler({
     setRestrictionLayoutItemIds([]);
   }
 
+  async function getMergedClassRooms(toFetchOtherRooms) {
+    try {
+      let newSelectedRooms = [...selectedRooms];
+      let newRoomLayouts = [...roomsSubjSchedsLayouts];
+      if (toFetchOtherRooms.length) {
+        const results = await Promise.all(
+          toFetchOtherRooms.map((room) =>
+            fetch(`/api/rooms/${room}?p=scheduler&semester=${semester}`)
+              .then((res) => res.json())
+              .catch((error) => console.error(error))
+          )
+        );
+        results.forEach((result) => newSelectedRooms.push(result.data[0]));
+        // if room doesnt have a layout saved
+        newSelectedRooms.forEach((room) => {
+          const roomLayout = createInitialRoomLayout(
+            room.schedules,
+            course,
+            courseSubjects,
+            timeData
+          );
+          newRoomLayouts.push({
+            roomCode: room.code,
+            roomId: room._id,
+            layout: roomLayout,
+          });
+        });
+      }
+      setIsFetchingOtherRooms(false);
+      setSelectedRooms(newSelectedRooms);
+      setAllRoomSubjSchedsLayout(newRoomLayouts);
+
+      return {
+        newSelectedRooms,
+        newRoomLayouts,
+      };
+    } catch (error) {
+      console.error(error);
+      setIsFetchingOtherRooms(false);
+    }
+  }
+
+  async function onConfirmMerge() {
+    setIsMergeConfirmOpen(false);
+    const { subjectCode, teacherId } = parseLayoutItemId(toMergeSchedule.i);
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    );
+    const toFetchOtherRooms = getMergedUsedRooms(
+      subjectData.data,
+      selectedRooms
+    );
+    const { newRoomLayouts } = await getMergedClassRooms(toFetchOtherRooms);
+    handleClassMerge(toMergeSchedule, newRoomLayouts);
+  }
+
+  // add a function to check if merge is possible
+  // by checking if there is no conflict
+  function handleClassMerge(layoutItem, roomLayouts) {
+    let couldMerge = true;
+
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+    const newItemId = createLayoutItemId(subjectCode, teacherId, [
+      ...courses,
+      `${course.code}${course.year}${course.section}`,
+    ]);
+
+    const inSchedulerDayTimes = subjectScheds
+      .map((subj) => subj.schedules)
+      .flat();
+
+    const mergingLayoutItems = roomLayouts
+      .map((room) => room.layout)
+      .flat()
+      .filter((item) => {
+        const {
+          subjectCode: itemSubjCode,
+          teacherId: itemTeacherId,
+          courses: itemCourses,
+        } = parseLayoutItemId(item.i);
+        return (
+          subjectCode == itemSubjCode &&
+          teacherId == itemTeacherId &&
+          hasEqualCourses(courses, itemCourses)
+        );
+      });
+
+    const mergingSchedules = mergingLayoutItems.map((item) => ({
+      day: item.x,
+      start: timeData[item.y][0],
+      end: timeData[item.y + item.h - 1][1],
+    }));
+
+    let day = 1;
+    while (day <= 7 && couldMerge) {
+      const inScheduler = inSchedulerDayTimes.filter(
+        (schedule) => schedule.day == day
+      );
+      const inMerging = mergingSchedules.filter(
+        (schedule) => schedule.day == day
+      );
+
+      inScheduler.forEach((schedule) => {
+        schedule.times.forEach((time) => {
+          const interval1Start = parse(time.start, 'hh:mm a', new Date());
+          const interval1End = parse(time.end, 'hh:mm a', new Date());
+          inMerging.forEach((mergingTime) => {
+            const interval2Start = parse(
+              mergingTime.start,
+              'hh:mm a',
+              new Date()
+            );
+            const interval2End = parse(mergingTime.end, 'hh:mm a', new Date());
+
+            const areOverlapping = areIntervalsOverlapping(
+              { start: interval1Start, end: interval1End },
+              { start: interval2Start, end: interval2End }
+            );
+
+            if (areOverlapping) {
+              // break the outer loop
+              couldMerge = false;
+              return;
+            }
+          });
+        });
+      });
+
+      day++;
+    }
+
+    if (couldMerge) {
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${subjectCode}~${teacherId}`
+      );
+
+      const newLayoutItem = { ...layoutItem, i: newItemId, static: false };
+
+      const mergedItemsLayout = mergeYAdjacentSubjScheds(
+        createMergedClassLayout(layout, layoutItem, course),
+        newLayoutItem
+      );
+
+      const subjSchedIds = subjectsData.map((data) => data.id);
+      let updatedOtherRoomLayouts = [
+        {
+          roomCode: roomData.code,
+          roomId: roomData._id,
+          layout: mergedItemsLayout.filter((item) => {
+            const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
+              parseLayoutItemId(item.i);
+            return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
+          }),
+        },
+      ];
+
+      roomLayouts.forEach((room) => {
+        if (room.roomId !== roomData._id) {
+          const newLayout = createMergedClassLayout(
+            room.layout,
+            layoutItem,
+            course
+          );
+          updatedOtherRoomLayouts.push({
+            roomId: room.roomId,
+            roomCode: room.roomCode,
+            layout: newLayout,
+          });
+        }
+      });
+
+      const newSubjectData = {
+        ...subjectData,
+        data: {
+          ...subjectData.data,
+          teacher: {
+            ...subjectData.data.teacher,
+            assignedCourses: subjectData.data.courses.filter((itemCourse) => {
+              return [
+                ...courses,
+                `${course.code}${course.year}${course.section}`,
+              ].includes(
+                `${itemCourse.code}${itemCourse.year}${itemCourse.section}`
+              );
+            }),
+          },
+        },
+      };
+
+      setSubjectsData([
+        ...subjectsData.filter((data) => data.id !== newSubjectData.id),
+        newSubjectData,
+      ]);
+
+      updateSubjSchedsMaxH(
+        mergedItemsLayout,
+        newItemId,
+        updatedOtherRoomLayouts
+      );
+    } else {
+      toast.error("Can't merge class schedule due to conflicts!");
+    }
+  }
+
+  function handleSplitMerge(layoutItem) {
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+    const newItemId = createLayoutItemId(
+      subjectCode,
+      teacherId,
+      courses.filter(
+        (courseYearSec) =>
+          courseYearSec !== `${course.code}${course.year}${course.section}`
+      )
+    );
+
+    const newLayoutItem = { ...layoutItem, i: newItemId, static: true };
+
+    const mergedItemsLayout = mergeYAdjacentSubjScheds(
+      createSplitMergedClassLayout(layout, layoutItem, course),
+      newLayoutItem
+    );
+
+    const subjSchedIds = subjectsData.map((data) => data.id);
+
+    let updatedOtherRoomLayouts = [
+      {
+        roomCode: roomData.code,
+        roomId: roomData._id,
+        layout: mergedItemsLayout.filter((item) => {
+          const { subjectCode: itemSubjectCode, teacherId: itemTeacherId } =
+            parseLayoutItemId(item.i);
+          return subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`);
+        }),
+      },
+    ];
+
+    roomsSubjSchedsLayouts.forEach((room) => {
+      if (room.roomId !== roomData._id) {
+        const newLayout = createSplitMergedClassLayout(
+          room.layout,
+          layoutItem,
+          course
+        );
+        updatedOtherRoomLayouts.push({
+          roomId: room.roomId,
+          roomCode: room.roomCode,
+          layout: newLayout,
+        });
+      }
+    });
+
+    const subjectData = subjectsData.find(
+      (data) => data.id == `${subjectCode}~${teacherId}`
+    );
+    const newSubjectData = {
+      ...subjectData,
+      data: {
+        ...subjectData.data,
+        teacher: {
+          ...subjectData.data.teacher,
+          assignedCourses: subjectData.data.teacher.assignedCourses.filter(
+            (assignedCourse) =>
+              assignedCourse.code !== course.code ||
+              assignedCourse.year !== course.year ||
+              assignedCourse.section !== course.section
+          ),
+        },
+      },
+    };
+    setSubjectsData([
+      ...subjectsData.filter((data) => data.id !== newSubjectData.id),
+      newSubjectData,
+    ]);
+
+    updateSubjSchedsMaxH(mergedItemsLayout, newItemId, updatedOtherRoomLayouts);
+  }
+
   function handleLayoutChange(newLayout) {
     if (!isDraggingFromOutside && !isResizing && !isDragging) {
       setLayout(newLayout);
@@ -976,12 +1273,38 @@ export default function Scheduler({
     }
   }
 
+  //needs attention
   function onDrop(newLayout, layoutItem, _event) {
     try {
-      const data = JSON.parse(_event.dataTransfer.getData('text/plain'));
+      const subjectDataId = JSON.parse(
+        _event.dataTransfer.getData('text/plain')
+      );
+
+      const data = subjectsData.find(
+        (subjectsData) => subjectsData.id == subjectDataId.id
+      )?.data;
+
+      let itemCourses = [`${course.code}${course.year}${course.section}`];
+      if (
+        data?.teacher?.assignedCourses.some(
+          (assignedCourse) =>
+            `${assignedCourse.code}${assignedCourse.year}${assignedCourse.section}` ==
+            itemCourses[0]
+        )
+      ) {
+        data?.teacher?.assignedCourses.forEach((dataCourse) => {
+          const toStringCourse = `${dataCourse.code}${dataCourse.year}${dataCourse.section}`;
+          if (!itemCourses.includes(toStringCourse)) {
+            itemCourses.push(toStringCourse);
+          }
+        });
+      }
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
-        const nanoId = nanoid(10);
-        const layoutItemId = `${data.code}~${data.teacher.teacherId}~${data.course.code}${data.course.year}${data.course.section}~${nanoId}`;
+        const layoutItemId = createLayoutItemId(
+          data.code,
+          data.teacher.teacherId,
+          itemCourses
+        );
 
         const mergedItemsLayout = mergeYAdjacentSubjScheds(
           layout,
@@ -999,16 +1322,18 @@ export default function Scheduler({
     }
   }
 
+  //needs attention
   function onDropDragOver() {
     //set item dragging item maxH and minH
     if (draggingSubject) {
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
-          const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-            item.i
-          );
-          return subjectsData.some(
-            (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+          const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
+          return (
+            subjectsData.some(
+              (data) => data.id == `${subjectCode}~${teacherId}`
+            ) &&
+            courses.includes(`${course.code}${course.year}${course.section}`)
           );
         })
         .reduce(
@@ -1026,6 +1351,7 @@ export default function Scheduler({
           },
           { totalRowSpanCount: 0, itemCount: 0 }
         );
+
       const unitsMaxSpan = draggingSubject.units * 2;
       const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
 
@@ -1040,13 +1366,11 @@ export default function Scheduler({
   function onDragStart(newLayout, layoutItem) {
     if (!isDraggingFromOutside && layoutItem.i !== '__dropping-elem__') {
       setIsDragging(true);
-      const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-        layoutItem.i
-      );
+      const { subjectCode, teacherId } = parseLayoutItemId(layoutItem.i);
       const subjectData = subjectsData.find(
-        (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+        (data) => data.id == `${subjectCode}~${teacherId}`
       )?.data;
-      createRestrictions(layout, subjectData);
+      createRestrictions(layout, subjectData, layoutItem);
     }
   }
 
@@ -1061,14 +1385,12 @@ export default function Scheduler({
 
   function onResizeStart(newLayout, layoutItem) {
     setIsResizing(true);
-    const { subjectCode, teacherId, courseYearSec } = parseSubjSchedId(
-      layoutItem.i
-    );
+    const { subjectCode, teacherId } = parseLayoutItemId(layoutItem.i);
     updateSubjSchedsMaxH(newLayout, layoutItem.i);
     const subjectData = subjectsData.find(
-      (data) => data.id == `${subjectCode}~${teacherId}~${courseYearSec}`
+      (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
-    createRestrictions(layout, subjectData);
+    createRestrictions(layout, subjectData, layoutItem);
   }
 
   function onResizeStop(newLayout, layoutItem) {
@@ -1079,7 +1401,35 @@ export default function Scheduler({
   }
 
   return (
-    <>
+    <div className="min-w-[900px]">
+      <PopupLoader
+        isOpen={isFetchingOtherRooms}
+        message="Getting the rooms used by the merged class and their schedules..."
+      />
+      <Confirmation
+        isOpen={isMergeConfirmOpen}
+        onCancel={() => {
+          setIsMergeConfirmOpen(false);
+          setToMergeSchedule(null);
+        }}
+        onConfirm={onConfirmMerge}
+        label="Merge Subject Schedules?"
+        message="This will remove all placed individual same subject and teacher schedules of the current class."
+      />
+      <Confirmation
+        isOpen={isRemoveConfirmOpen}
+        onCancel={() => {
+          setIsRemoveConfirmOpen(false);
+          setToRemoveMerged('');
+        }}
+        onConfirm={() => {
+          removeLayoutItem(toRemoveMerged);
+          setToRemoveMerged('');
+          setIsRemoveConfirmOpen(false);
+        }}
+        label="Remove Merged Class Schedule?"
+        message="It will also remove the schedule from the other classes"
+      />
       <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}
       </div>
@@ -1109,6 +1459,6 @@ export default function Scheduler({
         {timeRows}
         {cellRestrictions}
       </ResponsiveGridLayout>
-    </>
+    </div>
   );
 }

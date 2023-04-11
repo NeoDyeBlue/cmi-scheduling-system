@@ -76,7 +76,7 @@ class Teacher extends Model {
     }
   }
 
-  async getTeachersName({ q }) {
+  async getTeachersName({ q, page, limit }) {
     try {
       const pipeline = [
         {
@@ -103,12 +103,22 @@ class Teacher extends Model {
             type: 1,
             teacherId: 1,
             image: 1,
+            preferredDays: '$preferredDayTimes',
           },
         },
       ];
-
-      const data = await this.Teacher.aggregate(pipeline);
-      return data;
+      if (page && limit) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const teacherAggregation = this.Teacher.aggregate(pipeline);
+        const data = await this.Teacher.aggregatePaginate(
+          teacherAggregation,
+          options
+        );
+        return data;
+      } else {
+        const data = await this.Teacher.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       console.log('errrorrrrrrrr', error);
       throw error;
@@ -228,6 +238,85 @@ class Teacher extends Model {
               },
             ],
             as: 'schedules',
+          },
+        },
+      ];
+      const data = await this.Teacher.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async teacherStatus() {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $project: {
+            _id: 1,
+            firstName: 1,
+            lastName: 1,
+            image: 1,
+            teacherId: 1,
+            type: 1,
+            preferredDayTimes: 1,
+          },
+        },
+        {
+          $lookup: {
+            from: 'schedules',
+            localField: '_id',
+            foreignField: 'teacher',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            partTime: {
+              $sum: {
+                $cond: {
+                  if: { $gt: [{ $size: '$preferredDayTimes' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            fullTime: {
+              $sum: {
+                $cond: {
+                  if: { $eq: [{ $size: '$preferredDayTimes' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            unscheduled: {
+              $sum: {
+                $cond: {
+                  if: { $eq: [{ $size: '$schedules' }, 0] },
+                  then: 1,
+                  else: 0,
+                },
+              },
+            },
+            total: {
+              $sum: 1,
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
           },
         },
       ];

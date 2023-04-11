@@ -14,9 +14,20 @@ import {
   MdAccessTimeFilled,
 } from 'react-icons/md';
 import currentSchedules from '@/lib/test_data/current-schedules';
+import useSWR from 'swr';
 
 export default function Home() {
   const sampleData = useMemo(() => currentSchedules, []);
+  const {
+    data: result,
+    isLoading,
+    error,
+  } = useSWR('/api/teachers/dashboard', {
+    refreshInterval: 60000,
+  });
+
+  const dashboardData = useMemo(() => result?.data[0] || null, [result]);
+
   return (
     <>
       <Head>
@@ -34,25 +45,25 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-2">
             <CountCard
               label="Total Teachers"
-              count={100}
+              count={dashboardData?.total || 0}
               icon={<MdGroups size={16} />}
               // iconColor={theme.colors.primary[500]}
             />
             <CountCard
               label="Part-time Teachers"
-              count={50}
+              count={dashboardData?.partTime || 0}
               icon={<MdIncompleteCircle size={16} />}
               // iconColor={theme.colors.primary[500]}
             />
             <CountCard
               label="Full-time Teachers"
-              count={50}
+              count={dashboardData?.fullTime || 0}
               icon={<MdCircle size={16} />}
               // iconColor={theme.colors.primary[500]}
             />
             <CountCard
               label="Unscheduled Teachers"
-              count={0}
+              count={dashboardData?.unscheduled || 0}
               icon={<MdAccessTimeFilled size={16} />}
               // iconColor={theme.colors.primary[500]}
             />
@@ -69,7 +80,9 @@ export default function Home() {
             </p>
           </div>
           <div className="overflow-x-auto">
-            <OngoingScheduleTable data={sampleData} />
+            <OngoingScheduleTable
+              data={dashboardData?.currentSchedules || []}
+            />
           </div>
         </div>
       </div>

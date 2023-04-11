@@ -1,7 +1,5 @@
 import { useTable, useExpanded } from 'react-table';
 import { useMemo, useCallback } from 'react';
-import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 import { useRouter } from 'next/router';
@@ -14,7 +12,6 @@ import {
   MdCheckCircle,
   MdCancel,
 } from 'react-icons/md';
-import { courses } from '@/lib/test_data/scheduler';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
 import { SpinnerLoader } from '../Loaders';
@@ -26,6 +23,10 @@ export default function CourseTable({ type }) {
     limit: 10,
     query: {
       type,
+    },
+    options: {
+      revalidateOnMount: true,
+      revalidateOnFocus: true,
     },
   });
 
@@ -66,10 +67,10 @@ export default function CourseTable({ type }) {
         Header: '2nd sem',
         accessor: 'schedCompletionStatus.secondSem.isCompleted', // accessor is the "key" in the data
       },
-      {
-        Header: 'Special',
-        accessor: 'schedCompletionStatus.special.isCompleted', // accessor is the "key" in the data
-      },
+      // {
+      //   Header: 'Special',
+      //   accessor: 'schedCompletionStatus.special.isCompleted', // accessor is the "key" in the data
+      // },
       {
         Header: 'Summer',
         accessor: 'schedCompletionStatus.summer.isCompleted', // accessor is the "key" in the data
@@ -219,12 +220,12 @@ export default function CourseTable({ type }) {
                                   >
                                     2nd sem
                                   </Tab>
-                                  <Tab
+                                  {/* <Tab
                                     selectedClassName="tab-active"
                                     className="tab-sm"
                                   >
                                     Special
-                                  </Tab>
+                                  </Tab> */}
                                   <Tab
                                     selectedClassName="tab-active"
                                     className="tab-sm"
@@ -260,7 +261,7 @@ export default function CourseTable({ type }) {
                                   }
                                 />
                               </TabPanel>
-                              <TabPanel>
+                              {/* <TabPanel>
                                 <CourseSchedulerYearSecTable
                                   courseCode={row.original.code}
                                   semester={'special'}
@@ -272,7 +273,7 @@ export default function CourseTable({ type }) {
                                     ) || []
                                   }
                                 />
-                              </TabPanel>
+                              </TabPanel> */}
                               <TabPanel>
                                 <CourseSchedulerYearSecTable
                                   courseCode={row.original.code}

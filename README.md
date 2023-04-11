@@ -40,7 +40,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Todo
 
 - [ ] Dashboard (f,b)
-- [ ] Table searches (f,b)
+- [x] Table searches (f,b)
 - [x] Fix subject teachers not updating in form (b)
 - [x] Fix year sections count not showing in updating of courses (b)
 - [x] add sem tabs in viewing of course schedules (f)
@@ -61,7 +61,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 - [x] course schedules page
 - [ ] fix room code update should not affect schedules
 - [x] Filter room by year and secion of schedulerData.rooms (I figured it out that if we remove schedules on that room it the section wont seeing the scheduels on that room)
-- [ ] Fix fetching of room schedules.
+- [x] Fix fetching of room schedules.
 - [x] update teacher day and time, should response all schedules that were affected of teacher's day time.
-- [ ] update subject
-- [ ] update course
+- [x] update subject
+- [x] update course
+- [x] on save of the same room and section but differnt sem, the different sem schedule is also deleting.
+- [x] fix room schedules affecting the course subjects and form data (f)

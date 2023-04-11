@@ -67,11 +67,6 @@ class Course extends Model {
 
       const pipeline = [
         {
-          $sort: {
-            _id: 1,
-          },
-        },
-        {
           $match: {
             type: type,
           },
@@ -143,55 +138,18 @@ class Course extends Model {
             yearSections: 1,
           },
         },
-        // {
-        //   $project: {
-        //     code: 1,
-        //     name: 1,
-        //     years: {
-        //       $max: '$yearSections.year',
-        //     },
-        //     sections: {
-        //       $size: '$yearSections',
-        //     },
-        //     type: 1,
-        //     yearSections: 1,
-        //   },
-        // },
-        // {
-        //   $unwind: '$yearSections',
-        // },
-        // {
-        //   $group: {
-        //     _id: {
-        //       year: '$yearSections.year',
-        //       year: '$yearSections.section',
-        //     },
-        //     code: { $first: '$code' },
-        //     name: { $first: '$name' },
-        //     years: { $first: '$years' },
-        //     sections: { $first: '$sections' },
-        //     type: { $first: '$type' },
-        //     yearSections: { $push: '$yearSections' },
-        //     sectionCount: { $sum: 1 },
-        //   },
-        // },
-        // {
-        //   $project: {
-        //     code: 1,
-        //     name: 1,
-        //     type: 1,
-        //     'yearSections.year': '$_id.year',
-        //     'yearSections.sectionCount': '$sectionCount',
-        //     'yearSections.semesterSubjects': '$yearSections.semesterSubjects',
-        //   },
-        // },
+        {
+          $sort: {
+            _id: 1,
+            name: 1,
+          },
+        },
       ];
       const courseAggregate = this.Course.aggregate(pipeline);
       const data = await this.Course.aggregatePaginate(
         courseAggregate,
         options
       );
-      console.log('data', JSON.stringify(data));
       return data;
     } catch (error) {
       console.log('error', error);
@@ -287,7 +245,48 @@ class Course extends Model {
       throw error;
     }
   }
+  /* used to get schedules per section and check if
+   that subjects are still assigned to this course
+  */
+  async getSubjectsPerYearSection({ course_id }) {
+    try {
+      const pipeline = [
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(course_id),
+          },
+        },
+        { $unwind: '$yearSections' },
+        { $unwind: '$yearSections.semesterSubjects' },
+        {
+          $group: {
+            _id: {
+              course_oid: '$_id',
+              year: '$yearSections.year',
+              section: '$yearSections.section',
+              semester: '$yearSections.semesterSubjects.semester',
+            },
+            code: { $first: '$code' },
+            name: { $first: '$name' },
+            semester: { $first: '$yearSections.semesterSubjects.semester' },
+            year: { $first: '$yearSections.year' },
+            section: { $first: '$yearSections.section' },
+            subjects: {
+              $first: '$yearSections.semesterSubjects.subjects',
+            },
+          },
+        },
+      ];
+      const data = await this.Course.aggregate(pipeline);
+      console.log('data----------', JSON.stringify(data), '------------');
+      return data;
+    } catch (error) {
+      console.log('error', error);
+      throw error;
+    }
+  }
   // ----------------------------------------------------
+  // ################### SCHEDULERDATA ##########################
   async getCourseSubjectTeachers({ courseCode, semester, year, section }) {
     try {
       // look up for subjects
@@ -312,7 +311,10 @@ class Course extends Model {
         {
           $lookup: {
             from: 'subjects',
-            let: { semesterSubjects: '$yearSections.semesterSubjects' },
+            let: {
+              semesterSubjects: '$yearSections.semesterSubjects',
+              course_oid: '$_id',
+            },
             localField: 'yearSections.semesterSubjects.subjects._id',
             foreignField: '_id',
             pipeline: [
@@ -323,12 +325,165 @@ class Course extends Model {
                   name: 1,
                   units: 1,
                   assignedTeachers: 1,
+                  course_oid: '$$course_oid',
                   // semesterSubjects:"$$semesterSubjects",
                 },
               },
+
+              // get all sections that assigned to this subjects #################
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: '_id',
+                  let: { subject_oid: '$_id' },
+                  foreignField: 'yearSections.semesterSubjects.subjects._id',
+                  pipeline: [
+                    { $unwind: '$yearSections' },
+                    { $unwind: '$yearSections.semesterSubjects' },
+                    {
+                      $group: {
+                        _id: {
+                          _id: '$_id',
+                          year: '$yearSections.year',
+                          section: '$yearSections.section',
+                          semester: '$yearSections.semesterSubjects.semester',
+                        },
+                        course_oid: { $first: '$_id' },
+                        code: { $first: '$code' },
+                        name: { $first: '$name' },
+                        year: { $first: '$yearSections.year' },
+                        section: { $first: '$yearSections.section' },
+                        isSectionHasTheSubject: {
+                          $first: {
+                            $cond: {
+                              if: {
+                                $and: [
+                                  {
+                                    $in: [
+                                      '$$subject_oid',
+                                      '$yearSections.semesterSubjects.subjects._id',
+                                    ],
+                                  },
+                                  {
+                                    $eq: [
+                                      '$yearSections.semesterSubjects.semester',
+                                      semester,
+                                    ],
+                                  },
+                                ],
+                              },
+                              then: true,
+                              else: false,
+                            },
+                          },
+                        },
+                      },
+                    },
+                    // lookup for schedules by teacher, subject, course, semester, year, section
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: 'course_oid',
+                        let: {
+                          year: '$year',
+                          section: '$section',
+                          subject_oid: '$$subject_oid',
+                          course_oid: '$course_oid',
+                        },
+                        foreignField: 'course',
+                        pipeline: [
+                          {
+                            $match: {
+                              $expr: {
+                                $and: [
+                                  { $eq: ['$yearSec.year', '$$year'] },
+                                  { $eq: ['$yearSec.section', '$$section'] },
+                                  { $eq: ['$subject', '$$subject_oid'] },
+                                  { $eq: ['$course', '$$course_oid'] },
+                                  { $eq: ['$semester', semester] },
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 1,
+                              course: 1,
+                              semester: 1,
+                              subject: 1,
+                              teacher: 1,
+                              yearSec: 1,
+                              schedules: 1,
+                            },
+                          },
+                          { $unwind: '$schedules' },
+                          { $unwind: '$schedules.times' },
+                          {
+                            $addFields: {
+                              isMerged: {
+                                $cond: {
+                                  if: {
+                                    $gt: [
+                                      { $size: ['$schedules.times.courses'] },
+                                      1,
+                                    ],
+                                  },
+                                  then: true,
+                                  else: false,
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 0,
+                            },
+                          },
+                        ],
+                        as: 'subjectScheds',
+                      },
+                    },
+
+                    {
+                      $project: {
+                        _id: 0,
+                      },
+                    },
+                    {
+                      $addFields: {
+                        _id: '$course_oid',
+                        merged: {
+                          $cond: {
+                            if: {
+                              $gt: ['$subjectScheds', 0],
+                            },
+                            then: {
+                              $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                            },
+                            else: false,
+                          },
+                        },
+                      },
+                    },
+                    {
+                      $project: {
+                        course_oid: 0,
+                      },
+                    },
+                    {
+                      $match: {
+                        isSectionHasTheSubject: true,
+                      },
+                    },
+                  ],
+                  as: 'courses',
+                },
+              },
+
               {
                 $lookup: {
                   from: 'teachers',
+                  let: { subject_oid: '$_id', course_oid: '$course_oid' },
                   localField: 'assignedTeachers.teacher',
                   foreignField: '_id',
                   pipeline: [
@@ -341,8 +496,63 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
+                        subject_oid: '$$subject_oid',
+                        course_oid: '$$course_oid',
                       },
                     },
+                    // get courses that merged to this subject,teacher, course, year, sec, time start, end
+                    // filter schedule from teacher, course, year, semester, section, subject,
+                    {
+                      $lookup: {
+                        from: 'schedules',
+                        localField: 'subject_oid',
+                        let: {
+                          teacher_oid: '$_id',
+                          course_oid: '$$course_oid',
+                          subject_oid: '$$subject_oid',
+                        },
+                        foreignField: 'subject',
+                        pipeline: [
+                          {
+                            $match: {
+                              $expr: {
+                                $and: [
+                                  { $eq: ['$yearSec.year', parseInt(year)] },
+                                  { $eq: ['$yearSec.section', section] },
+                                  { $eq: ['$subject', '$$subject_oid'] },
+                                  { $eq: ['$course', '$$course_oid'] },
+                                  { $eq: ['$teacher', '$$teacher_oid'] },
+                                  { $eq: ['$semester', semester] },
+                                ],
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 1,
+                              course_oid: '$$course_oid',
+                            },
+                          },
+                          {
+                            $unwind: '$schedules',
+                          },
+                          {
+                            $unwind: '$schedules.times',
+                          },
+                          {
+                            $unwind: '$schedules.times.courses'
+                          },
+                          {
+                            $project: {
+                              courses : '$schedules.times.courses'
+                            }
+                          }
+                        ],
+                        as: 'assignedCourses',
+                      },
+                    },
+
+
                     {
                       $lookup: {
                         from: 'schedules',
@@ -357,6 +567,7 @@ class Course extends Model {
                           },
                           {
                             $project: {
+                              _id: 1,
                               course: 1,
                               subject: 1,
                               teacher: 1,
@@ -400,9 +611,31 @@ class Course extends Model {
                             },
                           },
                           {
+                            $lookup: {
+                              from: 'teachers',
+                              localField: 'teacher',
+                              foreignField: '_id',
+                              pipeline: [
+                                {
+                                  $project: {
+                                    _id: 1,
+                                    teacherId: 1,
+                                    firstName: 1,
+                                    lastName: 1,
+                                  },
+                                },
+                              ],
+                              as: 'teacher',
+                            },
+                          },
+                          {
                             $project: {
+                              _id: 1, // schedule oid
                               schedules: 1,
                               yearSec: 1,
+                              teacher: {
+                                $arrayElemAt: ['$teacher', 0],
+                              },
                               subject: {
                                 $arrayElemAt: ['$subject', 0],
                               },
@@ -414,49 +647,108 @@ class Course extends Model {
                           {
                             $unwind: '$schedules',
                           },
-                          {
-                            $group: {
-                              _id: '$schedules._id',
-                              schedules: { $first: '$schedules' },
-                              course: { $first: '$course' },
-                              subject: { $first: '$subject' },
-                              yearSec: { $first: '$yearSec' },
-                            },
-                          },
-                          // yearSec on scourse
-                          // {
-                          //   $project: {
-                          //     schedules: 1,
-                          //     subject: 1,
-                          //     course: {
-                          //       year: '$yearSec.year',
-                          //       section: '$yearSec.section',
-                          //       code: '$course.code',
-                          //       name: '$course.name',
-                          //     },
-                          //   },
-                          // },
-                          // //  add fields on schedules.times
-
-                          {
-                            $addFields: {
-                              'schedules.times.course': '$course',
-                              'schedules.times.subject': '$subject',
-                              'schedules.times.course': '$course',
-                              'schedules.room': '$schedules.room',
-                            },
-                          },
-                          {
-                            $addFields: {
-                              'schedules.times.course.year': '$yearSec.year',
-                              'schedules.times.course.section':
-                                '$yearSec.section',
-                            },
-                          },
-                          // // remove room on schedule
+                          { $unwind: '$schedules.times' },
                           {
                             $project: {
-                              schedules: 1,
+                              'schedules._id': 0,
+                              'schedules.times._id': 0,
+                            },
+                          },
+                          {
+                            $group: {
+                              _id: {
+                                teacher: '$teacher._id',
+                                subject: '$subject._id',
+                                day: '$schedules.day',
+                                room: '$schedules.room._id',
+                                start: '$schedules.times.start',
+                                end: '$schedules.times.end',
+                              },
+                              subject: { $first: '$subject' },
+                              teacher: { $first: '$teacher' },
+                              dayTimes: {
+                                $addToSet: {
+                                  day: '$schedules.day',
+                                  room: '$schedules.room',
+                                },
+                              },
+                              times: {
+                                $addToSet: {
+                                  day: '$schedules.day',
+                                  start: '$schedules.times.start',
+                                  end: '$schedules.times.end',
+                                  courses: '$schedules.times.courses',
+                                },
+                              },
+                              // to get all sections that in this schedule.
+                              courseSections: {
+                                $push: {
+                                  schedule_oid: '$_id',
+                                  course: '$course',
+                                  yearSec: '$yearSec', // I think there's something wrong here.
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 0,
+                              subject: 1,
+                              teacher: 1,
+                              courseSections: 1,
+                              dayTimes: {
+                                $map: {
+                                  input: '$dayTimes',
+                                  as: 'dt',
+                                  in: {
+                                    day: '$$dt.day',
+                                    room: '$$dt.room',
+                                    times: {
+                                      $map: {
+                                        input: {
+                                          $filter: {
+                                            input: [
+                                              { $arrayElemAt: ['$times', 0] },
+                                            ],
+                                            as: 't',
+                                            cond: {
+                                              $eq: ['$$t.day', '$$dt.day'],
+                                            },
+                                          },
+                                        },
+                                        as: 'time',
+                                        in: {
+                                          start: '$$time.start',
+                                          end: '$$time.end',
+                                          subject: '$subject',
+                                          courses: {
+                                            $map: {
+                                              input: '$courseSections',
+                                              as: 'section',
+                                              in: {
+                                                _id: '$$section.course._id',
+                                                schedule_oid:
+                                                  '$$section.schedule_oid',
+                                                code: '$$section.course.code',
+                                                name: '$$section.course.name',
+                                                year: '$$section.yearSec.year',
+                                                section:
+                                                  '$$section.yearSec.section',
+                                              },
+                                            },
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                              // times: 1,
+                            },
+                          },
+                          {
+                            $project: {
+                              dayTimes: { $arrayElemAt: ['$dayTimes', 0] },
                             },
                           },
                         ],
@@ -474,7 +766,8 @@ class Course extends Model {
                         image: 1,
                         type: 1,
                         preferredDayTimes: 1,
-                        existingSchedules: '$existingSchedules.schedules',
+                        assignedCourses: '$assignedCourses.courses',
+                        existingSchedules: '$existingSchedules.dayTimes',
                         //  {
                         //   $arrayElemAt: ['$existingSchedules.schedules', 0],
                         // },
@@ -519,6 +812,7 @@ class Course extends Model {
           },
         },
       ];
+
       if (year) {
         pipeline.push({
           $match: {
@@ -1208,8 +1502,8 @@ class Course extends Model {
       throw error;
     }
   }
-  
-  async searchCourse({ q, limit }) {
+
+  async searchCourse({ q, limit, page, type }) {
     try {
       const pipeline = [
         {
@@ -1239,12 +1533,30 @@ class Course extends Model {
             type: 1,
           },
         },
-        {
-          $limit: parseInt(limit),
-        },
       ];
-      const data = await this.Course.aggregate(pipeline);
-      return data;
+      if (type) {
+        pipeline.push({
+          $match: {
+            type: type,
+          },
+        });
+      }
+      if (limit && page) {
+        const options = { ...(page && limit ? { page, limit } : {}) };
+        const courseAggregation = this.Course.aggregate(pipeline);
+        const data = await this.Course.aggregatePaginate(
+          courseAggregation,
+          options
+        );
+        return data;
+      } else {
+        // if it should not have pagination
+        pipeline.push({
+          $limit: parseInt(limit),
+        });
+        const data = await this.Course.aggregate(pipeline);
+        return data;
+      }
     } catch (error) {
       throw error;
     }

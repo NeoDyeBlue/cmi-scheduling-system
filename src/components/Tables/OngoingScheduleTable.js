@@ -1,8 +1,9 @@
 import { useTable } from 'react-table';
 import { useMemo } from 'react';
-import Image from 'next/image';
 import TimeProgress from '../Misc/TimeProgress';
 import TeacherTypeBadge from '../Misc/TeacherTypeBadge';
+import { ImageWithFallback } from '../Misc';
+import classNames from 'classnames';
 
 export default function OngoingScheduleTable({ data }) {
   const columns = useMemo(
@@ -17,15 +18,15 @@ export default function OngoingScheduleTable({ data }) {
       },
       {
         Header: 'Subject',
-        accessor: 'subject',
+        accessor: 'schedule.subject.code',
       },
       {
         Header: 'Room',
-        accessor: 'room',
+        accessor: 'schedule.room.code',
       },
       {
         Header: 'Time Progress',
-        accessor: 'time',
+        accessor: 'schedule.time',
       },
     ],
     []
@@ -58,7 +59,6 @@ export default function OngoingScheduleTable({ data }) {
       <tbody {...getTableBodyProps()}>
         {rows.map((row, index) => {
           prepareRow(row);
-          console.log(row);
           return (
             <tr
               key={index}
@@ -74,11 +74,12 @@ export default function OngoingScheduleTable({ data }) {
                       className="min-w-[200px] max-w-[250px] px-4 py-3"
                     >
                       <div className="flex items-center gap-4">
-                        <Image
+                        <ImageWithFallback
                           src={cell.value.image}
                           alt="teacher image"
                           width={42}
                           height={42}
+                          fallbackSrc="/images/default-teacher.jpg"
                           className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
                         />
                         <p className="font-bold">
@@ -92,25 +93,25 @@ export default function OngoingScheduleTable({ data }) {
                   <td
                     key={index}
                     {...cell.getCellProps()}
-                    className="px-4 py-3"
+                    className={classNames('px-4 py-3', {
+                      uppercase:
+                        cell.column.Header == 'Subject' ||
+                        cell.column.Header == 'Room',
+                    })}
                   >
-                    {(cell.value == 'part-time' ||
-                      cell.value == 'full-time') && (
-                      <TeacherTypeBadge
-                        isPartTime={cell.value == 'part-time'}
-                      />
+                    {cell.column.Header == 'Type' && (
+                      <TeacherTypeBadge isPartTime={!cell.value} />
                     )}
-                    {cell.value.start && cell.value.end && (
+                    {cell?.value?.start && cell?.value?.end && (
                       <TimeProgress
                         start={cell.value.start}
                         end={cell.value.end}
                       />
                     )}
-                    {!(
-                      cell.value == 'part-time' || cell.value == 'full-time'
-                    ) &&
-                      !(cell.value.start && cell.value.end) &&
-                      cell.value}
+                    {cell.column.Header !== 'Type' &&
+                    !(cell?.value?.start && cell?.value?.end)
+                      ? cell.value
+                      : null}
                   </td>
                 );
               })}

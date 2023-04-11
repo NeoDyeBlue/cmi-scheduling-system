@@ -1,6 +1,6 @@
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import ScheduleTable from './ScheduleTable';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import ReactToPrint from 'react-to-print';
 import { MdDownload, MdEdit } from 'react-icons/md';
 import { ActionButton } from '../Buttons';
@@ -29,7 +29,7 @@ export default function PerSemScheduleTable({
 
   //fetch func here for getting all the perSemSchedules
   const {
-    data: perSemSchedules,
+    data: result,
     error,
     isLoading,
   } = useSWR(
@@ -38,6 +38,8 @@ export default function PerSemScheduleTable({
       ...fetchQuery,
     }).toString()}`
   );
+
+  const perSemSchedules = useMemo(() => result?.data, [result]);
 
   return (
     <Tabs
@@ -60,9 +62,9 @@ export default function PerSemScheduleTable({
               <Tab selectedClassName="tab-active" className="tab-sm">
                 2nd sem
               </Tab>
-              <Tab selectedClassName="tab-active" className="tab-sm">
+              {/* <Tab selectedClassName="tab-active" className="tab-sm">
                 Special
-              </Tab>
+              </Tab> */}
               <Tab selectedClassName="tab-active" className="tab-sm">
                 Summer
               </Tab>
@@ -96,8 +98,6 @@ export default function PerSemScheduleTable({
                   } else if (activeTab == tabs[1]) {
                     return secondSemTableRef?.current;
                   } else if (activeTab == tabs[2]) {
-                    return specialSemTableRef?.current;
-                  } else if (activeTab == tabs[3]) {
                     return summerSemTableRef?.current;
                   }
                 }}
@@ -109,13 +109,12 @@ export default function PerSemScheduleTable({
               <ScheduleTable
                 ref={firstSemTableRef}
                 data={
-                  perSemSchedules?.data?.find(
-                    (schedule) => schedule.semester == '1'
-                  )?.schedules || []
+                  perSemSchedules?.find((schedule) => schedule.semester == '1')
+                    ?.schedules || []
                 }
                 title={title}
                 subtitle="1st Semester Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
@@ -127,49 +126,48 @@ export default function PerSemScheduleTable({
               <ScheduleTable
                 ref={secondSemTableRef}
                 data={
-                  perSemSchedules?.data?.find(
-                    (schedule) => schedule.semester == '2'
-                  )?.schedules || []
+                  perSemSchedules?.find((schedule) => schedule.semester == '2')
+                    ?.schedules || []
                 }
                 title={title}
                 subtitle="2nd Semester Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
               />
             </div>
           </TabPanel>
-          <TabPanel>
+          {/* <TabPanel>
             <div className="overflow-x-auto">
               <ScheduleTable
                 ref={specialSemTableRef}
                 data={
-                  perSemSchedules?.data?.find(
+                  perSemSchedules?.find(
                     (schedule) => schedule.semester == 'special'
                   )?.schedules || []
                 }
                 title={title}
                 subtitle="Specials Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}
               />
             </div>
-          </TabPanel>
+          </TabPanel> */}
           <TabPanel>
             <div className="overflow-x-auto">
               <ScheduleTable
                 ref={summerSemTableRef}
                 data={
-                  perSemSchedules?.data?.find(
+                  perSemSchedules?.find(
                     (schedule) => schedule.semester == 'summer'
                   )?.schedules || []
                 }
                 title={title}
                 subtitle="Summer Schedules"
-                startTime="7:00 AM"
+                startTime="6:00 AM"
                 endTime="6:00 PM"
                 interval={30}
                 type={type}

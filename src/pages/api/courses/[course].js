@@ -7,6 +7,12 @@ export const handler = async (req, res) => {
     try {
       const { semester, year, section, course: courseCode } = req.query;
 
+      const data = await Course.getCourseSubjectTeachers({
+        courseCode: courseCode.toLowerCase(),
+        semester,
+        year,
+        section,
+      });
       const roomSchedules = await Room.getAllRoomSchedules({
         semester,
         courseCode,
@@ -14,25 +20,29 @@ export const handler = async (req, res) => {
         section,
       });
 
-      const data = await Course.getCourseSubjectTeachers({
-        courseCode: courseCode.toLowerCase(),
-        semester,
-        year,
-        section,
-      });
-      console.log('roomSchedules', roomSchedules);
-
-      if (data[0]) {
-        const rooms = roomSchedules.filter((room) => {
-          return room.schedules.some((schedule) => {
-            return (
-              schedule.course.year === parseInt(year) &&
-              schedule.course.section === section
-            );
-          });
-        });
-        data[0]['rooms'] = rooms;
+      const rooms = [];
+      for (let room of roomSchedules) {
+        let found = false;
+        for (let schedule of room.schedules) {
+          if (
+            schedule.courseSections.some((course) => {
+              return (
+                course.course.code === courseCode &&
+                course.yearSec.year === parseInt(year) &&
+                course.yearSec.section === section
+              );
+            })
+          ) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          rooms.push(room);
+        }
       }
+      data[0]['rooms'] = rooms;
+
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error);
