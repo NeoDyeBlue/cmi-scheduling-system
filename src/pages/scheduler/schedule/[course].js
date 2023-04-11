@@ -226,6 +226,29 @@ export default function Schedule() {
     [resetScheduler]
   );
 
+  const draggableSchedules = useMemo(
+    () =>
+      courseSubjects.map((subject, subjIndex) => {
+        const { teachers, ...newData } = subject;
+        if (subject.assignedTeachers.length) {
+          return subject?.assignedTeachers.map((teacher, teacherIndex) => (
+            <DraggableSchedule
+              key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
+              data={{ ...newData, teacher, course }}
+            />
+          ));
+        } else {
+          return (
+            <DraggableSchedule
+              key={subjIndex}
+              data={{ ...newData, teacher: null, course }}
+            />
+          );
+        }
+      }),
+    [subjectsData]
+  );
+
   if (!schedulerData && isLoading) {
     return <FullPageLoader message="Getting scheduler data please wait..." />;
   }
@@ -239,25 +262,6 @@ export default function Schedule() {
       />
     );
   }
-
-  const draggableSchedules = courseSubjects.map((subject, subjIndex) => {
-    const { teachers, ...newData } = subject;
-    if (subject.assignedTeachers.length) {
-      return subject?.assignedTeachers.map((teacher, teacherIndex) => (
-        <DraggableSchedule
-          key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-          data={{ ...newData, teacher, course }}
-        />
-      ));
-    } else {
-      return (
-        <DraggableSchedule
-          key={subjIndex}
-          data={{ ...newData, teacher: null, course }}
-        />
-      );
-    }
-  });
 
   const selectedRoomTabs = selectedRooms.map((room, index) => (
     <Tab
@@ -295,7 +299,7 @@ export default function Schedule() {
   ));
 
   function checkForChanges() {
-    const hasChanges = _.isEqual(subjectScheds, oldSchedsData);
+    const hasChanges = _.isEqual(roomsSubjScheds, oldSchedsData);
     if (!hasChanges && oldSchedsData.length) {
       setIsCancelConfirmOpen(true);
     } else {
@@ -462,7 +466,7 @@ export default function Schedule() {
             <Button
               small
               onClick={submitChanges}
-              disabled={_.isEqual(subjectScheds, oldSchedsData)}
+              disabled={_.isEqual(roomsSubjScheds, oldSchedsData)}
             >
               Done
             </Button>

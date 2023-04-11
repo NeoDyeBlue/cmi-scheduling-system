@@ -85,7 +85,7 @@ export function parseLayoutItemId(id = '', separator = '~') {
   };
 }
 
-export function checkIfEqualCourses(courses1 = [], courses2 = []) {
+export function hasEqualCourses(courses1 = [], courses2 = []) {
   return _.isEqual(_.sortBy(courses1), _.sortBy(courses2));
 }
 
@@ -256,7 +256,7 @@ function createSchedules(
 
   //check if completed or not
   let totalMinutesDuration = 0;
-  let isNotCompleted = true;
+  let isCompleted = false;
   schedules?.forEach((sched) => {
     const start = parse(sched.time.start, 'hh:mm a', new Date());
     const end = parse(sched.time.end, 'hh:mm a', new Date());
@@ -275,8 +275,9 @@ function createSchedules(
     }
   );
 
+  // console.log(subjectData.code, room.code, hours, minutes);
   if (hours <= 0 && minutes <= 0) {
-    isNotCompleted = false;
+    isCompleted = true;
   }
 
   //group by day
@@ -302,21 +303,6 @@ function createSchedules(
       });
     }
   }
-
-  // subjectData.teacher.existingSchedules.forEach(schedule => {
-  //   if (!selectedRooms.map(room => room._id).includes(schedule.room._id)) {
-  //     schedule.times.forEach(time => {
-  //       if (time.subject._id == subjectData._id) {
-  //         groupedByDay.push({
-  //           day: schedule.day,
-  //           room: schedule.room,
-  //           times:
-  //         })
-  //       }
-  //     })
-  //   }
-  // })
-
   //add to the sched array
   return {
     subject: {
@@ -327,49 +313,88 @@ function createSchedules(
       _id: subjectData.teacher._id,
       teacherId: subjectData.teacher.teacherId,
     },
-    isCompleted: !isNotCompleted,
+    // isCompleted,
     schedules: [...groupedByDay],
   };
 }
 
-// export function groupBySubject(schedules) {
-//   let groupedSujectScheds = [];
+export function getMergedUsedRooms(subjectData, selectedRooms) {
+  let rooms = [];
+  let selectedRoomIds = selectedRooms.map((room) => room._id);
+  subjectData.teacher.existingSchedules.forEach((existingSchedule) => {
+    if (
+      existingSchedule.times.some(
+        (time) => time.subject._id == subjectData._id
+      ) &&
+      !selectedRoomIds.includes(existingSchedule.room._id)
+    ) {
+      if (!rooms.includes(existingSchedule.room.code)) {
+        rooms.push(existingSchedule.room.code);
+      }
+    }
+  });
 
-//   console.log(schedules);
-//   schedules.forEach((schedule) => {
-//     //check if its in the array already
-//     const existingSched = groupedSujectScheds.find(
-//       (sched) =>
-//         sched.subject.code == schedule.subject.code &&
-//         sched.teacher.teacherId == schedule.teacher.teacherId
-//     );
-//     if (!existingSched) {
-//       //if not existing
-//       groupedSujectScheds.push(schedule);
-//     } else {
-//       //update the subject to add the schedule
-//       const merged = {
-//         ...existingSched,
-//         schedules: [
-//           ...existingSched.schedules.filter(
-//             (exist) => exist.room.code == roomData.code
-//           ),
-//           ...schedule.schedules.filter(
-//             (sched) => sched.room.code !== roomData.code
-//           ),
-//         ],
-//       };
+  return rooms;
+}
 
-//       //filter the grouped scheds to remove the old subject data
-//       groupedSujectScheds = [
-//         ...groupedSujectScheds.filter((sched) => {
-//           return (
-//             sched.subject.code !== merged.subject.code &&
-//             sched.teacher.teacherId !== merged.teacher.teacherId
-//           );
-//         }),
-//         merged,
-//       ];
-//     }
-//   });
-// }
+export function createMergedClassLayout(layout, layoutItem, course) {
+  const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+
+  const newLayout = [];
+  layout.forEach((item) => {
+    const {
+      subjectCode: itemSubjectCode,
+      teacherId: itemTeacherId,
+      courses: itemCourses,
+    } = parseLayoutItemId(item.i);
+    if (subjectCode == itemSubjectCode && teacherId == itemTeacherId) {
+      if (hasEqualCourses(courses, itemCourses)) {
+        const newItemId = createLayoutItemId(subjectCode, teacherId, [
+          ...itemCourses,
+          `${course.code}${course.year}${course.section}`,
+        ]);
+        newLayout.push({
+          ...item,
+          i: newItemId,
+          static: false,
+        });
+      }
+    } else {
+      newLayout.push(item);
+    }
+  });
+
+  return newLayout;
+}
+
+export function createSplitMergedClassLayout(layout, layoutItem, course) {
+  const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+
+  const newLayout = [];
+  layout.forEach((item) => {
+    const {
+      subjectCode: itemSubjectCode,
+      teacherId: itemTeacherId,
+      courses: itemCourses,
+    } = parseLayoutItemId(item.i);
+    if (subjectCode == itemSubjectCode && teacherId == itemTeacherId) {
+      if (hasEqualCourses(courses, itemCourses)) {
+        const newItemId = createLayoutItemId(subjectCode, teacherId, [
+          ...itemCourses.filter(
+            (itemCourse) =>
+              itemCourse !== `${course.code}${course.year}${course.section}`
+          ),
+        ]);
+        newLayout.push({
+          ...item,
+          i: newItemId,
+          static: true,
+        });
+      }
+    } else {
+      newLayout.push(item);
+    }
+  });
+
+  return newLayout;
+}

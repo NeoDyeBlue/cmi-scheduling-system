@@ -2,7 +2,7 @@ import React from 'react';
 import ImageWithFallback from './ImageWithFallback';
 import useSchedulerStore from '@/stores/useSchedulerStore';
 import TeacherTypeBadge from './TeacherTypeBadge';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import classNames from 'classnames';
 import { parse, differenceInMinutes } from 'date-fns';
 import { MdCheck, MdMergeType } from 'react-icons/md';
@@ -20,24 +20,38 @@ export default function DraggableSchedule({ data }) {
     minutes: 0,
   });
   //stores
-  const { subjectScheds, setDraggingSubject, hoveredMergeable, course } =
-    useSchedulerStore(
-      useCallback(
-        (state) => ({
-          course: state.course,
-          subjectScheds: state.subjectScheds,
-          setDraggingSubject: state.setDraggingSubject,
-          hoveredMergeable: state.hoveredMergeable,
-        }),
-        []
-      ),
-      shallow
-    );
+  const {
+    subjectScheds,
+    setDraggingSubject,
+    hoveredMergeable,
+    course,
+    subjectsData,
+  } = useSchedulerStore(
+    useCallback(
+      (state) => ({
+        course: state.course,
+        subjectScheds: state.subjectScheds,
+        setDraggingSubject: state.setDraggingSubject,
+        hoveredMergeable: state.hoveredMergeable,
+        subjectsData: state.subjectsData,
+      }),
+      []
+    ),
+    shallow
+  );
+
+  const assignedCourses = useMemo(
+    () =>
+      subjectsData.find(
+        (subjData) => subjData.id == `${data.code}~${data.teacher.teacherId}`
+      )?.data?.teacher?.assignedCourses || [],
+    [subjectsData, data]
+  );
 
   useEffect(() => {
     setIsMerged(
-      data?.teacher?.assignedCourses?.length > 1 &&
-        data?.teacher?.assignedCourses.some(
+      assignedCourses?.length > 1 &&
+        assignedCourses.some(
           (assignedCourse) =>
             assignedCourse.code == course.code &&
             assignedCourse.year == course.year &&
@@ -46,7 +60,7 @@ export default function DraggableSchedule({ data }) {
         ? true
         : false
     );
-  }, [data, course]);
+  }, [assignedCourses, course]);
 
   useEffect(() => {
     if (data?.teacher) {
@@ -107,10 +121,12 @@ export default function DraggableSchedule({ data }) {
             isDraggable,
           'animate-pulse border-info-500 bg-info-100':
             data?.teacher &&
-            hoveredMergeable == `${data.code}~${data.teacher.teacherId}`,
+            hoveredMergeable?.subjectDataId ==
+              `${data.code}~${data.teacher.teacherId}`,
           'bg-white':
             data?.teacher &&
-            hoveredMergeable !== `${data.code}~${data.teacher.teacherId}`,
+            hoveredMergeable?.subjectDataId !==
+              `${data.code}~${data.teacher.teacherId}`,
           'cursor-not-allowed opacity-50': !isDraggable,
         }
       )}
@@ -131,7 +147,14 @@ export default function DraggableSchedule({ data }) {
           <p className="overflow-hidden text-ellipsis whitespace-nowrap font-display font-semibold uppercase">
             {data.code}
           </p>
-          {isMerged && <MdMergeType size={16} />}
+          {isMerged && (
+            <MdMergeType
+              size={16}
+              className={classNames(
+                'rotate-180 text-info-500 group-hover:text-white'
+              )}
+            />
+          )}
         </div>
         <p className="mb-1 text-xs">{data.name}</p>
       </div>
