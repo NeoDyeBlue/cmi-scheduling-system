@@ -538,11 +538,11 @@ export default function Scheduler({
           return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
         });
         setSubjectScheds(groupedCourseScheds);
-        setAllRoomSubjScheds(updatedRoomSchedules);
+        setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
         setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
-
+        console.log(updatedRoomSchedules);
         if (!oldSchedsData.length && updatedRoomSchedules.length) {
-          setOldSchedsData(updatedRoomSchedules);
+          setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
         }
       }
     },

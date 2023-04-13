@@ -323,7 +323,7 @@ export default function Schedule() {
       const result = await res.json();
       if (result?.success) {
         toast.success('Schedules saved');
-        setOldSchedsData(subjectScheds);
+        setOldSchedsData(_.sortBy(roomsSubjScheds, 'roomCode'));
         setSchedulerData(result.data[0]);
         /**
          * ILL ADD A STATE UPDATE HERE FOR THE SCHEDULER DATA
