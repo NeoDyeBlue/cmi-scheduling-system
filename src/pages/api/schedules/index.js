@@ -3,11 +3,16 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 import mongoose from 'mongoose';
 import Course from '@/lib/model/data-access/Course';
 import Room from '@/lib/model/data-access/Room';
+import {
+  subtractDuration,
+  getScheduleDuration,
+  unitToObject,
+} from '@/utils/time-utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const formData = req.body;
-      // console.log('formData', JSON.stringify(formData));
+      console.log('formData', JSON.stringify(formData));
 
       // create schedule
 
@@ -112,6 +117,45 @@ export const handler = async (req, res) => {
         schedules,
         formData,
       });
+
+      // update schedules field isCompleted.
+      const schedulesToUpdateStatus = await schedule.getSchedulesToUpdateStatus(
+        {
+          schedules,
+        }
+      );
+      let scheds = schedulesToUpdateStatus.map((sched) => {
+        let units = unitToObject(sched.subjectPopulated[0].units * 60);
+
+        let total_duration = { hours: 0, minutes: 0 };
+        for (let schedule of sched.schedules) {
+          for (let time of schedule.times) {
+            total_duration.hours += getScheduleDuration(
+              time.start,
+              time.end
+            ).hours;
+            total_duration.minutes += getScheduleDuration(
+              time.start,
+              time.end
+            ).minutes;
+            if (total_duration.minutes === 60) {
+              total_duration.minutes = 0;
+              total_duration.hours += 1;
+            }
+          }
+        }
+        const scheduleStatus = subtractDuration(units, total_duration);
+
+        if (scheduleStatus.hours === 0 && scheduleStatus.minutes === 0) {
+          sched['isCompleted'] = true;
+          //else if - if detects negatives meaning overlapping schedules
+        } else {
+          sched['isCompleted'] = false;
+        }
+        return sched;
+      });
+      console.log('scheds', scheds);
+      await schedule.updateScheduleStatus({ scheds });
       // dahil kailang ng frontend ng schedulerData sa response ng pag save,
       // kaya isesend back natin ang sechedulerData
       const { course, semester } = formData;
@@ -153,10 +197,10 @@ export const handler = async (req, res) => {
         }
       }
       data[0]['rooms'] = rooms;
-      console.log("data=----------",JSON.stringify(data), "----------")
+
       return successResponse(req, res, data);
     } catch (error) {
-      console.log("derrrrrr", error)
+      console.log('derrrrrr', error);
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
