@@ -381,6 +381,7 @@ export default function Scheduler({
     const existingRoomLayout = roomsSubjSchedsLayouts.find(
       (room) => room.roomCode == roomData.code
     );
+    console.log('ex', existingRoomLayout);
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {

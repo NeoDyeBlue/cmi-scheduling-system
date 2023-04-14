@@ -81,7 +81,6 @@ export default function Schedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schedulerData, setSchedulerData] = useState(null);
-  const { course: courseCode, semester, year, section } = router.query;
 
   useEffect(() => {
     if (
@@ -422,7 +421,7 @@ export default function Schedule() {
           if (
             subjScheds.length ||
             schedulerData?.subjects.some(
-              (subject) => subject.code == subjectData.data.code
+              (subject) => subject._id == subjectData.data._id
             )
           ) {
             if (!subjScheds.length) {
@@ -431,6 +430,7 @@ export default function Schedule() {
                 data: {
                   ...subjectData.data,
                   teacher: {
+                    ...subjectData.data.teacher,
                     assignedCourses:
                       subjectData.data.teacher.assignedCourses.filter(
                         (assignedCourse) =>
