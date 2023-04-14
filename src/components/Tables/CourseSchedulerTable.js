@@ -2,10 +2,8 @@ import { useTable, useExpanded } from 'react-table';
 import { useMemo, useState } from 'react';
 import React from 'react';
 import classNames from 'classnames';
-import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
-import { toast } from 'react-hot-toast';
 import {
   MdArrowDropDown,
   MdArrowRight,
@@ -18,10 +16,9 @@ import { SpinnerLoader } from '../Loaders';
 import { SearchForm } from '../Forms';
 
 export default function CourseSchedulerTable({ type }) {
-  const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, isLoading } = usePaginate({
-    url: `/api/courses/status${searchValue ? '/search' : ''}`,
+    url: `/api/courses/status`,
     limit: 10,
     query: {
       type,

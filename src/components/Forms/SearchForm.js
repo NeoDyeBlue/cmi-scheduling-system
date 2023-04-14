@@ -27,9 +27,9 @@ export default function SearchForm({ placeholder, onSearch }) {
           }}
           placeholder={placeholder}
           type="text"
-          className="w-full px-4 py-3 placeholder:text-ship-gray-300 focus:outline-none"
+          className="w-full py-3 pl-4 placeholder:text-ship-gray-300 focus:outline-none"
         />
-        <div className="mr-3 text-ship-gray-300">
+        <div className="mx-3 text-ship-gray-300">
           <MdSearch size={24} />
         </div>
       </Form>
