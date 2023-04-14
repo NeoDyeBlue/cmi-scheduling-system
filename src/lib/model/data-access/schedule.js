@@ -86,6 +86,40 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async removeRoomPerSection({ room, course, year, section, semester }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        course: course.toString(),
+        semester: semester,
+        'schedules.room._id': room.toString(),
+        yearSec: {
+          year: parseInt(year),
+          section: section,
+        },
+      }).exec();
+      // pull sections on schedules that match to this room.
+      const updatedSchedules = await this.Schedule.updateMany(
+        {
+          'schedules.room._id': room.toString(),
+          semester: semester,
+        },
+        {
+          $pull: {
+            'schedules.$[].times.$[].courses': {
+              _id: course.toString(),
+              year: parseInt(year),
+              section: section,
+            },
+          },
+        }
+      ).exec();
+      console.log('updatedSchedules', updatedSchedules);
+      return data;
+    } catch (error) {
+      console.log('errorrr-------------', error);
+      throw error;
+    }
+  }
   async getSchedulesToUpdateStatus({ schedules }) {
     try {
       const filtersForSchedules = schedules.map((schedule) => {

@@ -234,5 +234,28 @@ export const handler = async (req, res) => {
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
+  if (req.method === 'DELETE') {
+    try {
+      const { room, course, year, section, semester } = req.query;
+      const data = await schedule.removeRoomPerSection({
+        room,
+        course,
+        year,
+        section,
+        semester,
+      });
+      console.log(
+        'room, course, year, section, semester',
+        room,
+        course,
+        year,
+        section,
+        semester
+      );
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
 };
 export default handler;
