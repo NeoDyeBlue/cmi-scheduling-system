@@ -419,117 +419,117 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      if (
-        // roomLayoutItems.length ||
-        roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
-      ) {
-        const roomSchedules = createCourseSubjectSchedules(
-          subjSchedIds,
-          roomLayoutItems,
-          {
-            _id: roomData._id,
-            code: roomData.code,
-          },
-          subjectsData,
-          timeData,
-          course,
-          selectedRooms
-        );
+      // if (
+      //   // roomLayoutItems.length ||
+      //   roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
+      // ) {
+      const roomSchedules = createCourseSubjectSchedules(
+        subjSchedIds,
+        roomLayoutItems,
+        {
+          _id: roomData._id,
+          code: roomData.code,
+        },
+        subjectsData,
+        timeData,
+        course,
+        selectedRooms
+      );
 
-        const otherRoomScheds = [];
-        roomsSubjSchedsLayouts.forEach((roomLayout) => {
-          if (roomLayout.roomCode !== roomData.code) {
-            const schedules = createCourseSubjectSchedules(
-              subjSchedIds,
-              roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-              }),
-              {
-                _id: roomLayout.roomId,
-                code: roomLayout.roomCode,
-              },
-              subjectsData,
-              timeData,
-              course,
-              selectedRooms
+      const otherRoomScheds = [];
+      roomsSubjSchedsLayouts.forEach((roomLayout) => {
+        if (roomLayout.roomCode !== roomData.code) {
+          const schedules = createCourseSubjectSchedules(
+            subjSchedIds,
+            roomLayout.layout.filter((item) => {
+              const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+              return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+            }),
+            {
+              _id: roomLayout.roomId,
+              code: roomLayout.roomCode,
+            },
+            subjectsData,
+            timeData,
+            course,
+            selectedRooms
+          );
+          otherRoomScheds.push(schedules);
+        }
+      });
+
+      let groupedCourseScheds = [...roomSchedules.schedules.course];
+      if (otherRoomScheds.length) {
+        otherRoomScheds
+          .map((room) => room.schedules.course)
+          .flat()
+          .forEach((roomSched) => {
+            //check if its in the array already
+            const existingSched = groupedCourseScheds.find(
+              (mergedSched) =>
+                mergedSched.subject.code == roomSched.subject.code &&
+                mergedSched.teacher._id == roomSched.teacher._id
             );
-            otherRoomScheds.push(schedules);
-          }
-        });
+            if (!existingSched) {
+              //if not existing
+              groupedCourseScheds.push(roomSched);
+            } else {
+              //update the subject to add the schedule
+              const merged = {
+                ...existingSched,
+                schedules: [
+                  ...existingSched.schedules.filter(
+                    (exist) => exist.room.code == roomData.code
+                  ),
+                  ...roomSched.schedules.filter(
+                    (sched) => sched.room.code !== roomData.code
+                  ),
+                ],
+              };
 
-        let groupedCourseScheds = [...roomSchedules.schedules.course];
-        if (otherRoomScheds.length) {
-          otherRoomScheds
-            .map((room) => room.schedules.course)
-            .flat()
-            .forEach((roomSched) => {
-              //check if its in the array already
-              const existingSched = groupedCourseScheds.find(
-                (mergedSched) =>
-                  mergedSched.subject.code == roomSched.subject.code &&
-                  mergedSched.teacher._id == roomSched.teacher._id
-              );
-              if (!existingSched) {
-                //if not existing
-                groupedCourseScheds.push(roomSched);
-              } else {
-                //update the subject to add the schedule
-                const merged = {
-                  ...existingSched,
-                  schedules: [
-                    ...existingSched.schedules.filter(
-                      (exist) => exist.room.code == roomData.code
-                    ),
-                    ...roomSched.schedules.filter(
-                      (sched) => sched.room.code !== roomData.code
-                    ),
-                  ],
-                };
+              //filter the grouped scheds to remove the old subject data
+              groupedCourseScheds = [
+                ...groupedCourseScheds.filter((mergedSched) => {
+                  return (
+                    mergedSched.subject.code !== merged.subject.code &&
+                    mergedSched.teacher._id !== merged.teacher._id
+                  );
+                }),
+                merged,
+              ];
+            }
+          });
+      }
 
-                //filter the grouped scheds to remove the old subject data
-                groupedCourseScheds = [
-                  ...groupedCourseScheds.filter((mergedSched) => {
-                    return (
-                      mergedSched.subject.code !== merged.subject.code &&
-                      mergedSched.teacher._id !== merged.teacher._id
-                    );
-                  }),
-                  merged,
-                ];
-              }
-            });
-        }
+      const updatedRoomSchedules = [
+        {
+          ...roomSchedules,
+          schedules: [
+            ...roomSchedules.schedules.course,
+            ...roomSchedules.schedules.other,
+          ],
+        },
+        ...otherRoomScheds.map((otherRoom) => ({
+          ...otherRoom,
+          schedules: [
+            ...otherRoom.schedules.course,
+            ...otherRoom.schedules.other,
+          ],
+        })),
+      ];
 
-        const updatedRoomSchedules = [
-          {
-            ...roomSchedules,
-            schedules: [
-              ...roomSchedules.schedules.course,
-              ...roomSchedules.schedules.other,
-            ],
-          },
-          ...otherRoomScheds.map((otherRoom) => ({
-            ...otherRoom,
-            schedules: [
-              ...otherRoom.schedules.course,
-              ...otherRoom.schedules.other,
-            ],
-          })),
-        ];
-
-        const subjSchedItems = layout.filter((item) => {
-          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-          return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-        });
-        setSubjectScheds(groupedCourseScheds);
-        setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
-        setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
-        if (!oldSchedsData.length && updatedRoomSchedules.length) {
-          setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
-        }
+      const subjSchedItems = layout.filter((item) => {
+        const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+        return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      });
+      setSubjectScheds(groupedCourseScheds);
+      setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
+      setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
+      if (!oldSchedsData.length && updatedRoomSchedules.length) {
+        setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
       }
     },
+    // },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layout, subjectsData, timeData, roomData]
   );

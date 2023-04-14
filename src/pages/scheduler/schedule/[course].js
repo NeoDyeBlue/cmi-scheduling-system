@@ -208,55 +208,6 @@ export default function Schedule() {
 
   useEffect(
     () => {
-      // if (removeRoom) {
-      //   setIsRemoveRoomConfirmOpen(false);
-      //   submitChanges().then(() => {
-      //     setToRemoveRoom('');
-      //     setRemoveRoom(false);
-      //   });
-      // }
-      async function roomRemove() {
-        try {
-          if (removeRoom) {
-            setIsSubmitting(true);
-            const res = await fetch(
-              `api/schedules?${new URLSearchParams({
-                room: toRemoveRoom._id,
-                course: course._id,
-                year: course.year,
-                section: course.section,
-                semester: course.semester,
-              }).toString()}`,
-              { method: 'DELETE' }
-            );
-
-            const result = await res.json();
-
-            if (result?.success) {
-              toast.success('Room removed');
-            } else {
-              toast.error("Can't remove room");
-            }
-            setIsSubmitting(false);
-            setToRemoveRoom('');
-            setRemoveRoom(false);
-          }
-        } catch (error) {
-          setIsSubmitting(false);
-          setToRemoveRoom('');
-          setRemoveRoom(false);
-          toast.error("Can't remove room");
-        }
-      }
-
-      roomRemove();
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [removeRoom]
-  );
-
-  useEffect(
-    () => {
       if (resetScheduler) {
         setIsResetConfirmOpen(false);
         submitChanges();
@@ -435,7 +386,7 @@ export default function Schedule() {
         setSubjectScheds(newSubjScheds);
         setAllRoomSubjScheds(_.sortBy(newRoomsSubjScheds, 'roomCode'));
         setSelectedRooms(
-          selectedRooms.filter((room) => room.code !== toRemoveRoom)
+          selectedRooms.filter((room) => room._id !== toRemoveRoom)
         );
         setAllRoomSubjSchedsLayout(
           roomsSubjSchedsLayouts.filter(
