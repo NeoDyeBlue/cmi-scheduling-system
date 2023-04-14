@@ -378,10 +378,11 @@ export default function Schedule() {
     );
     setFormData({
       course,
-      roomsSubjScheds: newRoomsSubjScheds,
+      roomSchedules: newRoomsSubjScheds,
       semester: schedulerData?.semester,
     });
     setSubjectScheds(newSubjScheds);
+    setAllRoomSubjScheds(_.sortBy(newRoomsSubjScheds, 'roomCode'));
     setSelectedRooms(
       selectedRooms.filter((room) => room.code !== toRemoveRoom)
     );
