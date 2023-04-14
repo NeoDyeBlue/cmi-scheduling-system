@@ -835,10 +835,10 @@ export default function Scheduler({
 
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingSchedules.length) {
-        let parsedLayoutItemId = null;
-        if (layoutItem) {
-          parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
-        }
+        // let parsedLayoutItemId = null;
+        // if (layoutItem) {
+        //   parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
+        // }
 
         existingSchedules.forEach((existingSchedule) => {
           //should exclude checking of existing times when is merged with the currently editing course
@@ -874,14 +874,14 @@ export default function Scheduler({
                     `${course.code}${course.year}${course.section}` ==
                     `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
                 ) &&
-                !(
-                  parsedLayoutItemId &&
-                  parsedLayoutItemId.courses.some(
-                    (itemCourse) =>
-                      itemCourse ==
-                      `${course.code}${course.year}${course.section}`
-                  )
-                ) &&
+                // !(
+                //   parsedLayoutItemId &&
+                //   parsedLayoutItemId.courses.some(
+                //     (itemCourse) =>
+                //       itemCourse ==
+                //       `${course.code}${course.year}${course.section}`
+                //   )
+                // ) &&
                 !coursesExist
               ) {
                 const timeStartIndex = timeData.findIndex((time) => {
