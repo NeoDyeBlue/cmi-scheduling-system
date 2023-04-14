@@ -4,11 +4,12 @@ import { errorResponse, successResponse } from '@/utils/response.utils';
 export const handler = async (req, res) => {
   if (req.method === 'GET') {
     try {
-      const { type, limit, page } = req.query;
+      const { type, limit, page, q } = req.query;
       const data = await Course.getCoursesStatus({
         type: type.toLowerCase(),
         limit,
         page,
+        q
       });
       return successResponse(req, res, data);
     } catch (error) {
