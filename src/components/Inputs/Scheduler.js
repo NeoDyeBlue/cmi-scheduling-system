@@ -756,13 +756,9 @@ export default function Scheduler({
 
       // console.log(subjectScheds, roomsSubjScheds);
 
-      const inSchedulerDayTimes = subjectScheds
-        // .map((room) => room.schedules)
-        // .flat()
-        // .filter(
-        //   (subjSched) =>
-        //     subjSched.teacher._id == subjectData.teacher._id
-        // )
+      const inSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
         .map((subj) => subj.schedules)
         .flat();
 
@@ -770,6 +766,8 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
+
+      console.log(inSchedulerDayTimes);
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
