@@ -23,12 +23,6 @@ import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
-const courseFetcher = ([url, args]) =>
-  fetch(
-    `${url}/${args.course}?${new URLSearchParams(
-      _.omit(args, 'course')
-    ).toString()}`
-  ).then((r) => r.json());
 export default function Schedule() {
   const router = useRouter();
   const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
@@ -89,6 +83,10 @@ export default function Schedule() {
   const [error, setError] = useState(null);
   const [schedulerData, setSchedulerData] = useState(null);
   const { course: courseCode, semester, year, section } = router.query;
+
+  useEffect(() => {
+    reset();
+  }, []);
 
   useEffect(() => {
     async function getSchedulerData() {

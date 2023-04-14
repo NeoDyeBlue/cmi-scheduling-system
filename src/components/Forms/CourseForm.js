@@ -56,8 +56,6 @@ export default function CourseForm({
     validationSchema: courseSchema,
   });
 
-  // console.log(courseFormik.values);
-
   async function handleSubmit(values) {
     try {
       setIsLoading(true);
@@ -233,7 +231,7 @@ export default function CourseForm({
                           <TabPanel>
                             <MultiComboBox
                               placeholder="Enter subject code or name"
-                              name={`yearSections[${index}].semesterSubjects[3].subjects`}
+                              name={`yearSections[${index}].semesterSubjects[2].subjects`}
                               searchUrl="/api/subjects/search"
                               // label="Subjects"
                               filter={{
