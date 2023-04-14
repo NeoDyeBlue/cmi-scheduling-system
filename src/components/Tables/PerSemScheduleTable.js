@@ -24,7 +24,6 @@ export default function PerSemScheduleTable({
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const firstSemTableRef = useRef();
   const secondSemTableRef = useRef();
-  const specialSemTableRef = useRef();
   const summerSemTableRef = useRef();
 
   //fetch func here for getting all the perSemSchedules

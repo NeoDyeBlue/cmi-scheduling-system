@@ -772,8 +772,6 @@ export default function Scheduler({
         .map((subj) => subj.schedules)
         .flat();
 
-      console.log(inSchedulerDayTimes);
-
       const teacherInSchedulerDayTimes = roomsSubjScheds
         .map((room) => room.schedules)
         .flat()
@@ -786,8 +784,6 @@ export default function Scheduler({
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
-
-      console.log(inSchedulerTimes);
 
       const teacherInSchedulerTimes = teacherInSchedulerDayTimes
         .filter((dayTimes) => dayTimes.day == x)
@@ -919,20 +915,20 @@ export default function Scheduler({
         });
       }
 
-      // if (teacherInSchedulerTimes.length) {
-      //   teacherInSchedulerTimes.forEach((scheduleTime) => {
-      //     const timeStartIndex = timeData.findIndex((time) => {
-      //       return time[0] == scheduleTime.start;
-      //     });
-      //     const timeEndIndex = timeData.findIndex((time) => {
-      //       return time[1] == scheduleTime.end;
-      //     });
+      if (teacherInSchedulerTimes.length) {
+        teacherInSchedulerTimes.forEach((scheduleTime) => {
+          const timeStartIndex = timeData.findIndex((time) => {
+            return time[0] == scheduleTime.start;
+          });
+          const timeEndIndex = timeData.findIndex((time) => {
+            return time[1] == scheduleTime.end;
+          });
 
-      //     for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-      //       unavailableTimesY.push(i);
-      //     }
-      //   });
-      // }
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+            if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
+          }
+        });
+      }
 
       // console.log('Y', unavailableTimesY);
 
