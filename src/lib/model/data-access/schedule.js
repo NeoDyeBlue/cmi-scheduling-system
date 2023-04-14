@@ -98,6 +98,70 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async getSchedulesToUpdateStatus({ schedules }) {
+    try {
+      const filtersForSchedules = schedules.map((schedule) => {
+        return {
+          teacher: mongoose.Types.ObjectId(schedule.teacher),
+          subject: mongoose.Types.ObjectId(schedule.subject),
+          course: mongoose.Types.ObjectId(schedule.course),
+          semester: schedule.semester,
+          yearSec: {
+            year: schedule.yearSec.year,
+            section: schedule.yearSec.section,
+          },
+        };
+      });
+      const pipeline = [
+        {
+          $match: {
+            $or: filtersForSchedules,
+          },
+        },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  units: 1,
+                },
+              },
+            ],
+            as: 'subjectPopulated',
+          },
+        },
+      ];
+      const data = await this.Schedule.aggregate(pipeline);
+      console.log('its data for', JSON.stringify(data));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateScheduleStatus({ scheds }) {
+    try {
+      const updateSchedulesBulkWriteOps = scheds.map((sched) => {
+        return {
+          updateMany: {
+            filter: {
+              _id: sched._id.toString(),
+            },
+            update: {
+              $set: { isCompleted: sched.isCompleted },
+            },
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(updateSchedulesBulkWriteOps);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async deleteSchedulesBySubject({ subject_id }) {
     try {
       const data = await this.Schedule.deleteMany({ subject: subject_id });
