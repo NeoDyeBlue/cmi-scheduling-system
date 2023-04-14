@@ -113,10 +113,44 @@ class Schedule extends Model {
           },
         }
       ).exec();
-      console.log('updatedSchedules', updatedSchedules);
+      // console.log('updatedSchedules', updatedSchedules);
       return data;
     } catch (error) {
       console.log('errorrr-------------', error);
+      throw error;
+    }
+  }
+  async resetSchedulePerSection({ course, year, section, semester }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        course: course.toString(),
+        semester: semester,
+        yearSec: {
+          year: parseInt(year),
+          section: section,
+        },
+      }).exec();
+      // pull sections on schedules that match to this room.
+      const updatedSchedules = await this.Schedule.updateMany(
+        {
+          'schedules.times.courses._id': course,
+          'schedules.times.courses.year': parseInt(year),
+          'schedules.times.courses.section': section,
+        },
+        {
+          $pull: {
+            'schedules.$[].times.$[].courses': {
+              _id: course.toString(),
+              year: parseInt(year),
+              section: section,
+            },
+          },
+        }
+      ).exec();
+      console.log('updatedSchedules-------', updatedSchedules);
+      return data;
+    } catch (error) {
+      console.log('error-------', error);
       throw error;
     }
   }
