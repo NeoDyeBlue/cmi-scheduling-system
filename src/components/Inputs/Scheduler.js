@@ -381,7 +381,6 @@ export default function Scheduler({
     const existingRoomLayout = roomsSubjSchedsLayouts.find(
       (room) => room.roomCode == roomData.code
     );
-    console.log('ex', existingRoomLayout);
     if (existingRoomLayout?.layout) {
       setLayout([...existingRoomLayout.layout, ...timeLayout.flat()]);
     } else {
@@ -420,10 +419,6 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      // if (
-      //   // roomLayoutItems.length ||
-      //   roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
-      // ) {
       const roomSchedules = createCourseSubjectSchedules(
         subjSchedIds,
         roomLayoutItems,
@@ -530,7 +525,6 @@ export default function Scheduler({
         setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
       }
     },
-    // },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layout, subjectsData, timeData, roomData]
   );
