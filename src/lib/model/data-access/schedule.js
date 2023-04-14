@@ -7,9 +7,8 @@ class Schedule extends Model {
   constructor() {
     super();
   }
-  // just a snippet for schedule.
+
   async createSchedule({ schedules, formData }) {
-    // console.log(JSON.stringify(schedules))
     try {
       const schedulesBulksOptions = schedules.map((schedule) => {
         return {
@@ -35,60 +34,49 @@ class Schedule extends Model {
           },
         };
       });
-
-      // delete that not in the new schedules.
-      // delete schedules all if schedules/dayTimes is empty
-      // what is the requirements that we can say if the document should be deleted?
-      // 1. if schedules are empty
-      // 2. if in the same course-year-section and was not equal from payload schedules array.
-      //
-
-      // processes?
-      // 1. get all schedules of course-year-section
-      // 2. compare to know what schedules to remove that conditioned by subject._id *optional(rooom)
-      // store all schedules to remove to an array.
-
-      // get all schedules of the course-year-section
       const filtersForSchedules = formData.roomSchedules.map((room) => {
         return {
           'schedules.room._id': room.roomId,
           semester: formData.semester,
+          // course: formData.course._id,
+          // 'yearSec.year': formData.course.year,
+          // 'yearSec.section': formData.course.section,
         };
       });
+
       console.log('filtersForSchedules', filtersForSchedules);
-      const currentSchedules = await this.Schedule.find({
-        $or: filtersForSchedules,
-      }).exec();
-      // console.log('currentSchedules', currentSchedules);
-      // console.log('currentSchedules', currentSchedules);
-      // delete schedules that has value empty array
-      await this.Schedule.deleteMany({
-        schedules: { $size: 0 },
-      });
-
-      // if elements of currentSchedules is not exists in schedules it will remove.
-      const toDeleteItems = currentSchedules.filter((currentSched) => {
-        return !schedules.some((sched) => {
-          return (
-            sched.subject === currentSched.subject &&
-            sched.semester === currentSched.semester &&
-            sched.yearSec.year === currentSched.yearSec.year &&
-            sched.yearSec.section === currentSched.yearSec.section
-          );
+      if (filtersForSchedules.length) {
+        console.log('deleting...........');
+        const currentSchedules = await this.Schedule.find({
+          $or: filtersForSchedules,
+        }).exec();
+        await this.Schedule.deleteMany({
+          schedules: { $size: 0 },
         });
-      });
-      const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
-        return {
-          deleteMany: {
-            filter: {
-              _id: schedule._id.toString(),
-            },
-          },
-        };
-      });
-      // console.log('toDeleteItems', JSON.stringify(toDeleteItems));
-      await this.Schedule.bulkWrite(toDeleteSchedsOptions);
 
+        // if elements of currentSchedules is not exists in schedules it will remove.
+        const toDeleteItems = currentSchedules.filter((currentSched) => {
+          return !schedules.some((sched) => {
+            return (
+              sched.subject === currentSched.subject &&
+              sched.semester === currentSched.semester &&
+              sched.yearSec.year === currentSched.yearSec.year &&
+              sched.yearSec.section === currentSched.yearSec.section
+            );
+          });
+        });
+        const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
+          return {
+            deleteMany: {
+              filter: {
+                _id: schedule._id.toString(),
+              },
+            },
+          };
+        });
+        // console.log('toDeleteItems', JSON.stringify(toDeleteItems));
+        await this.Schedule.bulkWrite(toDeleteSchedsOptions);
+      }
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       // console.log('data---------', data);
