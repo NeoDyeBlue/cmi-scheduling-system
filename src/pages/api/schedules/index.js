@@ -160,7 +160,6 @@ export const handler = async (req, res) => {
           return sched;
         });
         if (scheds.length) {
-          console.log('scheds-----------', scheds);
           await schedule.updateScheduleStatus({ scheds });
         }
       }
