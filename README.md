@@ -7,7 +7,7 @@ Install [VS Code](https://code.visualstudio.com/) or any code editor.
 
 # Setup for Development (MongoDB Atlas / Online)
 
-Navigate to the project folder and open a terminal and enter the following commands:
+Navigate to the project folder and open a terminal then enter the following commands:
 
 ```bash
 # install dependencies
