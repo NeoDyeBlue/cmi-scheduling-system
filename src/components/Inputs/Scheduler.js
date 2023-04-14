@@ -201,29 +201,16 @@ export default function Scheduler({
       const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
         (roomLayout) => roomLayout.roomCode !== roomData.code
       );
-      const { subjectLayoutItems } = getSubjectScheduleLayoutItems(
-        subjectCode,
-        teacherId,
-        layout,
-        otherRoomLayouts,
-        subjSchedIds,
-        course
-      );
 
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
 
-      // const remainingRowSpan = getRemainingRowSpan(
-      //   subjectData.data.units,
-      //   subjectLayoutItems
-      // );
-
       const isSameSubjectAndTeacher = courseSubjects.some(
         (courseSubject) =>
           courseSubject.code == subjectCode &&
           courseSubject.assignedTeachers.some(
-            (teacher) => teacher.teacherId == teacherId
+            (teacher) => teacher._id == teacherId
           )
       );
 
@@ -483,7 +470,7 @@ export default function Scheduler({
               const existingSched = groupedCourseScheds.find(
                 (mergedSched) =>
                   mergedSched.subject.code == roomSched.subject.code &&
-                  mergedSched.teacher.teacherId == roomSched.teacher.teacherId
+                  mergedSched.teacher._id == roomSched.teacher._id
               );
               if (!existingSched) {
                 //if not existing
@@ -507,7 +494,7 @@ export default function Scheduler({
                   ...groupedCourseScheds.filter((mergedSched) => {
                     return (
                       mergedSched.subject.code !== merged.subject.code &&
-                      mergedSched.teacher.teacherId !== merged.teacher.teacherId
+                      mergedSched.teacher._id !== merged.teacher._id
                     );
                   }),
                   merged,
@@ -775,7 +762,7 @@ export default function Scheduler({
         // .flat()
         // .filter(
         //   (subjSched) =>
-        //     subjSched.teacher.teacherId == subjectData.teacher.teacherId
+        //     subjSched.teacher._id == subjectData.teacher._id
         // )
         .map((subj) => subj.schedules)
         .flat();
@@ -1302,7 +1289,7 @@ export default function Scheduler({
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const layoutItemId = createLayoutItemId(
           data.code,
-          data.teacher.teacherId,
+          data.teacher._id,
           itemCourses
         );
 

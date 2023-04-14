@@ -42,7 +42,7 @@ export function createInitialRoomLayout(
 
         const itemId = createLayoutItemId(
           subjSchedule.subject.code,
-          subjSchedule.teacher.teacherId,
+          subjSchedule.teacher._id,
           courses
         );
 
@@ -81,7 +81,6 @@ export function parseLayoutItemId(id = '', separator = '~') {
     subjectCode: subject,
     teacherId: teacher,
     courses: courses.split(','),
-    type,
   };
 }
 
@@ -241,8 +240,7 @@ function createSchedules(
   subjectData,
   subjSchedLayoutItems = [],
   timeData = [],
-  room,
-  selectedRooms
+  room
 ) {
   // console.log(subjectData);
   const schedules = subjSchedLayoutItems.map((item) => ({

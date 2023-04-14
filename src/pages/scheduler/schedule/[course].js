@@ -125,7 +125,7 @@ export default function Schedule() {
         const courseSubjectsData = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
-            const dataId = `${subject.code}~${teacher.teacherId}`;
+            const dataId = `${subject.code}~${teacher._id}`;
             const { teachers, ...newData } = subject;
             courseSubjectsData.push({
               id: dataId,
@@ -168,7 +168,7 @@ export default function Schedule() {
         const roomSubjectsData = [];
         selectedRooms.forEach((room) => {
           room.schedules.forEach((schedule) => {
-            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}`;
+            const dataId = `${schedule.subject.code}~${schedule.teacher._id}`;
             if (
               !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)

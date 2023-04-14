@@ -254,13 +254,6 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                         })}
                       >
                         {cell.column.Header == 'Image' && (
-                          // <Image
-                          //   src={cell.value}
-                          //   alt="teacher image"
-                          //   width={42}
-                          //   height={42}
-                          //   className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-                          // />
                           <ImageWithFallback
                             src={cell.value}
                             alt="teacher image"
@@ -301,14 +294,6 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                           type="teachers"
                           fetchQuery={{ teacher: row.original._id }}
                         />
-                        {/* <ScheduleTable
-                          ref={(el) => (toPrintRefs.current[rowIndex] = el)}
-                          data={row.original.schedules}
-                          startTime="7:00 AM"
-                          endTime="6:00 PM"
-                          interval={30}
-                          type="teacher"
-                        /> */}
                       </div>
                     </td>
                   </tr>

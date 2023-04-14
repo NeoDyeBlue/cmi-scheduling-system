@@ -43,7 +43,7 @@ export default function DraggableSchedule({ data }) {
   const assignedCourses = useMemo(
     () =>
       subjectsData.find(
-        (subjData) => subjData.id == `${data.code}~${data.teacher.teacherId}`
+        (subjData) => subjData.id == `${data.code}~${data.teacher._id}`
       )?.data?.teacher?.assignedCourses || [],
     [subjectsData, data]
   );
@@ -67,8 +67,7 @@ export default function DraggableSchedule({ data }) {
       const subject = subjectScheds.find(
         (subj) => subj.subject.code == data.code
       );
-      const isTheTeacher =
-        subject?.teacher?.teacherId == data?.teacher?.teacherId;
+      const isTheTeacher = subject?.teacher?._id == data?.teacher?._id;
 
       if (subject && !isTheTeacher) {
         setIsDraggable(false);
@@ -122,11 +121,11 @@ export default function DraggableSchedule({ data }) {
           'animate-pulse border-info-500 bg-info-100':
             data?.teacher &&
             hoveredMergeable?.subjectDataId ==
-              `${data.code}~${data.teacher.teacherId}`,
+              `${data.code}~${data.teacher._id}`,
           'bg-white':
             data?.teacher &&
             hoveredMergeable?.subjectDataId !==
-              `${data.code}~${data.teacher.teacherId}`,
+              `${data.code}~${data.teacher._id}`,
           'cursor-not-allowed opacity-50': !isDraggable,
         }
       )}
@@ -137,7 +136,7 @@ export default function DraggableSchedule({ data }) {
         e.dataTransfer.clearData();
         e.dataTransfer.setData(
           'text/plain',
-          JSON.stringify({ id: `${data.code}~${data.teacher.teacherId}` })
+          JSON.stringify({ id: `${data?.code}~${data?.teacher?._id}` })
         );
         setDraggingSubject(data);
       }}
