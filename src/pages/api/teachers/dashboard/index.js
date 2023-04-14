@@ -1,5 +1,5 @@
 import teacher from '@/lib/model/data-access/Teacher';
-import schedule from '@/lib/model/data-access/schedule';
+import schedule from '@/lib/model/data-access/Schedule';
 import {
   parse,
   isBefore,
