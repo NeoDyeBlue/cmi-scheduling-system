@@ -424,7 +424,13 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      if (roomLayoutItems.length) {
+      if (
+        roomLayoutItems.length ||
+        (
+          roomsSubjScheds.find((room) => room.roomCode == roomData.code)
+            ?.schedules || []
+        )?.length
+      ) {
         const roomSchedules = createCourseSubjectSchedules(
           subjSchedIds,
           roomLayoutItems,
@@ -527,7 +533,6 @@ export default function Scheduler({
         setSubjectScheds(groupedCourseScheds);
         setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
         setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
-        console.log(updatedRoomSchedules);
         if (!oldSchedsData.length && updatedRoomSchedules.length) {
           setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
         }
@@ -536,12 +541,6 @@ export default function Scheduler({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layout, subjectsData, timeData, roomData]
   );
-
-  //other funcs
-
-  // console.log(JSON.stringify(roomsSubjScheds));
-  // console.log('---------------------');
-  // console.log(JSON.stringify(oldSchedsData));
 
   function removeLayoutItem(layoutId) {
     const newLayout = layout.filter((item) => item.i !== layoutId);
