@@ -85,13 +85,18 @@ export default function Schedule() {
   const { course: courseCode, semester, year, section } = router.query;
 
   useEffect(() => {
-    reset();
-  }, []);
+    if (
+      schedulerData?.course?.code !== course?.code ||
+      schedulerData?.course?.year !== course?.year ||
+      schedulerData?.course?.section !== course?.section ||
+      schedulerData?.semester !== course?.semester
+    )
+      reset();
+  }, [schedulerData, course, reset]);
 
   useEffect(() => {
     async function getSchedulerData() {
       if (Object.keys(router.query).length) {
-        // reset(); // reset the zustand state
         try {
           const res = await fetch(
             `/api/courses/${router.query.course}?${new URLSearchParams({
@@ -151,7 +156,10 @@ export default function Schedule() {
         });
         setAllRoomSubjSchedsLayout(roomLayouts);
         setCourseSubjects(schedulerData?.subjects);
-        setCourse(schedulerData?.course);
+        setCourse({
+          ...schedulerData?.course,
+          semester: schedulerData?.semester,
+        });
         setSubjectsData(courseSubjectsData);
         setSelectedRooms(schedulerData?.rooms);
       }
@@ -194,7 +202,6 @@ export default function Schedule() {
     setFormData({
       course,
       roomSchedules: roomsSubjScheds,
-      // rooms,
       semester: schedulerData?.semester,
     });
   }, [course, roomsSubjScheds, schedulerData?.semester]);
