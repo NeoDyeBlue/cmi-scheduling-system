@@ -1,11 +1,9 @@
 import { useTable, useExpanded } from 'react-table';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import React from 'react';
 import classNames from 'classnames';
-import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
-import { toast } from 'react-hot-toast';
 import {
   MdArrowDropDown,
   MdArrowRight,
@@ -15,14 +13,16 @@ import {
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
 import { SpinnerLoader } from '../Loaders';
+import { SearchForm } from '../Forms';
 
-export default function CourseTable({ type }) {
-  const router = useRouter();
+export default function CourseSchedulerTable({ type }) {
+  const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, isLoading } = usePaginate({
-    url: '/api/courses/status',
+    url: `/api/courses/status`,
     limit: 10,
     query: {
       type,
+      ...(searchValue ? { q: searchValue } : {}),
     },
     options: {
       revalidateOnMount: true,
@@ -90,178 +90,185 @@ export default function CourseTable({ type }) {
   } = useTable({ columns, data: memoizedData }, useExpanded);
 
   return (
-    <div className="flex flex-col gap-4">
-      {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
-      {!isLoading && !docs.length ? (
-        <p className="mx-auto text-center text-ship-gray-500">
-          Nothing to show
-        </p>
-      ) : null}
-      {!isLoading && docs.length ? (
-        <div className="overflow-x-auto">
-          <table {...getTableProps()} className="w-full">
-            <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
-              {headerGroups.map((headerGroup, index) => (
-                <tr
-                  key={index}
-                  {...headerGroup.getHeaderGroupProps()}
-                  className="border-b border-gray-300"
-                >
-                  {headerGroup.headers.map((column, columnIndex) => (
-                    <th
-                      key={columnIndex}
-                      {...column.getHeaderProps()}
-                      className={classNames(
-                        'bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg',
-                        {
-                          'text-center':
-                            columnIndex == 3 ||
-                            columnIndex == 4 ||
-                            columnIndex == 5 ||
-                            columnIndex == 6,
-                        }
-                      )}
-                    >
-                      {column.render('Header')}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-              {rows.map((row, index) => {
-                prepareRow(row);
-                return (
-                  <React.Fragment key={index}>
-                    <tr
-                      key={index}
-                      {...row.getRowProps()}
-                      {...row.getToggleRowExpandedProps({ title: '' })}
-                      //   onClick={() =>
-                      //     router.push(
-                      //       `/courses/${row.allCells[0].value.toLowerCase()}`
-                      //     )
-                      //   }
-                      // {...row.getToggleRowExpandedProps({ title: '' })}
-                      className={classNames(
-                        'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
-                        {
-                          'border border-primary-200 bg-primary-50 hover:bg-primary-50':
-                            row.isExpanded,
-                        }
-                      )}
-                    >
-                      {row.cells.map((cell, index) => {
-                        if (
-                          cell.column.Header == '1st sem' ||
-                          cell.column.Header == '2nd sem' ||
-                          cell.column.Header == 'Special' ||
-                          cell.column.Header == 'Summer'
-                        ) {
-                          return (
-                            <td
-                              key={index}
-                              className="text-center"
-                              {...cell.getCellProps()}
-                            >
-                              <div className="flex items-center justify-center">
-                                <div className="h-[24px] w-[24px] rounded-full bg-white">
-                                  {cell.value == true ? (
-                                    <MdCheckCircle
-                                      size={24}
-                                      className="text-success-400"
-                                    />
-                                  ) : (
-                                    <MdCancel
-                                      size={24}
-                                      className="text-danger-400"
-                                    />
-                                  )}
+    <div className="flex flex-col gap-6">
+      <div className="w-full max-w-[350px]">
+        <SearchForm
+          placeholder={`Search ${type} courses`}
+          onSearch={(value) => setSearchValue(value)}
+        />
+      </div>
+      <div className="flex flex-col gap-4">
+        {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
+        {!isLoading && !docs.length ? (
+          <p className="mx-auto text-center text-ship-gray-500">
+            Nothing to show
+          </p>
+        ) : null}
+        {!isLoading && docs.length ? (
+          <div className="overflow-x-auto">
+            <table {...getTableProps()} className="w-full">
+              <thead className="px-4 py-3 text-left font-display text-sm font-semibold">
+                {headerGroups.map((headerGroup, index) => (
+                  <tr
+                    key={index}
+                    {...headerGroup.getHeaderGroupProps()}
+                    className="border-b border-gray-300"
+                  >
+                    {headerGroup.headers.map((column, columnIndex) => (
+                      <th
+                        key={columnIndex}
+                        {...column.getHeaderProps()}
+                        className={classNames(
+                          'bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg',
+                          {
+                            'text-center':
+                              columnIndex == 3 ||
+                              columnIndex == 4 ||
+                              columnIndex == 5 ||
+                              columnIndex == 6,
+                          }
+                        )}
+                      >
+                        {column.render('Header')}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody {...getTableBodyProps()}>
+                {rows.map((row, index) => {
+                  prepareRow(row);
+                  return (
+                    <React.Fragment key={index}>
+                      <tr
+                        key={index}
+                        {...row.getRowProps()}
+                        {...row.getToggleRowExpandedProps({ title: '' })}
+                        //   onClick={() =>
+                        //     router.push(
+                        //       `/courses/${row.allCells[0].value.toLowerCase()}`
+                        //     )
+                        //   }
+                        // {...row.getToggleRowExpandedProps({ title: '' })}
+                        className={classNames(
+                          'cursor-pointer border-y border-gray-200 transition-colors hover:bg-primary-50',
+                          {
+                            'border border-primary-200 bg-primary-50 hover:bg-primary-50':
+                              row.isExpanded,
+                          }
+                        )}
+                      >
+                        {row.cells.map((cell, index) => {
+                          if (
+                            cell.column.Header == '1st sem' ||
+                            cell.column.Header == '2nd sem' ||
+                            cell.column.Header == 'Special' ||
+                            cell.column.Header == 'Summer'
+                          ) {
+                            return (
+                              <td
+                                key={index}
+                                className="text-center"
+                                {...cell.getCellProps()}
+                              >
+                                <div className="flex items-center justify-center">
+                                  <div className="h-[24px] w-[24px] rounded-full bg-white">
+                                    {cell.value == true ? (
+                                      <MdCheckCircle
+                                        size={24}
+                                        className="text-success-400"
+                                      />
+                                    ) : (
+                                      <MdCancel
+                                        size={24}
+                                        className="text-danger-400"
+                                      />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                          );
-                        } else {
-                          return (
-                            <td
-                              key={index}
-                              {...cell.getCellProps()}
-                              className={classNames('p-4', {
-                                'whitespace-nowrap font-semibold uppercase':
-                                  index == 1,
-                                'min-w-[300px]': index == 2,
-                              })}
-                            >
-                              {cell.render('Cell')}
-                            </td>
-                          );
-                        }
-                      })}
-                    </tr>
-                    {row.isExpanded ? (
-                      <tr>
-                        <td colSpan={visibleColumns.length}>
-                          <div className="flex w-full flex-col border-x border-gray-200 p-4">
-                            <Tabs className="flex flex-col">
-                              <div className="flex flex-col gap-2">
-                                <p className="w-fit whitespace-nowrap text-sm leading-none text-ship-gray-500">
-                                  Select semester:
-                                </p>
-                                <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto">
-                                  <Tab
-                                    selectedClassName="tab-active"
-                                    className="tab-sm"
-                                  >
-                                    1st sem
-                                  </Tab>
-                                  <Tab
-                                    selectedClassName="tab-active"
-                                    className="tab-sm"
-                                  >
-                                    2nd sem
-                                  </Tab>
-                                  {/* <Tab
+                              </td>
+                            );
+                          } else {
+                            return (
+                              <td
+                                key={index}
+                                {...cell.getCellProps()}
+                                className={classNames('p-4', {
+                                  'whitespace-nowrap font-semibold uppercase':
+                                    index == 1,
+                                  'min-w-[300px]': index == 2,
+                                })}
+                              >
+                                {cell.render('Cell')}
+                              </td>
+                            );
+                          }
+                        })}
+                      </tr>
+                      {row.isExpanded ? (
+                        <tr>
+                          <td colSpan={visibleColumns.length}>
+                            <div className="flex w-full flex-col border-x border-gray-200 p-4">
+                              <Tabs className="flex flex-col">
+                                <div className="flex flex-col gap-2">
+                                  <p className="w-fit whitespace-nowrap text-sm leading-none text-ship-gray-500">
+                                    Select semester:
+                                  </p>
+                                  <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto">
+                                    <Tab
+                                      selectedClassName="tab-active"
+                                      className="tab-sm"
+                                    >
+                                      1st sem
+                                    </Tab>
+                                    <Tab
+                                      selectedClassName="tab-active"
+                                      className="tab-sm"
+                                    >
+                                      2nd sem
+                                    </Tab>
+                                    {/* <Tab
                                     selectedClassName="tab-active"
                                     className="tab-sm"
                                   >
                                     Special
                                   </Tab> */}
-                                  <Tab
-                                    selectedClassName="tab-active"
-                                    className="tab-sm"
-                                  >
-                                    Summer
-                                  </Tab>
-                                </TabList>
-                              </div>
+                                    <Tab
+                                      selectedClassName="tab-active"
+                                      className="tab-sm"
+                                    >
+                                      Summer
+                                    </Tab>
+                                  </TabList>
+                                </div>
 
-                              <TabPanel>
-                                <CourseSchedulerYearSecTable
-                                  courseCode={row.original.code}
-                                  semester={'1'}
-                                  data={
-                                    row.original.schedCompletionStatus.firstSem.perYearSec.sort(
-                                      (a, b) => {
-                                        return a.year - b.year;
-                                      }
-                                    ) || []
-                                  }
-                                />
-                              </TabPanel>
-                              <TabPanel>
-                                <CourseSchedulerYearSecTable
-                                  courseCode={row.original.code}
-                                  semester={'2'}
-                                  data={
-                                    row.original.schedCompletionStatus.secondSem.perYearSec.sort(
-                                      (a, b) => {
-                                        return a.year - b.year;
-                                      }
-                                    ) || []
-                                  }
-                                />
-                              </TabPanel>
-                              {/* <TabPanel>
+                                <TabPanel>
+                                  <CourseSchedulerYearSecTable
+                                    courseCode={row.original.code}
+                                    semester={'1'}
+                                    data={
+                                      row.original.schedCompletionStatus.firstSem.perYearSec.sort(
+                                        (a, b) => {
+                                          return a.year - b.year;
+                                        }
+                                      ) || []
+                                    }
+                                  />
+                                </TabPanel>
+                                <TabPanel>
+                                  <CourseSchedulerYearSecTable
+                                    courseCode={row.original.code}
+                                    semester={'2'}
+                                    data={
+                                      row.original.schedCompletionStatus.secondSem.perYearSec.sort(
+                                        (a, b) => {
+                                          return a.year - b.year;
+                                        }
+                                      ) || []
+                                    }
+                                  />
+                                </TabPanel>
+                                {/* <TabPanel>
                                 <CourseSchedulerYearSecTable
                                   courseCode={row.original.code}
                                   semester={'special'}
@@ -274,47 +281,48 @@ export default function CourseTable({ type }) {
                                   }
                                 />
                               </TabPanel> */}
-                              <TabPanel>
-                                <CourseSchedulerYearSecTable
-                                  courseCode={row.original.code}
-                                  semester={'summer'}
-                                  data={
-                                    row.original.schedCompletionStatus.summer.perYearSec.sort(
-                                      (a, b) => {
-                                        return a.year - b.year;
-                                      }
-                                    ) || []
-                                  }
-                                />
-                              </TabPanel>
-                            </Tabs>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : null}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
-      <ReactPaginate
-        breakLabel="..."
-        nextLabel="next >"
-        onPageChange={({ selected }) => setPageIndex(selected + 1)}
-        pageRangeDisplayed={5}
-        pageCount={Math.ceil(pageData?.totalPages) || 0}
-        previousLabel="< prev"
-        renderOnZeroPageCount={null}
-        containerClassName="paginate-container"
-        previousLinkClassName="paginate-button"
-        nextLinkClassName="paginate-button"
-        pageLinkClassName="paginate-link"
-        activeLinkClassName="paginate-link-active"
-        breakLinkClassName="paginate-break"
-        disabledLinkClassName="paginate-link-disabled"
-      />
+                                <TabPanel>
+                                  <CourseSchedulerYearSecTable
+                                    courseCode={row.original.code}
+                                    semester={'summer'}
+                                    data={
+                                      row.original.schedCompletionStatus.summer.perYearSec.sort(
+                                        (a, b) => {
+                                          return a.year - b.year;
+                                        }
+                                      ) || []
+                                    }
+                                  />
+                                </TabPanel>
+                              </Tabs>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+        <ReactPaginate
+          breakLabel="..."
+          nextLabel="next >"
+          onPageChange={({ selected }) => setPageIndex(selected + 1)}
+          pageRangeDisplayed={5}
+          pageCount={Math.ceil(pageData?.totalPages) || 0}
+          previousLabel="< prev"
+          renderOnZeroPageCount={null}
+          containerClassName="paginate-container"
+          previousLinkClassName="paginate-button"
+          nextLinkClassName="paginate-button"
+          pageLinkClassName="paginate-link"
+          activeLinkClassName="paginate-link-active"
+          breakLinkClassName="paginate-break"
+          disabledLinkClassName="paginate-link-disabled"
+        />
+      </div>
     </div>
   );
 }

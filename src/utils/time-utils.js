@@ -21,6 +21,27 @@ export function subtractDuration(
   return { hours, minutes };
 }
 
+export function getScheduleDuration(startTime, endTime) {
+  const startDate = parse(startTime, 'h:mm a', new Date());
+  const endDate = parse(endTime, 'h:mm a', new Date());
+
+  const diffMinutes = differenceInMinutes(endDate, startDate);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffMinutesRemainder = diffMinutes % 60;
+
+  const duration = { hours: diffHours, minutes: diffMinutesRemainder };
+  return duration;
+}
+
+export function unitToObject(durationInMinutes) {
+  const hours = Math.floor(durationInMinutes / 60);
+  const minutes = durationInMinutes % 60;
+  return {
+    hours: hours,
+    minutes: minutes,
+  };
+}
+
 export function createTimePairs(
   startTime = '6:00 AM',
   endTime = '6:00 PM',

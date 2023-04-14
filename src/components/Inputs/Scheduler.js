@@ -197,33 +197,15 @@ export default function Scheduler({
           hasEqualCourses(courses, hoveredCourses);
       }
 
-      const subjSchedIds = subjectsData.map((data) => data.id);
-      const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
-        (roomLayout) => roomLayout.roomCode !== roomData.code
-      );
-      const { subjectLayoutItems } = getSubjectScheduleLayoutItems(
-        subjectCode,
-        teacherId,
-        layout,
-        otherRoomLayouts,
-        subjSchedIds,
-        course
-      );
-
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
-
-      // const remainingRowSpan = getRemainingRowSpan(
-      //   subjectData.data.units,
-      //   subjectLayoutItems
-      // );
 
       const isSameSubjectAndTeacher = courseSubjects.some(
         (courseSubject) =>
           courseSubject.code == subjectCode &&
           courseSubject.assignedTeachers.some(
-            (teacher) => teacher.teacherId == teacherId
+            (teacher) => teacher._id == teacherId
           )
       );
 
@@ -437,124 +419,115 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      if (roomLayoutItems.length) {
-        const roomSchedules = createCourseSubjectSchedules(
-          subjSchedIds,
-          roomLayoutItems,
-          {
-            _id: roomData._id,
-            code: roomData.code,
-          },
-          subjectsData,
-          timeData,
-          course,
-          selectedRooms
-        );
+      const roomSchedules = createCourseSubjectSchedules(
+        subjSchedIds,
+        roomLayoutItems,
+        {
+          _id: roomData._id,
+          code: roomData.code,
+        },
+        subjectsData,
+        timeData,
+        course,
+        selectedRooms
+      );
 
-        const otherRoomScheds = [];
-        roomsSubjSchedsLayouts.forEach((roomLayout) => {
-          if (roomLayout.roomCode !== roomData.code) {
-            const schedules = createCourseSubjectSchedules(
-              subjSchedIds,
-              roomLayout.layout.filter((item) => {
-                const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-                return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-              }),
-              {
-                _id: roomLayout.roomId,
-                code: roomLayout.roomCode,
-              },
-              subjectsData,
-              timeData,
-              course,
-              selectedRooms
+      const otherRoomScheds = [];
+      roomsSubjSchedsLayouts.forEach((roomLayout) => {
+        if (roomLayout.roomCode !== roomData.code) {
+          const schedules = createCourseSubjectSchedules(
+            subjSchedIds,
+            roomLayout.layout.filter((item) => {
+              const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+              return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+            }),
+            {
+              _id: roomLayout.roomId,
+              code: roomLayout.roomCode,
+            },
+            subjectsData,
+            timeData,
+            course,
+            selectedRooms
+          );
+          otherRoomScheds.push(schedules);
+        }
+      });
+
+      let groupedCourseScheds = [...roomSchedules.schedules.course];
+      if (otherRoomScheds.length) {
+        otherRoomScheds
+          .map((room) => room.schedules.course)
+          .flat()
+          .forEach((roomSched) => {
+            //check if its in the array already
+            const existingSched = groupedCourseScheds.find(
+              (mergedSched) =>
+                mergedSched.subject.code == roomSched.subject.code &&
+                mergedSched.teacher._id == roomSched.teacher._id
             );
-            otherRoomScheds.push(schedules);
-          }
-        });
+            if (!existingSched) {
+              //if not existing
+              groupedCourseScheds.push(roomSched);
+            } else {
+              //update the subject to add the schedule
+              const merged = {
+                ...existingSched,
+                schedules: [
+                  ...existingSched.schedules.filter(
+                    (exist) => exist.room.code == roomData.code
+                  ),
+                  ...roomSched.schedules.filter(
+                    (sched) => sched.room.code !== roomData.code
+                  ),
+                ],
+              };
 
-        let groupedCourseScheds = [...roomSchedules.schedules.course];
-        if (otherRoomScheds.length) {
-          otherRoomScheds
-            .map((room) => room.schedules.course)
-            .flat()
-            .forEach((roomSched) => {
-              //check if its in the array already
-              const existingSched = groupedCourseScheds.find(
-                (mergedSched) =>
-                  mergedSched.subject.code == roomSched.subject.code &&
-                  mergedSched.teacher.teacherId == roomSched.teacher.teacherId
-              );
-              if (!existingSched) {
-                //if not existing
-                groupedCourseScheds.push(roomSched);
-              } else {
-                //update the subject to add the schedule
-                const merged = {
-                  ...existingSched,
-                  schedules: [
-                    ...existingSched.schedules.filter(
-                      (exist) => exist.room.code == roomData.code
-                    ),
-                    ...roomSched.schedules.filter(
-                      (sched) => sched.room.code !== roomData.code
-                    ),
-                  ],
-                };
+              //filter the grouped scheds to remove the old subject data
+              groupedCourseScheds = [
+                ...groupedCourseScheds.filter((mergedSched) => {
+                  return (
+                    mergedSched.subject.code !== merged.subject.code &&
+                    mergedSched.teacher._id !== merged.teacher._id
+                  );
+                }),
+                merged,
+              ];
+            }
+          });
+      }
 
-                //filter the grouped scheds to remove the old subject data
-                groupedCourseScheds = [
-                  ...groupedCourseScheds.filter((mergedSched) => {
-                    return (
-                      mergedSched.subject.code !== merged.subject.code &&
-                      mergedSched.teacher.teacherId !== merged.teacher.teacherId
-                    );
-                  }),
-                  merged,
-                ];
-              }
-            });
-        }
+      const updatedRoomSchedules = [
+        {
+          ...roomSchedules,
+          schedules: [
+            ...roomSchedules.schedules.course,
+            ...roomSchedules.schedules.other,
+          ],
+        },
+        ...otherRoomScheds.map((otherRoom) => ({
+          ...otherRoom,
+          schedules: [
+            ...otherRoom.schedules.course,
+            ...otherRoom.schedules.other,
+          ],
+        })),
+      ];
 
-        const updatedRoomSchedules = [
-          {
-            ...roomSchedules,
-            schedules: [
-              ...roomSchedules.schedules.course,
-              ...roomSchedules.schedules.other,
-            ],
-          },
-          ...otherRoomScheds.map((otherRoom) => ({
-            ...otherRoom,
-            schedules: [
-              ...otherRoom.schedules.course,
-              ...otherRoom.schedules.other,
-            ],
-          })),
-        ];
-
-        const subjSchedItems = layout.filter((item) => {
-          const { subjectCode, teacherId } = parseLayoutItemId(item.i);
-          return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
-        });
-        setSubjectScheds(groupedCourseScheds);
-        setAllRoomSubjScheds(updatedRoomSchedules);
-        setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
-
-        if (!oldSchedsData.length && updatedRoomSchedules.length) {
-          setOldSchedsData(updatedRoomSchedules);
-        }
+      const subjSchedItems = layout.filter((item) => {
+        const { subjectCode, teacherId } = parseLayoutItemId(item.i);
+        return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
+      });
+      setSubjectScheds(groupedCourseScheds);
+      setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
+      setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
+      if (!oldSchedsData.length && updatedRoomSchedules.length) {
+        setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [layout, subjectsData, timeData, roomData]
   );
-
-  //other funcs
-
-  // console.log(JSON.stringify(roomsSubjScheds));
-  // console.log('---------------------');
-  // console.log(JSON.stringify(oldSchedsData));
 
   function removeLayoutItem(layoutId) {
     const newLayout = layout.filter((item) => item.i !== layoutId);
@@ -768,19 +741,38 @@ export default function Scheduler({
           )) ||
         [];
 
-      // console.log(subjectScheds, roomsSubjScheds);
-
-      const inSchedulerDayTimes = subjectScheds
-        // .map((room) => room.schedules)
-        // .flat()
-        // .filter(
-        //   (subjSched) =>
-        //     subjSched.teacher.teacherId == subjectData.teacher.teacherId
-        // )
+      const inSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
+        .filter((subjSched) =>
+          subjSched.schedules.some((schedule) =>
+            schedule.times.some((time) =>
+              time.courses.some(
+                (timeCourse) =>
+                  timeCourse.code == course.code &&
+                  timeCourse.year == course.year &&
+                  timeCourse.section == course.section
+              )
+            )
+          )
+        )
         .map((subj) => subj.schedules)
         .flat();
 
+      const teacherInSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
+        .filter((subjSched) => subjSched.teacher._id == subjectData.teacher._id)
+        .map((subj) => subj.schedules)
+        .flat()
+        .filter((sched) => sched.room._id !== roomData._id);
+
       const inSchedulerTimes = inSchedulerDayTimes
+        .filter((dayTimes) => dayTimes.day == x)
+        .map((dayTimes) => dayTimes.times)
+        .flat();
+
+      const teacherInSchedulerTimes = teacherInSchedulerDayTimes
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
@@ -830,10 +822,10 @@ export default function Scheduler({
 
       //get all the unavailable existing schedule time indexes of the teacher
       if (existingSchedules.length) {
-        let parsedLayoutItemId = null;
-        if (layoutItem) {
-          parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
-        }
+        // let parsedLayoutItemId = null;
+        // if (layoutItem) {
+        //   parsedLayoutItemId = parseLayoutItemId(layoutItem.i);
+        // }
 
         existingSchedules.forEach((existingSchedule) => {
           //should exclude checking of existing times when is merged with the currently editing course
@@ -869,14 +861,14 @@ export default function Scheduler({
                     `${course.code}${course.year}${course.section}` ==
                     `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
                 ) &&
-                !(
-                  parsedLayoutItemId &&
-                  parsedLayoutItemId.courses.some(
-                    (itemCourse) =>
-                      itemCourse ==
-                      `${course.code}${course.year}${course.section}`
-                  )
-                ) &&
+                // !(
+                //   parsedLayoutItemId &&
+                //   parsedLayoutItemId.courses.some(
+                //     (itemCourse) =>
+                //       itemCourse ==
+                //       `${course.code}${course.year}${course.section}`
+                //   )
+                // ) &&
                 !coursesExist
               ) {
                 const timeStartIndex = timeData.findIndex((time) => {
@@ -887,7 +879,7 @@ export default function Scheduler({
                 });
 
                 for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-                  unavailableTimesY.push(i);
+                  if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
                 }
               }
             });
@@ -905,7 +897,22 @@ export default function Scheduler({
           });
 
           for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-            unavailableTimesY.push(i);
+            if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
+          }
+        });
+      }
+
+      if (teacherInSchedulerTimes.length) {
+        teacherInSchedulerTimes.forEach((scheduleTime) => {
+          const timeStartIndex = timeData.findIndex((time) => {
+            return time[0] == scheduleTime.start;
+          });
+          const timeEndIndex = timeData.findIndex((time) => {
+            return time[1] == scheduleTime.end;
+          });
+
+          for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+            if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
           }
         });
       }
@@ -1302,7 +1309,7 @@ export default function Scheduler({
       if (layoutItem.x !== 0 && layoutItem.x !== 8) {
         const layoutItemId = createLayoutItemId(
           data.code,
-          data.teacher.teacherId,
+          data.teacher._id,
           itemCourses
         );
 

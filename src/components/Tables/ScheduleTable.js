@@ -54,8 +54,6 @@ const ScheduleTable = forwardRef(function ScheduleTable(
     return pairedTimes;
   }, [startTime, endTime, interval]);
 
-  console.log(data);
-
   const groupedByDay = useMemo(() => {
     const newData = [];
     weekDays.forEach((day, dayIndex) => {

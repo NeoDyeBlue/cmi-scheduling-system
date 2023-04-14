@@ -7,9 +7,8 @@ class Schedule extends Model {
   constructor() {
     super();
   }
-  // just a snippet for schedule.
+
   async createSchedule({ schedules, formData }) {
-    // console.log(JSON.stringify(schedules))
     try {
       const schedulesBulksOptions = schedules.map((schedule) => {
         return {
@@ -35,66 +34,187 @@ class Schedule extends Model {
           },
         };
       });
-
-      // delete that not in the new schedules.
-      // delete schedules all if schedules/dayTimes is empty
-      // what is the requirements that we can say if the document should be deleted?
-      // 1. if schedules are empty
-      // 2. if in the same course-year-section and was not equal from payload schedules array.
-      //
-
-      // processes?
-      // 1. get all schedules of course-year-section
-      // 2. compare to know what schedules to remove that conditioned by subject._id *optional(rooom)
-      // store all schedules to remove to an array.
-
-      // get all schedules of the course-year-section
       const filtersForSchedules = formData.roomSchedules.map((room) => {
         return {
           'schedules.room._id': room.roomId,
           semester: formData.semester,
+          // course: formData.course._id,
+          // 'yearSec.year': formData.course.year,
+          // 'yearSec.section': formData.course.section,
         };
       });
+
       console.log('filtersForSchedules', filtersForSchedules);
-      const currentSchedules = await this.Schedule.find({
-        $or: filtersForSchedules,
-      }).exec();
-      // console.log('currentSchedules', currentSchedules);
-      // console.log('currentSchedules', currentSchedules);
-      // delete schedules that has value empty array
-      await this.Schedule.deleteMany({
-        schedules: { $size: 0 },
-      });
-
-      // if elements of currentSchedules is not exists in schedules it will remove.
-      const toDeleteItems = currentSchedules.filter((currentSched) => {
-        return !schedules.some((sched) => {
-          return (
-            sched.subject === currentSched.subject &&
-            sched.semester === currentSched.semester &&
-            sched.yearSec.year === currentSched.yearSec.year &&
-            sched.yearSec.section === currentSched.yearSec.section
-          );
+      if (filtersForSchedules.length) {
+        console.log('deleting...........');
+        const currentSchedules = await this.Schedule.find({
+          $or: filtersForSchedules,
+        }).exec();
+        await this.Schedule.deleteMany({
+          schedules: { $size: 0 },
         });
-      });
-      const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
-        return {
-          deleteMany: {
-            filter: {
-              _id: schedule._id.toString(),
-            },
-          },
-        };
-      });
-      // console.log('toDeleteItems', JSON.stringify(toDeleteItems));
-      await this.Schedule.bulkWrite(toDeleteSchedsOptions);
 
+        // if elements of currentSchedules is not exists in schedules it will remove.
+        const toDeleteItems = currentSchedules.filter((currentSched) => {
+          return !schedules.some((sched) => {
+            return (
+              sched.subject === currentSched.subject &&
+              sched.semester === currentSched.semester &&
+              sched.yearSec.year === currentSched.yearSec.year &&
+              sched.yearSec.section === currentSched.yearSec.section
+            );
+          });
+        });
+        const toDeleteSchedsOptions = toDeleteItems.map((schedule) => {
+          return {
+            deleteMany: {
+              filter: {
+                _id: schedule._id.toString(),
+              },
+            },
+          };
+        });
+        // console.log('toDeleteItems', JSON.stringify(toDeleteItems));
+        await this.Schedule.bulkWrite(toDeleteSchedsOptions);
+      }
       // update schedules.
       const data = await this.Schedule.bulkWrite(schedulesBulksOptions);
       // console.log('data---------', data);
       return data;
     } catch (error) {
       console.log('error---------', error);
+      throw error;
+    }
+  }
+  async removeRoomPerSection({ room, course, year, section, semester }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        course: course.toString(),
+        semester: semester,
+        'schedules.room._id': room.toString(),
+        yearSec: {
+          year: parseInt(year),
+          section: section,
+        },
+      }).exec();
+      // pull sections on schedules that match to this room.
+      const updatedSchedules = await this.Schedule.updateMany(
+        {
+          'schedules.room._id': room.toString(),
+          semester: semester,
+        },
+        {
+          $pull: {
+            'schedules.$[].times.$[].courses': {
+              _id: course.toString(),
+              year: parseInt(year),
+              section: section,
+            },
+          },
+        }
+      ).exec();
+      // console.log('updatedSchedules', updatedSchedules);
+      return data;
+    } catch (error) {
+      console.log('errorrr-------------', error);
+      throw error;
+    }
+  }
+  async resetSchedulePerSection({ course, year, section, semester }) {
+    try {
+      const data = await this.Schedule.deleteMany({
+        course: course.toString(),
+        semester: semester,
+        yearSec: {
+          year: parseInt(year),
+          section: section,
+        },
+      }).exec();
+      // pull sections on schedules that match to this room.
+      const updatedSchedules = await this.Schedule.updateMany(
+        {
+          'schedules.times.courses._id': course,
+          'schedules.times.courses.year': parseInt(year),
+          'schedules.times.courses.section': section,
+        },
+        {
+          $pull: {
+            'schedules.$[].times.$[].courses': {
+              _id: course.toString(),
+              year: parseInt(year),
+              section: section,
+            },
+          },
+        }
+      ).exec();
+      console.log('updatedSchedules-------', updatedSchedules);
+      return data;
+    } catch (error) {
+      console.log('error-------', error);
+      throw error;
+    }
+  }
+  async getSchedulesToUpdateStatus({ schedules }) {
+    try {
+      const filtersForSchedules = schedules.map((schedule) => {
+        return {
+          teacher: mongoose.Types.ObjectId(schedule.teacher),
+          subject: mongoose.Types.ObjectId(schedule.subject),
+          course: mongoose.Types.ObjectId(schedule.course),
+          semester: schedule.semester,
+          yearSec: {
+            year: schedule.yearSec.year,
+            section: schedule.yearSec.section,
+          },
+        };
+      });
+      const pipeline = [
+        {
+          $match: {
+            $or: filtersForSchedules,
+          },
+        },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  _id: 1,
+                  units: 1,
+                },
+              },
+            ],
+            as: 'subjectPopulated',
+          },
+        },
+      ];
+      const data = await this.Schedule.aggregate(pipeline);
+      console.log('its data for', JSON.stringify(data));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateScheduleStatus({ scheds }) {
+    try {
+      const updateSchedulesBulkWriteOps = scheds.map((sched) => {
+        return {
+          updateMany: {
+            filter: {
+              _id: sched._id.toString(),
+            },
+            update: {
+              $set: { isCompleted: sched.isCompleted },
+            },
+          },
+        };
+      });
+      const data = await this.Schedule.bulkWrite(updateSchedulesBulkWriteOps);
+      return data;
+    } catch (error) {
       throw error;
     }
   }

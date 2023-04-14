@@ -38,7 +38,7 @@ class Course extends Model {
           },
         }
       ).exec();
-
+      
       return data;
     } catch (error) {
       console.log('error', error);
@@ -540,18 +540,17 @@ class Course extends Model {
                             $unwind: '$schedules.times',
                           },
                           {
-                            $unwind: '$schedules.times.courses'
+                            $unwind: '$schedules.times.courses',
                           },
                           {
                             $project: {
-                              courses : '$schedules.times.courses'
-                            }
-                          }
+                              courses: '$schedules.times.courses',
+                            },
+                          },
                         ],
                         as: 'assignedCourses',
                       },
                     },
-
 
                     {
                       $lookup: {
@@ -839,9 +838,21 @@ class Course extends Model {
   - EVERY SECTION SHOULD CONTAIN STATUS (unscheduled, incomplete, completed)
   - AND ALSO SHOULD CONTAIN STATUS FOR EVERY SEM IF ALL SECTION  SEM COMPLETED THEN THE SEMESTER SHOULD ALSO BE COMPLETED.
   */
-  async getCoursesStatus({ type, limit, page }) {
+  async getCoursesStatus({ type, limit, page, q }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
+      const search = q
+        ? {
+            $or: [
+              {
+                code: { $regex: q, $options: 'i' },
+              },
+              {
+                name: { $regex: q, $options: 'i' },
+              },
+            ],
+          }
+        : {};
       const pipeline = [
         // get all college course
         // group by code, name,
@@ -852,6 +863,9 @@ class Course extends Model {
           $match: {
             type: type,
           },
+        },
+        {
+          $match: search,
         },
         { $unwind: '$yearSections' },
         {

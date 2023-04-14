@@ -3,17 +3,23 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 import mongoose from 'mongoose';
 import Course from '@/lib/model/data-access/Course';
 import Room from '@/lib/model/data-access/Room';
+import {
+  subtractDuration,
+  getScheduleDuration,
+  unitToObject,
+} from '@/utils/time-utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const formData = req.body;
-      // console.log('formData', JSON.stringify(formData));
+      console.log('formData', JSON.stringify(formData));
 
       // create schedule
 
       const existingSchedules = [];
-      const constructSchedules = formData.roomSchedules.flatMap(
-        (roomSchedule) =>
+      let constructSchedules = [];
+      if (formData.roomSchedules.length) {
+        constructSchedules = formData.roomSchedules?.flatMap((roomSchedule) =>
           roomSchedule.schedules.flatMap((schedule) => {
             return schedule.schedules.flatMap((sched) => {
               return sched.times.flatMap((time) => {
@@ -63,7 +69,8 @@ export const handler = async (req, res) => {
               });
             });
           })
-      );
+        );
+      }
       const schedules = constructSchedules.filter((cs) => cs !== undefined);
       for (let room of formData.roomSchedules) {
         for (let roomSched of room.schedules) {
@@ -112,6 +119,52 @@ export const handler = async (req, res) => {
         schedules,
         formData,
       });
+
+      // if room schedule is empty, then we will remove all schedule to the room but with section filter.
+      // ####################
+
+      // update schedules field isCompleted.
+      if (schedules.length) {
+        const schedulesToUpdateStatus =
+          await schedule.getSchedulesToUpdateStatus({
+            schedules,
+          });
+        let scheds = schedulesToUpdateStatus.map((sched) => {
+          let units = unitToObject(sched.subjectPopulated[0].units * 60);
+
+          let total_duration = { hours: 0, minutes: 0 };
+          for (let schedule of sched.schedules) {
+            for (let time of schedule.times) {
+              total_duration.hours += getScheduleDuration(
+                time.start,
+                time.end
+              ).hours;
+              total_duration.minutes += getScheduleDuration(
+                time.start,
+                time.end
+              ).minutes;
+              if (total_duration.minutes === 60) {
+                total_duration.minutes = 0;
+                total_duration.hours += 1;
+              }
+            }
+          }
+          const scheduleStatus = subtractDuration(units, total_duration);
+
+          if (scheduleStatus.hours === 0 && scheduleStatus.minutes === 0) {
+            sched['isCompleted'] = true;
+            //else if - if detects negatives meaning overlapping schedules
+          } else {
+            sched['isCompleted'] = false;
+          }
+          return sched;
+        });
+        if (scheds.length) {
+          console.log('scheds-----------', scheds);
+          await schedule.updateScheduleStatus({ scheds });
+        }
+      }
+
       // dahil kailang ng frontend ng schedulerData sa response ng pag save,
       // kaya isesend back natin ang sechedulerData
       const { course, semester } = formData;
@@ -153,10 +206,10 @@ export const handler = async (req, res) => {
         }
       }
       data[0]['rooms'] = rooms;
-      console.log("data=----------",JSON.stringify(data), "----------")
+
       return successResponse(req, res, data);
     } catch (error) {
-      console.log("derrrrrr", error)
+      console.log('derrrrrr', error);
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
@@ -176,6 +229,29 @@ export const handler = async (req, res) => {
         year,
         section,
       });
+      return successResponse(req, res, data);
+    } catch (error) {
+      return errorResponse(req, res, error.message, 400, error.name);
+    }
+  }
+  if (req.method === 'DELETE') {
+    try {
+      const { room, course, year, section, semester } = req.query;
+      const data = await schedule.removeRoomPerSection({
+        room,
+        course,
+        year,
+        section,
+        semester,
+      });
+      console.log(
+        'room, course, year, section, semester',
+        room,
+        course,
+        year,
+        section,
+        semester
+      );
       return successResponse(req, res, data);
     } catch (error) {
       return errorResponse(req, res, error.message, 400, error.name);

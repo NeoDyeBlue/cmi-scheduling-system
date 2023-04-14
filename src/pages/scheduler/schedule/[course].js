@@ -23,12 +23,6 @@ import { ErrorScreen } from '@/components/Misc';
 import { createTimePairs } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
-const courseFetcher = ([url, args]) =>
-  fetch(
-    `${url}/${args.course}?${new URLSearchParams(
-      _.omit(args, 'course')
-    ).toString()}`
-  ).then((r) => r.json());
 export default function Schedule() {
   const router = useRouter();
   const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
@@ -80,7 +74,6 @@ export default function Schedule() {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isRemoveRoomConfirmOpen, setIsRemoveRoomConfirmOpen] = useState(false);
   const [toRemoveRoom, setToRemoveRoom] = useState('');
-  const [removeRoom, setRemoveRoom] = useState(false);
   const [resetScheduler, setResetScheduler] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
@@ -88,12 +81,20 @@ export default function Schedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schedulerData, setSchedulerData] = useState(null);
-  const { course: courseCode, semester, year, section } = router.query;
+
+  useEffect(() => {
+    if (
+      schedulerData?.course?.code !== course?.code ||
+      schedulerData?.course?.year !== course?.year ||
+      schedulerData?.course?.section !== course?.section ||
+      schedulerData?.semester !== course?.semester
+    )
+      reset();
+  }, [schedulerData, course, reset]);
 
   useEffect(() => {
     async function getSchedulerData() {
       if (Object.keys(router.query).length) {
-        // reset(); // reset the zustand state
         try {
           const res = await fetch(
             `/api/courses/${router.query.course}?${new URLSearchParams({
@@ -125,7 +126,7 @@ export default function Schedule() {
         const courseSubjectsData = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
-            const dataId = `${subject.code}~${teacher.teacherId}`;
+            const dataId = `${subject.code}~${teacher._id}`;
             const { teachers, ...newData } = subject;
             courseSubjectsData.push({
               id: dataId,
@@ -153,7 +154,10 @@ export default function Schedule() {
         });
         setAllRoomSubjSchedsLayout(roomLayouts);
         setCourseSubjects(schedulerData?.subjects);
-        setCourse(schedulerData?.course);
+        setCourse({
+          ...schedulerData?.course,
+          semester: schedulerData?.semester,
+        });
         setSubjectsData(courseSubjectsData);
         setSelectedRooms(schedulerData?.rooms);
       }
@@ -168,7 +172,7 @@ export default function Schedule() {
         const roomSubjectsData = [];
         selectedRooms.forEach((room) => {
           room.schedules.forEach((schedule) => {
-            const dataId = `${schedule.subject.code}~${schedule.teacher.teacherId}`;
+            const dataId = `${schedule.subject.code}~${schedule.teacher._id}`;
             if (
               !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)
@@ -196,35 +200,9 @@ export default function Schedule() {
     setFormData({
       course,
       roomSchedules: roomsSubjScheds,
-      // rooms,
       semester: schedulerData?.semester,
     });
   }, [course, roomsSubjScheds, schedulerData?.semester]);
-
-  useEffect(
-    () => {
-      if (removeRoom) {
-        setIsRemoveRoomConfirmOpen(false);
-        submitChanges().then(() => {
-          setToRemoveRoom('');
-          setRemoveRoom(false);
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [removeRoom]
-  );
-
-  useEffect(
-    () => {
-      if (resetScheduler) {
-        setIsResetConfirmOpen(false);
-        submitChanges();
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [resetScheduler]
-  );
 
   const draggableSchedules = useMemo(
     () =>
@@ -272,7 +250,7 @@ export default function Schedule() {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          setToRemoveRoom(room.code);
+          setToRemoveRoom(room._id);
           setIsRemoveRoomConfirmOpen(true);
         }}
         className="absolute top-0 right-0 m-1 hidden h-[20px] w-[20px] items-center 
@@ -323,7 +301,7 @@ export default function Schedule() {
       const result = await res.json();
       if (result?.success) {
         toast.success('Schedules saved');
-        setOldSchedsData(subjectScheds);
+        setOldSchedsData(_.sortBy(roomsSubjScheds, 'roomCode'));
         setSchedulerData(result.data[0]);
         /**
          * ILL ADD A STATE UPDATE HERE FOR THE SCHEDULER DATA
@@ -342,56 +320,174 @@ export default function Schedule() {
 
   async function onConfirmReset() {
     setIsResetConfirmOpen(false);
-    setAllRoomSubjSchedsLayout([]);
-    setSelectedRooms([]);
-    setSubjectScheds([]);
-    setAllRoomSubjScheds([]);
-    setFormData({
-      course,
-      roomSchedules: [],
-      semester: schedulerData?.semester,
-    });
-
     setResetScheduler(true);
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(
+        `/api/schedules/reset?${new URLSearchParams({
+          course: course._id,
+          year: course.year,
+          section: course.section,
+          semester: course.semester,
+        }).toString()}`,
+        { method: 'DELETE' }
+      );
+
+      const result = await res.json();
+      if (result?.success) {
+        setAllRoomSubjSchedsLayout([]);
+        setSelectedRooms([]);
+        setSubjectScheds([]);
+        setAllRoomSubjScheds([]);
+        setSubjectsData(
+          subjectsData.map((subjectData) => ({
+            ...subjectData,
+            data: {
+              ...subjectData.data,
+              teacher: {
+                assignedCourses:
+                  subjectData.data.teacher.assignedCourses.filter(
+                    (assignedCourse) =>
+                      assignedCourse.code == course.code &&
+                      assignedCourse.year == course.year &&
+                      assignedCourse.section == course.section
+                  ),
+              },
+            },
+          }))
+        );
+        setFormData({
+          course,
+          roomSchedules: [],
+          semester: schedulerData?.semester,
+        });
+        toast.success('Schedules reset');
+      } else {
+        toast.error("Can't reset schedules");
+      }
+      setIsSubmitting(false);
+      setResetScheduler(false);
+    } catch (error) {
+      setIsSubmitting(false);
+      setResetScheduler(false);
+      toast.error("Can't reset schedules");
+    }
   }
 
-  function onConfirmRemoveRoom() {
+  async function onConfirmRemoveRoom() {
     setIsRemoveRoomConfirmOpen(false);
-    const newSubjScheds = subjectScheds
-      .map((subjectSched) => ({
-        ...subjectSched,
-        schedules: [
-          ...subjectSched.schedules.filter(
-            (schedule) => schedule.room.code !== toRemoveRoom
-          ),
-        ],
-      }))
-      .filter((items) => items.schedules.length);
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(
+        `/api/schedules?${new URLSearchParams({
+          room: toRemoveRoom,
+          course: course._id,
+          year: course.year,
+          section: course.section,
+          semester: course.semester,
+        }).toString()}`,
+        { method: 'DELETE' }
+      );
 
-    const newRoomsSubjScheds = roomsSubjScheds.filter(
-      (room) => room.roomCode !== toRemoveRoom
-    );
-    setFormData({
-      course,
-      roomsSubjScheds: newRoomsSubjScheds,
-      semester: schedulerData?.semester,
-    });
-    setSubjectScheds(newSubjScheds);
-    setSelectedRooms(
-      selectedRooms.filter((room) => room.code !== toRemoveRoom)
-    );
-    setAllRoomSubjSchedsLayout(
-      roomsSubjSchedsLayouts.filter(
-        (roomLayout) => roomLayout.roomCode !== toRemoveRoom
-      )
-    );
+      const result = await res.json();
 
-    setRemoveRoom(true);
+      if (result?.success) {
+        const newSubjScheds = subjectScheds
+          .map((subjectSched) => ({
+            ...subjectSched,
+            schedules: [
+              ...subjectSched.schedules.filter(
+                (schedule) => schedule.room._id !== toRemoveRoom
+              ),
+            ],
+          }))
+          .filter((items) => items.schedules.length);
+
+        const newRoomsSubjScheds = roomsSubjScheds.filter(
+          (room) => room.roomId !== toRemoveRoom
+        );
+
+        const newSubjectsData = [];
+        subjectsData.forEach((subjectData) => {
+          const subjScheds = newRoomsSubjScheds
+            .map((room) => room.schedules)
+            .flat()
+            .filter(
+              (schedule) =>
+                `${schedule.subject.code}~${schedule.teacher._id}` ==
+                subjectData.id
+            );
+
+          if (
+            subjScheds.length ||
+            schedulerData?.subjects.some(
+              (subject) => subject._id == subjectData.data._id
+            )
+          ) {
+            if (!subjScheds.length) {
+              newSubjectsData.push({
+                ...subjectData,
+                data: {
+                  ...subjectData.data,
+                  teacher: {
+                    ...subjectData.data.teacher,
+                    assignedCourses:
+                      subjectData.data.teacher.assignedCourses.filter(
+                        (assignedCourse) =>
+                          assignedCourse.code == course.code &&
+                          assignedCourse.year == course.year &&
+                          assignedCourse.section == course.section
+                      ),
+                  },
+                },
+              });
+            } else {
+              newSubjectsData.push(subjectData);
+            }
+          }
+        });
+
+        setFormData({
+          course,
+          roomSchedules: newRoomsSubjScheds,
+          semester: schedulerData?.semester,
+        });
+        setSubjectScheds(newSubjScheds);
+        setAllRoomSubjScheds(_.sortBy(newRoomsSubjScheds, 'roomCode'));
+        setSelectedRooms(
+          selectedRooms.filter((room) => room._id !== toRemoveRoom)
+        );
+        setAllRoomSubjSchedsLayout(
+          roomsSubjSchedsLayouts.filter(
+            (roomLayout) => roomLayout.roomId !== toRemoveRoom
+          )
+        );
+        setSubjectsData(newSubjectsData);
+        toast.success('Room removed');
+      } else {
+        toast.error("Can't remove room");
+      }
+      setIsSubmitting(false);
+      setToRemoveRoom('');
+    } catch (error) {
+      setIsSubmitting(false);
+      setToRemoveRoom('');
+      toast.error("Can't remove room");
+    }
   }
 
   return (
     <>
-      <PopupLoader isOpen={isSubmitting} message="Saving schedules..." />
+      <PopupLoader
+        isOpen={isSubmitting}
+        message={
+          toRemoveRoom
+            ? 'Removing room...'
+            : resetScheduler
+            ? 'Resetting schedules...'
+            : 'Saving schedules...'
+        }
+      />
       <Confirmation
         isOpen={isResetConfirmOpen}
         onCancel={() => setIsResetConfirmOpen(false)}

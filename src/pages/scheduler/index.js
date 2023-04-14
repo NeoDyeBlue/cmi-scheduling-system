@@ -30,9 +30,6 @@ export default function Schedules() {
                 Senior High
               </Tab>
             </TabList>
-            <div className="ml-auto w-full max-w-[350px]">
-              <SearchForm placeholder={`Search ${activeTab} courses`} />
-            </div>
           </div>
           <TabPanel>
             <CourseSchedulerTable type="college" />
