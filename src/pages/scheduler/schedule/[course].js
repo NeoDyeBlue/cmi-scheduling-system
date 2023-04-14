@@ -74,7 +74,6 @@ export default function Schedule() {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isRemoveRoomConfirmOpen, setIsRemoveRoomConfirmOpen] = useState(false);
   const [toRemoveRoom, setToRemoveRoom] = useState('');
-  const [removeRoom, setRemoveRoom] = useState(false);
   const [resetScheduler, setResetScheduler] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
@@ -206,17 +205,6 @@ export default function Schedule() {
     });
   }, [course, roomsSubjScheds, schedulerData?.semester]);
 
-  useEffect(
-    () => {
-      if (resetScheduler) {
-        setIsResetConfirmOpen(false);
-        submitChanges();
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [resetScheduler]
-  );
-
   const draggableSchedules = useMemo(
     () =>
       courseSubjects.map((subject, subjIndex) => {
@@ -333,17 +321,58 @@ export default function Schedule() {
 
   async function onConfirmReset() {
     setIsResetConfirmOpen(false);
-    setAllRoomSubjSchedsLayout([]);
-    setSelectedRooms([]);
-    setSubjectScheds([]);
-    setAllRoomSubjScheds([]);
-    setFormData({
-      course,
-      roomSchedules: [],
-      semester: schedulerData?.semester,
-    });
-
     setResetScheduler(true);
+    try {
+      setIsSubmitting(true);
+      const res = await fetch(
+        `/api/schedules/reset?${new URLSearchParams({
+          course: course._id,
+          year: course.year,
+          section: course.section,
+          semester: course.semester,
+        }).toString()}`,
+        { method: 'DELETE' }
+      );
+
+      const result = await res.json();
+      if (result?.success) {
+        setAllRoomSubjSchedsLayout([]);
+        setSelectedRooms([]);
+        setSubjectScheds([]);
+        setAllRoomSubjScheds([]);
+        setSubjectsData(
+          subjectsData.map((subjectData) => ({
+            ...subjectData,
+            data: {
+              ...subjectData.data,
+              teacher: {
+                assignedCourses:
+                  subjectData.data.teacher.assignedCourses.filter(
+                    (assignedCourse) =>
+                      assignedCourse.code == course.code &&
+                      assignedCourse.year == course.year &&
+                      assignedCourse.section == course.section
+                  ),
+              },
+            },
+          }))
+        );
+        setFormData({
+          course,
+          roomSchedules: [],
+          semester: schedulerData?.semester,
+        });
+        toast.success('Schedules reset');
+      } else {
+        toast.error("Can't reset schedules");
+      }
+      setIsSubmitting(false);
+      setResetScheduler(false);
+    } catch (error) {
+      setIsSubmitting(false);
+      setResetScheduler(false);
+      toast.error("Can't reset schedules");
+    }
   }
 
   async function onConfirmRemoveRoom() {
@@ -369,15 +398,55 @@ export default function Schedule() {
             ...subjectSched,
             schedules: [
               ...subjectSched.schedules.filter(
-                (schedule) => schedule.room.code !== toRemoveRoom
+                (schedule) => schedule.room._id !== toRemoveRoom
               ),
             ],
           }))
           .filter((items) => items.schedules.length);
 
         const newRoomsSubjScheds = roomsSubjScheds.filter(
-          (room) => room.roomCode !== toRemoveRoom
+          (room) => room.roomId !== toRemoveRoom
         );
+
+        const newSubjectsData = [];
+        subjectsData.forEach((subjectData) => {
+          const subjScheds = newRoomsSubjScheds
+            .map((room) => room.schedules)
+            .flat()
+            .filter(
+              (schedule) =>
+                `${schedule.subject.code}~${schedule.teacher._id}` ==
+                subjectData.id
+            );
+
+          if (
+            subjScheds.length ||
+            schedulerData?.subjects.some(
+              (subject) => subject.code == subjectData.data.code
+            )
+          ) {
+            if (!subjScheds.length) {
+              newSubjectsData.push({
+                ...subjectData,
+                data: {
+                  ...subjectData.data,
+                  teacher: {
+                    assignedCourses:
+                      subjectData.data.teacher.assignedCourses.filter(
+                        (assignedCourse) =>
+                          assignedCourse.code == course.code &&
+                          assignedCourse.year == course.year &&
+                          assignedCourse.section == course.section
+                      ),
+                  },
+                },
+              });
+            } else {
+              newSubjectsData.push(subjectData);
+            }
+          }
+        });
+
         setFormData({
           course,
           roomSchedules: newRoomsSubjScheds,
@@ -390,27 +459,35 @@ export default function Schedule() {
         );
         setAllRoomSubjSchedsLayout(
           roomsSubjSchedsLayouts.filter(
-            (roomLayout) => roomLayout.roomCode !== toRemoveRoom
+            (roomLayout) => roomLayout.roomId !== toRemoveRoom
           )
         );
+        setSubjectsData(newSubjectsData);
         toast.success('Room removed');
       } else {
         toast.error("Can't remove room");
       }
       setIsSubmitting(false);
       setToRemoveRoom('');
-      setRemoveRoom(false);
     } catch (error) {
       setIsSubmitting(false);
       setToRemoveRoom('');
-      setRemoveRoom(false);
       toast.error("Can't remove room");
     }
   }
 
   return (
     <>
-      <PopupLoader isOpen={isSubmitting} message="Saving schedules..." />
+      <PopupLoader
+        isOpen={isSubmitting}
+        message={
+          toRemoveRoom
+            ? 'Removing room...'
+            : resetScheduler
+            ? 'Resetting schedules...'
+            : 'Saving schedules...'
+        }
+      />
       <Confirmation
         isOpen={isResetConfirmOpen}
         onCancel={() => setIsResetConfirmOpen(false)}
