@@ -400,7 +400,7 @@ export default function Schedule() {
     try {
       setIsSubmitting(true);
       const res = await fetch(
-        `api/schedules?${new URLSearchParams({
+        `/api/schedules?${new URLSearchParams({
           room: toRemoveRoom,
           course: course._id,
           year: course.year,
