@@ -197,11 +197,6 @@ export default function Scheduler({
           hasEqualCourses(courses, hoveredCourses);
       }
 
-      const subjSchedIds = subjectsData.map((data) => data.id);
-      const otherRoomLayouts = roomsSubjSchedsLayouts.filter(
-        (roomLayout) => roomLayout.roomCode !== roomData.code
-      );
-
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
@@ -425,11 +420,8 @@ export default function Scheduler({
       });
 
       if (
-        roomLayoutItems.length ||
-        (
-          roomsSubjScheds.find((room) => room.roomCode == roomData.code)
-            ?.schedules || []
-        )?.length
+        // roomLayoutItems.length ||
+        roomsSubjSchedsLayouts.find((room) => room.roomCode == roomData.code)
       ) {
         const roomSchedules = createCourseSubjectSchedules(
           subjSchedIds,
