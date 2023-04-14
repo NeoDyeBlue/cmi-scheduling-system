@@ -754,20 +754,45 @@ export default function Scheduler({
           )) ||
         [];
 
-      // console.log(subjectScheds, roomsSubjScheds);
-
       const inSchedulerDayTimes = roomsSubjScheds
         .map((room) => room.schedules)
         .flat()
+        .filter((subjSched) =>
+          subjSched.schedules.some((schedule) =>
+            schedule.times.some((time) =>
+              time.courses.some(
+                (timeCourse) =>
+                  timeCourse.code == course.code &&
+                  timeCourse.year == course.year &&
+                  timeCourse.section == course.section
+              )
+            )
+          )
+        )
         .map((subj) => subj.schedules)
         .flat();
+
+      console.log(inSchedulerDayTimes);
+
+      const teacherInSchedulerDayTimes = roomsSubjScheds
+        .map((room) => room.schedules)
+        .flat()
+        .filter((subjSched) => subjSched.teacher._id == subjectData.teacher._id)
+        .map((subj) => subj.schedules)
+        .flat()
+        .filter((sched) => sched.room._id !== roomData._id);
 
       const inSchedulerTimes = inSchedulerDayTimes
         .filter((dayTimes) => dayTimes.day == x)
         .map((dayTimes) => dayTimes.times)
         .flat();
 
-      console.log(inSchedulerDayTimes);
+      console.log(inSchedulerTimes);
+
+      const teacherInSchedulerTimes = teacherInSchedulerDayTimes
+        .filter((dayTimes) => dayTimes.day == x)
+        .map((dayTimes) => dayTimes.times)
+        .flat();
 
       if (subjectData?.teacher?.type == 'part-time') {
         const preffered = subjectData?.teacher?.preferredDayTimes.find(
@@ -871,7 +896,7 @@ export default function Scheduler({
                 });
 
                 for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-                  unavailableTimesY.push(i);
+                  if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
                 }
               }
             });
@@ -889,10 +914,25 @@ export default function Scheduler({
           });
 
           for (let i = timeStartIndex; i <= timeEndIndex; i++) {
-            unavailableTimesY.push(i);
+            if (!unavailableTimesY.includes(i)) unavailableTimesY.push(i);
           }
         });
       }
+
+      // if (teacherInSchedulerTimes.length) {
+      //   teacherInSchedulerTimes.forEach((scheduleTime) => {
+      //     const timeStartIndex = timeData.findIndex((time) => {
+      //       return time[0] == scheduleTime.start;
+      //     });
+      //     const timeEndIndex = timeData.findIndex((time) => {
+      //       return time[1] == scheduleTime.end;
+      //     });
+
+      //     for (let i = timeStartIndex; i <= timeEndIndex; i++) {
+      //       unavailableTimesY.push(i);
+      //     }
+      //   });
+      // }
 
       // console.log('Y', unavailableTimesY);
 

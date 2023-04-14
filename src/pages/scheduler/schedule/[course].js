@@ -395,8 +395,6 @@ export default function Schedule() {
     setRemoveRoom(true);
   }
 
-  console.log(formData);
-
   return (
     <>
       <PopupLoader isOpen={isSubmitting} message="Saving schedules..." />
