@@ -7,15 +7,6 @@ class Teacher extends Model {
   }
   async createTeacher(payload) {
     try {
-      // check if teacherId is used.
-      const isTeacher = await this.Teacher.find({
-        teacherId: payload.teacherId,
-      })
-        .select(['_id'])
-        .exec();
-      if (isTeacher.length) {
-        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
-      }
       const data = new this.Teacher(payload);
       await data.save();
       return data;
@@ -69,7 +60,7 @@ class Teacher extends Model {
       const pipeline = [
         {
           $project: {
-            teacherId: '$teacherId',
+           
             firstName: '$firstName',
             lastName: '$lastName',
             image: '$image',
@@ -117,7 +108,7 @@ class Teacher extends Model {
             firstName: 1,
             lastName: 1,
             type: 1,
-            teacherId: 1,
+       
             image: 1,
             preferredDays: '$preferredDayTimes',
           },
@@ -151,42 +142,19 @@ class Teacher extends Model {
       throw error;
     }
   }
-  async isTeacherExists({ id, teacherId }) {
+  async isTeacherExists({ id }) {
     try {
       const data = await this.Teacher.find({ _id: id }).exec();
       if (!data.length) {
         throw errorThrower('NotExists', 'Teacher is not exists.');
       }
-      // check if teacherId is already used.
-      const isTeacher = await this.Teacher.find({
-        teacherId: teacherId,
-      })
-        .select(['_id'])
-        .exec();
-      if (isTeacher.length) {
-        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
-      }
       return data;
     } catch (error) {
       throw error;
     }
   }
-  async isTeacherIdUsedOnUpdate({ teacherId, id }) {
-    try {
-      // fetch all the same teacherId but not the id of same document.
-      const data = await this.Teacher.find({
-        _id: { $ne: id },
-        teacherId: teacherId,
-      }).exec();
-      if (data.length) {
-        throw errorThrower('TeacherIdError', 'Teacher id should be unique.');
-      }
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }
-  async updateTeacher({ fields, id, teacherId }) {
+
+  async updateTeacher({ fields, id }) {
     try {
       // construct update fields
 
@@ -275,7 +243,7 @@ class Teacher extends Model {
             firstName: 1,
             lastName: 1,
             image: 1,
-            teacherId: 1,
+           
             type: 1,
             preferredDayTimes: 1,
           },

@@ -21,6 +21,22 @@ class Room extends Model {
       throw error;
     }
   }
+  async createRooms(documents) {
+    try {
+      const data = await this.Room.bulkWrite(
+        documents.map((room) => {
+          return {
+            insertOne: {
+              document: room,
+            },
+          };
+        })
+      );
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async getRoomsPaginate({ page, limit }) {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
@@ -321,7 +337,10 @@ class Room extends Model {
                                     $gt: ['$subjectScheds', 0],
                                   },
                                   then: {
-                                    $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                                    $arrayElemAt: [
+                                      '$subjectScheds.isMerged',
+                                      0,
+                                    ],
                                   },
                                   else: false,
                                 },
@@ -373,7 +392,7 @@ class Room extends Model {
                     {
                       $project: {
                         _id: 1,
-                        teacherId: 1,
+              
                         firstName: 1,
                         lastName: 1,
                       },
@@ -634,7 +653,12 @@ class Room extends Model {
                                     $expr: {
                                       $and: [
                                         { $eq: ['$yearSec.year', '$$year'] },
-                                        { $eq: ['$yearSec.section', '$$section'] },
+                                        {
+                                          $eq: [
+                                            '$yearSec.section',
+                                            '$$section',
+                                          ],
+                                        },
                                         { $eq: ['$subject', '$$subject_oid'] },
                                         { $eq: ['$course', '$$course_oid'] },
                                         { $eq: ['$semester', semester] },
@@ -661,7 +685,11 @@ class Room extends Model {
                                       $cond: {
                                         if: {
                                           $gt: [
-                                            { $size: ['$schedules.times.courses'] },
+                                            {
+                                              $size: [
+                                                '$schedules.times.courses',
+                                              ],
+                                            },
                                             1,
                                           ],
                                         },
@@ -694,7 +722,10 @@ class Room extends Model {
                                     $gt: ['$subjectScheds', 0],
                                   },
                                   then: {
-                                    $arrayElemAt: ['$subjectScheds.isMerged', 0],
+                                    $arrayElemAt: [
+                                      '$subjectScheds.isMerged',
+                                      0,
+                                    ],
                                   },
                                   else: false,
                                 },
@@ -746,7 +777,7 @@ class Room extends Model {
                     {
                       $project: {
                         _id: 1,
-                        teacherId: 1,
+                      
                         firstName: 1,
                         lastName: 1,
                       },

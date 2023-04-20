@@ -369,7 +369,7 @@ class Schedule extends Model {
               {
                 $project: {
                   _id: 1,
-                  teacherId: 1,
+             
                   firstName: 1,
                   lastName: 1,
                   type: 1,

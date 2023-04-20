@@ -27,6 +27,22 @@ class Subject extends Model {
       throw error;
     }
   }
+  async createSubjects(documents) {
+    try {
+      const data = await this.Subject.bulkWrite(
+        documents.map((subject) => {
+          return {
+            insertOne: {
+              document: subject,
+            },
+          };
+        })
+      );
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async removeTeacherFromSubjects({ teacher_id }) {
     try {
       const data = await this.Subject.updateMany(
