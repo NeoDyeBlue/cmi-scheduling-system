@@ -5,6 +5,7 @@ import { Button } from '../Buttons';
 import { useEffect, useState } from 'react';
 import { PopupLoader } from '../Loaders';
 import Image from 'next/image';
+import { sheetSchema } from '@/lib/validators/sheet-validator';
 
 export default function SheetForm({
   name = '',
@@ -19,9 +20,10 @@ export default function SheetForm({
   const [isLoading, setIsLoading] = useState(false);
   const sheetFormik = useFormik({
     initialValues: {
-      sheet: '',
+      file: '',
     },
     onSubmit: handleSubmit,
+    validationSchema: sheetSchema,
   });
 
   const [openFileSelector, { filesContent, errors }] = useFilePicker({
@@ -59,7 +61,7 @@ export default function SheetForm({
   }
   useEffect(() => {
     if (filesContent[0]?.content) {
-      sheetFormik.setFieldValue('sheet', filesContent[0]?.content);
+      sheetFormik.setFieldValue('file', filesContent[0]?.content);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesContent]);
