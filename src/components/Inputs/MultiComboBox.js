@@ -125,9 +125,7 @@ export default function MultiComboBox({
           if (newSelectedItem) {
             if (selectionType == 'teacher') {
               if (
-                !selectedItems.some(
-                  (item) => item.teacherId == newSelectedItem.teacherId
-                )
+                !selectedItems.some((item) => item._id == newSelectedItem._id)
               ) {
                 const { image, ...newSelected } = newSelectedItem;
                 setSelectedItems([...selectedItems, newSelected]);
@@ -166,7 +164,7 @@ export default function MultiComboBox({
     const teacherSelectionItems = teachers.map((teacher, index) => (
       <li
         className="flex cursor-pointer gap-3 overflow-hidden p-3 hover:bg-primary-400 hover:text-white"
-        key={`${teacher.teacherId}`}
+        key={`${teacher._id}`}
         {...getItemProps({ teacher, index })}
       >
         <ImageWithFallback
