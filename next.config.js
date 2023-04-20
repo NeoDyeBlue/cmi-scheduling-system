@@ -13,7 +13,7 @@ const nextConfig = {
   // experimental: {
   //   largePageDataBytes: 128 * 1000000
   // }
-  webpack5: true,
+  // webpack5: true,
   webpack: (config) => {
     config.resolve.fallback = { fs: false, child_process: false };
 

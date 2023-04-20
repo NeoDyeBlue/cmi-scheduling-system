@@ -43,7 +43,7 @@ export default function DraggableSchedule({ data }) {
   const assignedCourses = useMemo(
     () =>
       subjectsData.find(
-        (subjData) => subjData.id == `${data.code}~${data.teacher._id}`
+        (subjData) => subjData.id == `${data?.code}~${data?.teacher?._id}`
       )?.data?.teacher?.assignedCourses || [],
     [subjectsData, data]
   );
