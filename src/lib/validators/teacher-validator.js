@@ -18,10 +18,10 @@ function isAfterStartTime(startTime, endTime) {
 }
 
 export const teacherSchema = yup.object().shape({
-  teacherId: yup
-    .string()
-    .matches(/^\d{2}-\d{4}$/, 'Please enter a valid format like ##-####')
-    .required('Required'),
+  // teacherId: yup
+  //   .string()
+  //   .matches(/^\d{2}-\d{4}$/, 'Please enter a valid format like ##-####')
+  //   .required('Required'),
   firstName: yup.string().required('Required'),
   lastName: yup.string().required('Required'),
   type: yup.string().oneOf(['part-time', 'full-time']).required('Required'),

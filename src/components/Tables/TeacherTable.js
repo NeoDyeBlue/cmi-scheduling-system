@@ -48,10 +48,10 @@ export default function TeacherTable({ data, mutate = () => {} }) {
           </span>
         ),
       },
-      {
-        Header: 'ID',
-        accessor: 'teacherId', // accessor is the "key" in the data
-      },
+      // {
+      //   Header: 'ID',
+      //   accessor: 'teacherId', // accessor is the "key" in the data
+      // },
       {
         Header: 'Image',
         accessor: 'image', // accessor is the "key" in the data
@@ -248,9 +248,7 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                         key={index}
                         {...cell.getCellProps()}
                         className={classNames('p-4', {
-                          'whitespace-nowrap font-semibold uppercase':
-                            index == 1,
-                          'min-w-[150px]': index == 3 || index == 4,
+                          'min-w-[150px]': index == 2 || index == 3,
                         })}
                       >
                         {cell.column.Header == 'Image' && (

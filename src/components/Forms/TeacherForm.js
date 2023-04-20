@@ -22,7 +22,7 @@ export default function TeacherForm({
   const [isLoading, setIsLoading] = useState(false);
   const teacherFormik = useFormik({
     initialValues: {
-      teacherId: initialData?.teacherId || '',
+      // teacherId: initialData?.teacherId || '',
       image: initialData?.image || '',
       firstName: initialData?.firstName || '',
       lastName: initialData?.lastName || '',
@@ -85,12 +85,12 @@ export default function TeacherForm({
           label="Teacher Picture"
           infoMessage="File should be in '.jpg' or '.png', max file size is 5mb"
         />
-        <InputField
+        {/* <InputField
           type="text"
           name="teacherId"
           label="Teacher ID"
           placeholder="e.g. 11-1111"
-        />
+        /> */}
         <InputField type="text" name="firstName" label="First Name" />
         <InputField type="text" name="lastName" label="Last Name" />
         <RadioSelect
