@@ -72,9 +72,17 @@ export default function SheetForm({
       />
       <Form className="flex flex-col gap-6">
         <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-50 p-4">
-          <p className="-mb-1 text-center text-sm font-bold">Chosen File</p>
-          <p className="w-full text-center text-lg">&quot;filename&quot;</p>
+          {filesContent.length ? (
+            <>
+              <p className="-mb-1 text-center text-sm font-bold">Chosen File</p>
+              <p className="w-full text-center text-lg">
+                &quot;{filesContent[0].name}&quot;
+              </p>
+            </>
+          ) : null}
           <button
+            onClick={openFileSelector}
+            type="button"
             className="flex h-[36px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-500
         py-1 px-3 text-white hover:bg-green-600"
           >
