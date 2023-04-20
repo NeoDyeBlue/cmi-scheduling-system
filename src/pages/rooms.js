@@ -3,15 +3,17 @@ import { MainLayout } from '@/components/Layouts';
 import { RoomTable } from '@/components/Tables';
 import { SearchForm } from '@/components/Forms';
 import { CreateButton } from '@/components/Buttons';
+import { MdTableView } from 'react-icons/md';
 import { useState } from 'react';
 import { Modal } from '@/components/Modals';
-import { RoomForm } from '@/components/Forms';
+import { RoomForm, SheetForm } from '@/components/Forms';
 import usePaginate from '@/hooks/usePaginate';
 import ReactPaginate from 'react-paginate';
 import { SpinnerLoader } from '@/components/Loaders';
 
 export default function Rooms() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
     url: `/api/rooms${searchValue ? '/search' : ''}`,
@@ -43,6 +45,21 @@ export default function Rooms() {
             }}
           />
         </Modal>
+        <Modal
+          label="Import Rooms"
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+        >
+          <SheetForm
+            name="rooms"
+            requiredColumns={['code', 'name']}
+            onCancel={() => setIsImportOpen(false)}
+            onAfterSubmit={() => {
+              setIsImportOpen(false);
+              mutate();
+            }}
+          />
+        </Modal>
         <div className="flex items-center justify-between gap-4">
           <div className="w-full max-w-[350px]">
             <SearchForm
@@ -50,7 +67,17 @@ export default function Rooms() {
               onSearch={(value) => setSearchValue(value)}
             />
           </div>
-          <CreateButton onClick={() => setIsModalOpen(true)} text="New Room" />
+          <div className="flex gap-2">
+            <CreateButton
+              onClick={() => setIsImportOpen(true)}
+              icon={<MdTableView size={24} />}
+              text="Import Rooms"
+            />
+            <CreateButton
+              onClick={() => setIsModalOpen(true)}
+              text="New Room"
+            />
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}

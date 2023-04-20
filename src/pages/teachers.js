@@ -2,16 +2,18 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import { CreateButton } from '@/components/Buttons';
 import { Modal } from '@/components/Modals';
-import { SearchForm, TeacherForm } from '@/components/Forms';
+import { SearchForm, TeacherForm, SheetForm } from '@/components/Forms';
 import { useState } from 'react';
 import { TeacherTable } from '@/components/Tables';
 import usePaginate from '@/hooks/usePaginate';
 import ReactPaginate from 'react-paginate';
 import { SpinnerLoader } from '@/components/Loaders';
+import { MdTableView } from 'react-icons/md';
 
 export default function Teachers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
     url: `/api/teachers${searchValue ? '/search' : ''}`,
     limit: 10,
@@ -26,6 +28,21 @@ export default function Teachers() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
+        <Modal
+          label="Import Teachers"
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+        >
+          <SheetForm
+            name="teachers"
+            requiredColumns={['firstName', 'lastName', 'type']}
+            onCancel={() => setIsImportOpen(false)}
+            onAfterSubmit={() => {
+              setIsImportOpen(false);
+              mutate();
+            }}
+          />
+        </Modal>
         <Modal
           label="New Teacher"
           isOpen={isModalOpen}
@@ -46,10 +63,17 @@ export default function Teachers() {
               onSearch={(value) => setSearchValue(value)}
             />
           </div>
-          <CreateButton
-            onClick={() => setIsModalOpen(true)}
-            text="New Teacher"
-          />
+          <div className="flex gap-2">
+            <CreateButton
+              onClick={() => setIsImportOpen(true)}
+              icon={<MdTableView size={24} />}
+              text="Import Teachers"
+            />
+            <CreateButton
+              onClick={() => setIsModalOpen(true)}
+              text="New Teacher"
+            />
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}

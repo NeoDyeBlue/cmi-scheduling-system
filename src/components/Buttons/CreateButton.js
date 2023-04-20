@@ -2,13 +2,13 @@ import { MdAdd } from 'react-icons/md';
 import classNames from 'classnames';
 
 export default function CreateButton({
-  children,
   onClick,
   disabled = false,
   fullWidth = false,
   type,
   small = false,
   text,
+  icon = <MdAdd size={24} />,
 }) {
   return (
     <button
@@ -23,7 +23,7 @@ export default function CreateButton({
         { 'px-3 py-2': small, 'px-4 py-3': !small }
       )}
     >
-      <MdAdd size={24} /> {text}
+      {icon} {text}
     </button>
   );
 }

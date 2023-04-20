@@ -3,16 +3,18 @@ import { CreateButton } from '../Buttons';
 import React from 'react';
 import classNames from 'classnames';
 import { Modal } from '../Modals';
-import { SubjectForm, SearchForm } from '../Forms';
+import { SubjectForm, SearchForm, SheetForm } from '../Forms';
 import usePaginate from '@/hooks/usePaginate';
 import { SpinnerLoader } from '../Loaders';
 import ReactPaginate from 'react-paginate';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import SubjectTable from './SubjectTable';
+import { MdTableView } from 'react-icons/md';
 
 export default function PerTypeSubjectTable({ type }) {
   const tabs = ['1', '2'];
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [activeTab, setActiveTab] = useState(tabs[0]);
   // const subjects = useMemo(() => data, [data]);
@@ -28,6 +30,22 @@ export default function PerTypeSubjectTable({ type }) {
   });
   return (
     <>
+      <Modal
+        label="Import Subjects"
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+      >
+        <SheetForm
+          name="subjects"
+          requiredColumns={['code', 'name', 'semester', 'units']}
+          warningMessage="Successful import will remove all previously saved College and SHS subjects!"
+          onCancel={() => setIsImportOpen(false)}
+          onAfterSubmit={() => {
+            setIsImportOpen(false);
+            mutate();
+          }}
+        />
+      </Modal>
       <Modal
         label={'New Subject'}
         isOpen={isModalOpen}
@@ -50,7 +68,17 @@ export default function PerTypeSubjectTable({ type }) {
             onSearch={(value) => setSearchValue(value)}
           />
         </div>
-        <CreateButton onClick={() => setIsModalOpen(true)} text="New Subject" />
+        <div className="flex gap-2">
+          <CreateButton
+            onClick={() => setIsImportOpen(true)}
+            icon={<MdTableView size={24} />}
+            text="Import Subjects"
+          />
+          <CreateButton
+            onClick={() => setIsModalOpen(true)}
+            text="New Subject"
+          />
+        </div>
       </div>
       <Tabs
         className="flex flex-col"

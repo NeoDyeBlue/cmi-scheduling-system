@@ -1,7 +1,7 @@
 import { useTable } from 'react-table';
 import { useMemo, useState } from 'react';
 import { ActionButton, CreateButton } from '../Buttons';
-import { MdDelete, MdEdit } from 'react-icons/md';
+import { MdDelete, MdEdit, MdTableView } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
 import { Modal, Confirmation } from '../Modals';
-import { CourseForm, SearchForm } from '../Forms';
+import { CourseForm, SearchForm, SheetForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
 import { SpinnerLoader } from '../Loaders';
@@ -19,7 +19,8 @@ export default function CourseTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toEditTeacherData, setToEditTeacherData] = useState(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [toEditCourse, setToEditCourse] = useState(null);
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -65,7 +66,7 @@ export default function CourseTable({ type }) {
               toolTipId="edit"
               toolTipContent="Edit"
               onClick={() => {
-                setToEditTeacherData(cell.row.original);
+                setToEditCourse(cell.row.original);
                 setIsModalOpen(true);
               }}
             />
@@ -133,19 +134,34 @@ export default function CourseTable({ type }) {
         onConfirm={deleteItem}
       />
       <Modal
-        label={toEditTeacherData ? 'Edit Course' : 'New Course'}
+        label="Import Courses"
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+      >
+        <SheetForm
+          name="courses"
+          requiredColumns={['code', 'name', 'years']}
+          onCancel={() => setIsImportOpen(false)}
+          onAfterSubmit={() => {
+            setIsImportOpen(false);
+            mutate();
+          }}
+        />
+      </Modal>
+      <Modal
+        label={toEditCourse ? 'Edit Course' : 'New Course'}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setToEditTeacherData(null);
+          setToEditCourse(null);
         }}
       >
         <CourseForm
-          initialData={toEditTeacherData || null}
+          initialData={toEditCourse || null}
           onCancel={() => setIsModalOpen(false)}
           onAfterSubmit={() => {
             setIsModalOpen(false);
-            setToEditTeacherData(null);
+            setToEditCourse(null);
             mutate();
           }}
         />
@@ -157,7 +173,17 @@ export default function CourseTable({ type }) {
             onSearch={(value) => setSearchValue(value)}
           />
         </div>
-        <CreateButton onClick={() => setIsModalOpen(true)} text="New Course" />
+        <div className="flex gap-2">
+          <CreateButton
+            onClick={() => setIsImportOpen(true)}
+            icon={<MdTableView size={24} />}
+            text="Import Courses"
+          />
+          <CreateButton
+            onClick={() => setIsModalOpen(true)}
+            text="New Courses"
+          />
+        </div>
       </div>
       {isLoading && !docs?.length ? <SpinnerLoader size={36} /> : null}
       {!isLoading && !docs.length ? (
