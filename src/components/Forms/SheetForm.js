@@ -66,6 +66,8 @@ export default function SheetForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesContent]);
 
+  console.log(sheetFormik.errors);
+
   return (
     <FormikProvider value={sheetFormik}>
       <PopupLoader
@@ -83,13 +85,19 @@ export default function SheetForm({
             </>
           ) : null}
           <button
-            onClick={openFileSelector}
+            onClick={() => {
+              sheetFormik.setFieldTouched('file');
+              openFileSelector();
+            }}
             type="button"
             className="flex h-[36px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-green-500
         py-1 px-3 text-white hover:bg-green-600"
           >
             <MdUploadFile size={24} /> Choose a spreadsheet file
           </button>
+          {sheetFormik.errors?.file && sheetFormik.touched?.file && (
+            <p className="text-sm text-danger-500">{sheetFormik.errors.file}</p>
+          )}
           <p className="flex text-center text-sm">
             <MdWarning size={16} className="text-warning-500" />
             {warningMessage
