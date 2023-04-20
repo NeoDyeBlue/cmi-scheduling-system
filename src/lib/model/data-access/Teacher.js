@@ -23,6 +23,22 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async createTeachers(documents) {
+    try {
+      const data = await this.Teacher.bulkWrite(
+        documents.map((teacher) => {
+          return {
+            insertOne: {
+              document: teacher,
+            },
+          };
+        })
+      );
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async getTeachersCount() {
     try {
       const pipeline = [
