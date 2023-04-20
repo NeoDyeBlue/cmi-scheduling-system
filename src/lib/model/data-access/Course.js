@@ -38,7 +38,7 @@ class Course extends Model {
           },
         }
       ).exec();
-      
+
       return data;
     } catch (error) {
       console.log('error', error);
