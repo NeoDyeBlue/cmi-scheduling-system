@@ -96,6 +96,14 @@ class Room extends Model {
       throw error;
     }
   }
+  async deleteAllRooms() {
+    try {
+      const data = await this.Room.deleteMany({});
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async deleteRoom({ id }) {
     try {
       const data = await this.Room.findOneAndDelete({ _id: id }).exec();

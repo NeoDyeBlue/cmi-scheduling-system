@@ -43,6 +43,14 @@ class Subject extends Model {
       throw error;
     }
   }
+  async deleteAllSubjects() {
+    try {
+      const data = await this.Subject.deleteMany({});
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async removeTeacherFromSubjects({ teacher_id }) {
     try {
       const data = await this.Subject.updateMany(

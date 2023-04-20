@@ -25,7 +25,11 @@ const teacher = new mongoose.Schema({
   middleName: { type: String },
   lastName: { type: String },
   image: { type: String },
-  type: { type: String, default: 'full-time' },
+  type: {
+    type: String,
+    default: 'full-time',
+    enum: ['full-time', 'part-time'],
+  },
   preferredDayTimes: [preferredDayTimes],
   assignedSubjects: [assignedSubjectsSchema],
 });

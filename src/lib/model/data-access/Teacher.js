@@ -131,6 +131,14 @@ class Teacher extends Model {
       throw error;
     }
   }
+  async deleteAllTeachers() {
+    try {
+      const data = await this.Teacher.deleteMany({});
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async deleteTeacher({ id }) {
     try {
       const data = await this.Teacher.findOneAndDelete({ _id: id }).exec();

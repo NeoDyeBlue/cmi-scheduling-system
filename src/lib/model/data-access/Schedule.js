@@ -218,6 +218,14 @@ class Schedule extends Model {
       throw error;
     }
   }
+  async deleteAllSchedule() {
+    try {
+      const data = this.Schedule.deleteMany({});
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async deleteSchedulesBySubject({ subject_id }) {
     try {
       const data = await this.Schedule.deleteMany({ subject: subject_id });
@@ -369,7 +377,7 @@ class Schedule extends Model {
               {
                 $project: {
                   _id: 1,
-             
+
                   firstName: 1,
                   lastName: 1,
                   type: 1,

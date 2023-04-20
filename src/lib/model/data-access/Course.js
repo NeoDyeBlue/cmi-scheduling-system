@@ -39,6 +39,14 @@ class Course extends Model {
       throw error;
     }
   }
+  async deleteAllCourses() {
+    try {
+      const data = await this.Course.deleteMany({});
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
   async removeSubjectFromCourses({ subject_id }) {
     try {
       const data = await this.Course.updateMany(
@@ -505,7 +513,7 @@ class Course extends Model {
                     {
                       $project: {
                         _id: 1,
-                      
+
                         firstName: 1,
                         lastName: 1,
                         image: 1,
@@ -633,7 +641,7 @@ class Course extends Model {
                                 {
                                   $project: {
                                     _id: 1,
-                                  
+
                                     firstName: 1,
                                     lastName: 1,
                                   },
@@ -774,7 +782,7 @@ class Course extends Model {
                     {
                       $project: {
                         _id: 1,
-                       
+
                         firstName: 1,
                         lastName: 1,
                         image: 1,
