@@ -11,8 +11,8 @@ export default function SheetForm({
   sheetSampleImage = '',
   warningMessage = '',
   message = '',
+  seedFor = '',
   requiredColumns = [],
-  submitUrl = '',
   onAfterSubmit = () => {},
   onCancel,
 }) {
@@ -37,7 +37,7 @@ export default function SheetForm({
   async function handleSubmit(values) {
     try {
       setIsLoading(true);
-      const res = await fetch(submitUrl, {
+      const res = await fetch(`/api/seeding?type=${seedFor}`, {
         method: 'POST',
         body: JSON.stringify({
           ...values,

@@ -140,6 +140,7 @@ export default function CourseTable({ type }) {
       >
         <SheetForm
           name="courses"
+          seedFor="courses"
           requiredColumns={['code', 'name', 'years']}
           onCancel={() => setIsImportOpen(false)}
           onAfterSubmit={() => {

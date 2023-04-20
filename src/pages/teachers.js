@@ -35,6 +35,7 @@ export default function Teachers() {
         >
           <SheetForm
             name="teachers"
+            seedFor="teachers"
             requiredColumns={['firstName', 'lastName', 'type']}
             onCancel={() => setIsImportOpen(false)}
             onAfterSubmit={() => {
