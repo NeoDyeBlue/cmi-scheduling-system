@@ -51,7 +51,7 @@ export default function MultiComboBox({
         }
       };
     }
-  }, [inputValue, searchUrl, filter]);
+  }, [inputValue]);
 
   useEffect(
     () => {

@@ -11,7 +11,6 @@ export const subjectSchema = yup.object().shape({
     .nullable()
     .of(
       yup.object().shape({
-        teacherId: yup.string().required('Teacher ID is required'),
         firstName: yup.string().required('First Name is required'),
         lastName: yup.string().required('Last Name is required'),
         type: yup
