@@ -38,7 +38,28 @@ export default function PerTypeSubjectTable({ type }) {
         <SheetForm
           name="subjects"
           seedFor="subjects"
-          requiredColumns={['code', 'name', 'semester', 'units']}
+          requiredColumns={[
+            {
+              columnName: 'code',
+              description: 'the subject code e.g. APPSDEV',
+            },
+            {
+              columnName: 'name',
+              description: 'the subject name',
+            },
+            {
+              columnName: 'semester',
+              description: 'what semester the subject will be taken ',
+            },
+            {
+              columnName: 'type',
+              description: "either'college' or 'shs'",
+            },
+            {
+              columnName: 'units',
+              description: 'the subject units',
+            },
+          ]}
           warningMessage="Successful import will remove all previously saved College and SHS subjects!"
           onCancel={() => setIsImportOpen(false)}
           onAfterSubmit={() => {

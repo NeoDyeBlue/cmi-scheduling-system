@@ -36,7 +36,21 @@ export default function Teachers() {
           <SheetForm
             name="teachers"
             seedFor="teachers"
-            requiredColumns={['firstName', 'lastName', 'type']}
+            requiredColumns={[
+              {
+                columnName: 'firstName',
+                description: "the teacher's first name",
+              },
+              {
+                columnName: 'lastName',
+                description: "the teacher's last name",
+              },
+              {
+                columnName: 'type',
+                description: "either 'part-time' or 'full-time'",
+              },
+            ]}
+            sheetSampleImage="/images/sample-sheets/teachers.png"
             onCancel={() => setIsImportOpen(false)}
             onAfterSubmit={() => {
               setIsImportOpen(false);

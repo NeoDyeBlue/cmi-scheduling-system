@@ -2,16 +2,14 @@ import { useFilePicker } from 'use-file-picker';
 import { FormikProvider, Form, useFormik } from 'formik';
 import { MdUploadFile, MdWarning } from 'react-icons/md';
 import { Button } from '../Buttons';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { PopupLoader } from '../Loaders';
-import Image from 'next/image';
 import { sheetSchema } from '@/lib/validators/sheet-validator';
 
 export default function SheetForm({
   name = '',
   sheetSampleImage = '',
   warningMessage = '',
-  message = '',
   seedFor = '',
   requiredColumns = [],
   onAfterSubmit = () => {},
@@ -66,15 +64,13 @@ export default function SheetForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filesContent]);
 
-  console.log(sheetFormik.errors);
-
   return (
     <FormikProvider value={sheetFormik}>
       <PopupLoader
         message={`importing ${name} please wait...`}
         isOpen={isLoading}
       />
-      <Form className="flex flex-col gap-6">
+      <Form className="relative flex flex-col gap-6">
         <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-50 p-4">
           {filesContent.length ? (
             <>
@@ -102,7 +98,7 @@ export default function SheetForm({
             <MdWarning size={16} className="text-warning-500" />
             {warningMessage
               ? warningMessage
-              : 'Successful import will remove all previously saved data!'}
+              : 'Successful import will remove all previously saved data and will affect schedules!'}
           </p>
         </div>
         <div className="flex flex-col gap-2">
@@ -114,10 +110,17 @@ export default function SheetForm({
               Choose a spreadsheet file with these column names in the first
               sheet:
             </p>
-            <ul className="list-disc pl-6">
+            <ul className="flex list-disc flex-col pl-6">
               {requiredColumns.map((column, index) => (
-                <li className="font-medium" key={index}>
-                  {column}
+                <li
+                  className="flex flex list-none gap-2 border-b border-gray-100 py-2"
+                  key={index}
+                >
+                  <span className="mt-3 inline-block h-1 w-1 rounded-full bg-ship-gray-900"></span>
+                  <div>
+                    <p className="font-semibold">{column.columnName}</p>
+                    <p className="text-sm">{column.description}</p>
+                  </div>
                 </li>
               ))}
             </ul>

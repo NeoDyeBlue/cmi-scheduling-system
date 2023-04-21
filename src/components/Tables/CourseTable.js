@@ -141,7 +141,26 @@ export default function CourseTable({ type }) {
         <SheetForm
           name="courses"
           seedFor="courses"
-          requiredColumns={['code', 'name', 'years']}
+          requiredColumns={[
+            {
+              columnName: 'code',
+              description: 'the course code e.g. BSCS',
+            },
+            ,
+            {
+              columnName: 'name',
+              description: 'the course name',
+            },
+            ,
+            {
+              columnName: 'years',
+              description: 'how many years are in the course',
+            },
+            {
+              columnName: 'type',
+              description: "either 'college' or 'shs'",
+            },
+          ]}
           onCancel={() => setIsImportOpen(false)}
           onAfterSubmit={() => {
             setIsImportOpen(false);

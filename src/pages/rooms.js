@@ -53,7 +53,16 @@ export default function Rooms() {
           <SheetForm
             name="rooms"
             seedFor="rooms"
-            requiredColumns={['code', 'name']}
+            requiredColumns={[
+              {
+                columnName: 'code',
+                description: 'the room code e.g. CB205',
+              },
+              {
+                columnName: 'name',
+                description: 'the room name',
+              },
+            ]}
             onCancel={() => setIsImportOpen(false)}
             onAfterSubmit={() => {
               setIsImportOpen(false);
