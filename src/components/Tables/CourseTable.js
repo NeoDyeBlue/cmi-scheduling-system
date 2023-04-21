@@ -198,6 +198,7 @@ export default function CourseTable({ type }) {
             onClick={() => setIsImportOpen(true)}
             icon={<MdTableView size={24} />}
             text="Import Courses"
+            isForImporting
           />
           <CreateButton
             onClick={() => setIsModalOpen(true)}

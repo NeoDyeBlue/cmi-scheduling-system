@@ -82,6 +82,7 @@ export default function Rooms() {
               onClick={() => setIsImportOpen(true)}
               icon={<MdTableView size={24} />}
               text="Import Rooms"
+              isForImporting
             />
             <CreateButton
               onClick={() => setIsModalOpen(true)}

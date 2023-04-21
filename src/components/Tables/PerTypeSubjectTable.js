@@ -95,6 +95,7 @@ export default function PerTypeSubjectTable({ type }) {
             onClick={() => setIsImportOpen(true)}
             icon={<MdTableView size={24} />}
             text="Import Subjects"
+            isForImporting
           />
           <CreateButton
             onClick={() => setIsModalOpen(true)}
