@@ -60,7 +60,6 @@ class Teacher extends Model {
       const pipeline = [
         {
           $project: {
-           
             firstName: '$firstName',
             lastName: '$lastName',
             image: '$image',
@@ -108,7 +107,7 @@ class Teacher extends Model {
             firstName: 1,
             lastName: 1,
             type: 1,
-       
+
             image: 1,
             preferredDays: '$preferredDayTimes',
           },
@@ -251,7 +250,7 @@ class Teacher extends Model {
             firstName: 1,
             lastName: 1,
             image: 1,
-           
+
             type: 1,
             preferredDayTimes: 1,
           },

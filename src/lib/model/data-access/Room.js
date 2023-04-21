@@ -400,7 +400,7 @@ class Room extends Model {
                     {
                       $project: {
                         _id: 1,
-              
+
                         firstName: 1,
                         lastName: 1,
                       },
@@ -785,7 +785,7 @@ class Room extends Model {
                     {
                       $project: {
                         _id: 1,
-                      
+
                         firstName: 1,
                         lastName: 1,
                       },

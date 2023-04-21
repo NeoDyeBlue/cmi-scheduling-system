@@ -17,26 +17,30 @@ export const handler = async (req, res) => {
       const { type } = req.query;
       const { file } = req.body;
       // delete all schedule
-      await schedule.deleteAllSchedule();
+
       // console.log('file:', req.body);
       if (type === 'teachers' && file) {
         await teacher.deleteAllTeachers();
         const documents = convertExcelToJson(file);
         data = await teacher.createTeachers(documents);
       } else if (type === 'courses' && file) {
-        await course.deleteAllCourses();
         const documents = convertExcelToJson(file);
         validateCourses(documents);
+        await schedule.deleteAllSchedule();
+        await course.deleteAllCourses();
         data = await course.createCourses(documents);
       } else if (type === 'subjects' && file) {
-        await subject.deleteAllSubjects();
         const documents = convertExcelToJson(file);
         valiDateSubjects(documents);
+        await schedule.deleteAllSchedule();
+        await subject.deleteAllSubjects();
+
         data = await subject.createSubjects(documents);
       } else if (type === 'rooms' && file) {
-        await room.deleteAllRooms();
         const documents = convertExcelToJson(file);
         validateRooms(documents);
+        await schedule.deleteAllSchedule();
+        await room.deleteAllRooms();
         data = await room.createRooms(documents);
       }
       return successResponse(req, res, data);

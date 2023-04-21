@@ -76,11 +76,6 @@ export const handler = async (req, res) => {
       const isTeacher = await teacher.isTeacherExists({
         id,
       });
-      // is teacherId used.
-      await teacher.isTeacherIdUsedOnUpdate({
-        teacherId: payload.teacherId,
-        id,
-      });
       let filePath = undefined;
       if (image?.length > 200 && isTeacher) {
         // delete image

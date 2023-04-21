@@ -8,7 +8,7 @@ import schedule from './schema/schedule-schema';
 import course from './schema/course-schema';
 
 class Model extends MongoConnect {
-  constructor() {
+   constructor() {
     super();
     this.connect();
     this.db = mongoose.connection;
