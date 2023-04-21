@@ -83,6 +83,7 @@ export default function Teachers() {
               onClick={() => setIsImportOpen(true)}
               icon={<MdTableView size={24} />}
               text="Import Teachers"
+              isForImporting
             />
             <CreateButton
               onClick={() => setIsModalOpen(true)}
