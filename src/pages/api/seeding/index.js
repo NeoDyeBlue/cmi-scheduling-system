@@ -5,6 +5,11 @@ import course from '@/lib/model/data-access/Course';
 import subject from '@/lib/model/data-access/Subject';
 import room from '@/lib/model/data-access/Room';
 import schedule from '@/lib/model/data-access/Schedule';
+import {
+  validateRooms,
+  validateCourses,
+  valiDateSubjects,
+} from '@/utils/seeding.validations.utils';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
@@ -13,7 +18,7 @@ export const handler = async (req, res) => {
       const { file } = req.body;
       // delete all schedule
       await schedule.deleteAllSchedule();
-      console.log('file:', req.body);
+      // console.log('file:', req.body);
       if (type === 'teachers' && file) {
         await teacher.deleteAllTeachers();
         const documents = convertExcelToJson(file);
@@ -21,14 +26,17 @@ export const handler = async (req, res) => {
       } else if (type === 'courses' && file) {
         await course.deleteAllCourses();
         const documents = convertExcelToJson(file);
+        validateCourses(documents);
         data = await course.createCourses(documents);
       } else if (type === 'subjects' && file) {
         await subject.deleteAllSubjects();
         const documents = convertExcelToJson(file);
+        valiDateSubjects(documents);
         data = await subject.createSubjects(documents);
       } else if (type === 'rooms' && file) {
         await room.deleteAllRooms();
         const documents = convertExcelToJson(file);
+        validateRooms(documents);
         data = await room.createRooms(documents);
       }
       return successResponse(req, res, data);
