@@ -27,7 +27,7 @@ export default function CreateButton({
           'bg-green-500 text-white hover:bg-green-600 active:bg-green-700':
             !isForImporting,
         },
-        { 'px-3 py-2': small, 'px-4 py-3': !small }
+        { 'px-2 py-1': small, 'px-3 py-2': !small }
       )}
     >
       {icon} {text}
