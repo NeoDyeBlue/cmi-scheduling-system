@@ -96,7 +96,7 @@ export default function Sidebar() {
           name="Courses"
         />
       </ul>
-      <p className="text-sm">{isMinimized ? '❣️' : 'BSCS 2023'}</p>
+      <p className="text-sm">{isMinimized ? '•' : 'BSCS 2019-2023'}</p>
       <button
         onClick={() => setIsMinimized(!isMinimized)}
         className="absolute bottom-[15%] right-[-15px] hidden aspect-square h-[30px] w-[30px] rounded-full border border-gray-300 bg-white
