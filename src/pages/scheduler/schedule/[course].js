@@ -477,8 +477,8 @@ export default function Schedule() {
   }
 
   //logs
-  console.log(oldSchedsData);
-  console.log(roomsSubjScheds);
+  // console.log(oldSchedsData);
+  // console.log(roomsSubjScheds);
 
   return (
     <>

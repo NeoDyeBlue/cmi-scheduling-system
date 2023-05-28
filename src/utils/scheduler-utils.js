@@ -242,7 +242,6 @@ function createSchedules(
   timeData = [],
   room
 ) {
-  // console.log(subjectData);
   const schedules = subjSchedLayoutItems.map((item) => ({
     day: item.x,
     time: {

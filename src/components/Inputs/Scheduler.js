@@ -526,6 +526,7 @@ export default function Scheduler({
       const newSchedules = updatedRoomSchedules
         .map((schedule) => schedule.schedules)
         .flat();
+
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
       if (!oldSchedules.length && newSchedules.length) {
         setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
@@ -1335,7 +1336,11 @@ export default function Scheduler({
           }
         });
       }
-      if (layoutItem.x !== 0 && layoutItem.x !== 8) {
+      if (
+        layoutItem.x !== 0 &&
+        layoutItem.x !== 8 &&
+        layoutItem.y !== timeData.length
+      ) {
         const layoutItemId = createLayoutItemId(
           data.code,
           data.teacher._id,
@@ -1466,15 +1471,18 @@ export default function Scheduler({
         label="Remove Merged Class Schedule?"
         message="It will also remove the schedule from the other classes"
       />
-      <div className="sticky top-0 z-[1] grid h-[40px] grid-cols-9 grid-rows-1">
+      <div className="sticky top-0 z-[2] grid h-[40px] grid-cols-9 grid-rows-1">
         {headerColumns}
       </div>
+      {/* <div className="grid-rows-auto sticky left-0 z-[1] grid w-fit grid-cols-1">
+        {timeRows}
+      </div> */}
       <ResponsiveGridLayout
         className="grid-lines h-full w-full"
         layout={layout}
         cols={headerColumns.length}
         rowHeight={40}
-        maxRows={timeRows.length + 1}
+        maxRows={timeData.length}
         onDrop={onDrop}
         onLayoutChange={handleLayoutChange}
         resizeHandles={['s']}
@@ -1482,7 +1490,6 @@ export default function Scheduler({
         margin={[0, 0]}
         preventCollision
         compactType={null}
-        // allowOverlap={allowMerging}
         isDroppable
         onDropDragOver={onDropDragOver}
         onDragStart={onDragStart}
