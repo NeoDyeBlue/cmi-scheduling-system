@@ -538,7 +538,10 @@ export default function Schedule() {
       <div className="relative grid h-screen grid-cols-1 grid-rows-[auto_1fr] overflow-hidden">
         <div className="flex items-center gap-4 border-b border-gray-300 p-4">
           <button
-            onClick={checkForChanges}
+            onClick={() => {
+              router.push('/scheduler');
+              reset();
+            }}
             href="/scheduler"
             className="flex items-center justify-center rounded-lg bg-gradient-to-br
              from-primary-600 to-primary-900 p-2 text-white hover:shadow-md"
@@ -560,14 +563,17 @@ export default function Schedule() {
             </h1>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button secondary small onClick={checkForChanges}>
+            <Button
+              secondary
+              small
+              onClick={() => {
+                router.push('/scheduler');
+                reset();
+              }}
+            >
               Cancel
             </Button>
-            <Button
-              small
-              onClick={submitChanges}
-              disabled={_.isEqual(roomsSubjScheds, oldSchedsData)}
-            >
+            <Button small onClick={submitChanges}>
               Done
             </Button>
           </div>
