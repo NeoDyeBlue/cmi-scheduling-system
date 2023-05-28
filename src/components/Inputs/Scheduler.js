@@ -520,8 +520,14 @@ export default function Scheduler({
       });
       setSubjectScheds(groupedCourseScheds);
       setAllRoomSubjScheds(_.sortBy(updatedRoomSchedules, 'roomCode'));
+      const oldSchedules = oldSchedsData
+        .map((schedule) => schedule.schedules)
+        .flat();
+      const newSchedules = updatedRoomSchedules
+        .map((schedule) => schedule.schedules)
+        .flat();
       setRoomSubjSchedsLayout(roomData.code, roomData._id, subjSchedItems);
-      if (!oldSchedsData.length && updatedRoomSchedules.length) {
+      if (!oldSchedules.length && newSchedules.length) {
         setOldSchedsData(_.sortBy(updatedRoomSchedules, 'roomCode'));
       }
     },
@@ -530,6 +536,31 @@ export default function Scheduler({
   );
 
   function removeLayoutItem(layoutId) {
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutId);
+    if (courses.length >= 2) {
+      const subjectData = subjectsData.find(
+        (data) => data.id == `${subjectCode}~${teacherId}`
+      );
+      const newSubjectData = {
+        ...subjectData,
+        data: {
+          ...subjectData.data,
+          teacher: {
+            ...subjectData.data.teacher,
+            assignedCourses: subjectData.data.teacher.assignedCourses.filter(
+              (assignedCourse) =>
+                assignedCourse.code !== course.code ||
+                assignedCourse.year !== course.year ||
+                assignedCourse.section !== course.section
+            ),
+          },
+        },
+      };
+      setSubjectsData([
+        ...subjectsData.filter((data) => data.id !== newSubjectData.id),
+        newSubjectData,
+      ]);
+    }
     const newLayout = layout.filter((item) => item.i !== layoutId);
     setLayout(newLayout);
     removeRestrictions();
@@ -1052,8 +1083,6 @@ export default function Scheduler({
     handleClassMerge(toMergeSchedule, newRoomLayouts);
   }
 
-  // add a function to check if merge is possible
-  // by checking if there is no conflict
   function handleClassMerge(layoutItem, roomLayouts) {
     let couldMerge = true;
 

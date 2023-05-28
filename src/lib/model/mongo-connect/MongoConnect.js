@@ -11,7 +11,7 @@ class MongoConnect {
   }
   connect() {
     mongoose
-      .connect(this.MONGODB_URI_LOCAL, {
+      .connect(this.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       })

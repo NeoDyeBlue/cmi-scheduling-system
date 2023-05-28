@@ -476,6 +476,10 @@ export default function Schedule() {
     }
   }
 
+  //logs
+  console.log(oldSchedsData);
+  console.log(roomsSubjScheds);
+
   return (
     <>
       <PopupLoader
