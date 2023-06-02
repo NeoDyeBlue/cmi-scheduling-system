@@ -1084,6 +1084,8 @@ export default function Scheduler({
     handleClassMerge(toMergeSchedule, newRoomLayouts);
   }
 
+  // fix bug here where merging classes with different teachers in the same room wont
+  // remove the other teacher or subject
   function handleClassMerge(layoutItem, roomLayouts) {
     let couldMerge = true;
 
