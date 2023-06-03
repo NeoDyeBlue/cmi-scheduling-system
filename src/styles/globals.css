@@ -97,7 +97,21 @@ body,
   * - 12 -> number of cols  (grid unit).
   * - 75px -> row height    (px)
   */
-  background-size: calc((100% / 9)) 40px;
+  background-size: calc((100% / 8)) 120px;
+}
+
+.grid-lines-small {
+  background-image: repeating-linear-gradient(
+      #efedf1 0 1px,
+      transparent 1px 100%
+    ),
+    repeating-linear-gradient(90deg, #efedf1 0 1px, transparent 1px 100%);
+  /** 
+  * - 10px -> grid spacing  (px)
+  * - 12 -> number of cols  (grid unit).
+  * - 75px -> row height    (px)
+  */
+  background-size: calc((100% / 7)) 20px;
 }
 
 .clip-path {

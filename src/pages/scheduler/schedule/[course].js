@@ -20,12 +20,15 @@ import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
-import { createTimePairs } from '@/utils/time-utils';
+import { createTimePairs, createByMinuteTime } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
 export default function Schedule() {
   const router = useRouter();
-  const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
+  const timeData = useMemo(
+    () => createByMinuteTime('6:00 AM', '6:00 PM', 10),
+    []
+  );
   const {
     course,
     subjectsData,
@@ -268,7 +271,7 @@ export default function Schedule() {
       <Scheduler
         startTime="6:00 AM"
         endTime="6:00 PM"
-        interval={30}
+        interval={10}
         semester={schedulerData?.semester}
         roomData={room}
         onMerge={submitChanges}

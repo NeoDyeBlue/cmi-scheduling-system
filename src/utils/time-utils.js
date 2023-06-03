@@ -67,3 +67,22 @@ export function createTimePairs(
 
   return pairedTimes;
 }
+
+export function createByMinuteTime(
+  startTime = '6:00 AM',
+  endTime = '6:00 PM',
+  interval
+) {
+  const start = parse(startTime, 'hh:mm a', new Date());
+  const end = parse(endTime, 'hh:mm a', new Date());
+
+  let current = start;
+  const times = [];
+
+  while (current <= end) {
+    times.push(format(current, 'h:mm a'));
+    current = addMinutes(current, interval);
+  }
+
+  return times;
+}

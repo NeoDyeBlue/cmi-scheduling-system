@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
-import { createTimePairs } from '@/utils/time-utils';
+import { createTimePairs, createByMinuteTime } from '@/utils/time-utils';
 import {
   createInitialRoomLayout,
   parseLayoutItemId,
@@ -28,11 +28,12 @@ import { toast } from 'react-hot-toast';
 export default function Scheduler({
   startTime = '1:00 AM',
   endTime = '12:00 AM',
-  interval = 30,
+  interval = 10,
   roomData,
   semester = '',
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
+  const maxHMultiplier = 6;
   const ResponsiveGridLayout = useMemo(() => WidthProvider(GridLayout), []);
   const [layout, setLayout] = useState([]);
   const [isDraggingFromOutside, setIsDraggingFromOutside] = useState(false);
@@ -96,8 +97,13 @@ export default function Scheduler({
   );
 
   // memos
+  // const timeData = useMemo(
+  //   () => createTimePairs(startTime, endTime, interval),
+  //   [startTime, endTime, interval]
+  // );
+
   const timeData = useMemo(
-    () => createTimePairs(startTime, endTime, interval),
+    () => createByMinuteTime(startTime, endTime, interval),
     [startTime, endTime, interval]
   );
 
@@ -112,34 +118,23 @@ export default function Scheduler({
       { i: 'fri', name: 'Friday', x: 5, y: 0, w: 1, h: 1, static: true },
       { i: 'sat', name: 'Saturday', x: 6, y: 0, w: 1, h: 1, static: true },
       { i: 'sun', name: 'Sunday', x: 7, y: 0, w: 1, h: 1, static: true },
-      { i: 'times-right', name: 'Time', x: 8, y: 0, w: 1, h: 1, static: true },
+      // { i: 'times-right', name: 'Time', x: 8, y: 0, w: 1, h: 1, static: true },
     ],
     []
   );
 
   const timeLayout = useMemo(
     () =>
-      timeData.map((times, index) => [
-        {
-          i: `${index}-${times[0]}`,
-          times,
-          x: 0,
-          y: index,
-          w: 1,
-          h: 1,
-          static: true,
-        },
-        {
-          i: `${index}-${times[1]}`,
-          times,
-          x: headers.length,
-          y: index,
-          w: 1,
-          h: 1,
-          static: true,
-        },
-      ]),
-    [timeData, headers.length]
+      _.drop(timeData).map((time, index) => ({
+        i: `${index}-${time}`,
+        name: time,
+        x: 0,
+        y: index,
+        w: 1,
+        h: 1,
+        static: true,
+      })),
+    [timeData]
   );
 
   //elements
@@ -147,25 +142,69 @@ export default function Scheduler({
     <div
       key={item.i}
       className={classNames(
-        'flex h-[40px] items-center justify-center overflow-hidden whitespace-nowrap bg-white',
+        'sticky top-0 z-40 flex h-[40px] items-center justify-center overflow-hidden whitespace-nowrap bg-white',
         `col-start-[${index}]`,
         'border-b-2 border-l border-gray-300'
+        // {
+        //   'left-0 z-50 w-[80px] border-r border-l-0': index == 0,
+        //   'z-40': index !== 0,
+        // }
       )}
     >
-      <p className="font-display text-xs font-semibold capitalize leading-none">
+      <p
+        className={classNames(
+          'font-display text-xs font-semibold capitalize leading-none'
+        )}
+      >
         {item.name}
       </p>
     </div>
   ));
 
-  const timeRows = timeLayout.flat().map((item) => (
+  // const stickyTimeRows = _.initial(byHrTimeData).map((time, index) => (
+  //   <div
+  //     key={index}
+  //     className={classNames(
+  //       'relative z-30 flex h-[120px] w-[80px] items-end whitespace-nowrap bg-white',
+  //       'sticky left-0 col-span-1 col-start-1 border-r border-gray-300',
+  //       {
+  //         'before:absolute before:top-0 before:right-0 before:h-[1px] before:w-3 before:bg-gray-300':
+  //           index !== 0,
+  //       }
+  //     )}
+  //   >
+  //     <p
+  //       className={classNames(
+  //         'absolute top-0 right-0 mx-4 translate-y-[-50%] font-display text-xs font-medium capitalize leading-none',
+  //         { hidden: index == 0 }
+  //       )}
+  //     >
+  //       {time}
+  //     </p>
+  //   </div>
+  // ));
+
+  const timeRows = timeLayout.map((item, index) => (
     <div
       key={item.i}
       className={classNames(
-        'flex h-[40px] items-center justify-center gap-1 overflow-hidden px-3 text-center text-xs capitalize leading-none'
+        'relative flex h-[20px] items-center justify-end gap-1 px-3 text-center capitalize leading-none'
       )}
     >
-      <p>{item.times[0]}</p> - <p>{item.times[1]}</p>
+      <p
+        className={classNames(
+          'absolute bottom-0 right-0 mx-2 translate-y-[50%] bg-white',
+          {
+            'px-2 text-xs font-bold': (index + 1) % 6 == 0,
+            'text-xs text-ship-gray-400': (index + 1) % 6 !== 0,
+          },
+          {
+            hidden: index + 1 == timeLayout.length,
+          }
+        )}
+      >
+        {item.name}
+      </p>
     </div>
   ));
 
@@ -605,13 +644,16 @@ export default function Scheduler({
 
       const remainingRowSpan = getRemainingRowSpan(
         subjectData.units,
-        subjectLayoutItems
+        subjectLayoutItems,
+        maxHMultiplier
       );
 
       const updatedSubjSchedItems = subjectLayoutItems.map((item) => ({
         ...item,
         maxH: remainingRowSpan + item.h,
       }));
+
+      console.log(updatedSubjSchedItems);
 
       // update the layout items of other rooms
       const updatedRoomLayouts = otherRoomLayouts.map((roomLayout) => ({
@@ -646,7 +688,7 @@ export default function Scheduler({
         ],
       };
       setAllRoomSubjSchedsLayout([newRoomLayout, ...updatedRoomLayouts]);
-      setLayout([...newRoomLayout.layout, ...timeLayout.flat()]);
+      setLayout([...newRoomLayout.layout, ...timeLayout]);
     } else {
       setLayout(layoutSource);
     }
@@ -717,7 +759,7 @@ export default function Scheduler({
             { totalMergingRowSpans: item.h, yStart: item.y }
           );
 
-          if (totalMergingRowSpans <= subjectData.units * 2) {
+          if (totalMergingRowSpans <= subjectData.units * maxHMultiplier) {
             mergedItems.push({
               ...item,
               maxH: totalMergingRowSpans,
@@ -817,13 +859,13 @@ export default function Scheduler({
         if (preffered) {
           const preferredTimeStartIndex = timeData.findIndex((time) => {
             return (
-              time[0] ==
+              time ==
               format(parse(preffered?.start, 'HH:mm', new Date()), 'h:mm a')
             );
           });
           const preferredTimeEndIndex = timeData.findIndex((time) => {
             return (
-              time[1] ==
+              time ==
               format(parse(preffered?.end, 'HH:mm', new Date()), 'h:mm a')
             );
           });
@@ -904,10 +946,10 @@ export default function Scheduler({
                 !coursesExist
               ) {
                 const timeStartIndex = timeData.findIndex((time) => {
-                  return time[0] == scheduleTime.start;
+                  return time == scheduleTime.start;
                 });
                 const timeEndIndex = timeData.findIndex((time) => {
-                  return time[1] == scheduleTime.end;
+                  return time == scheduleTime.end;
                 });
 
                 for (let i = timeStartIndex; i <= timeEndIndex; i++) {
@@ -922,10 +964,10 @@ export default function Scheduler({
       if (inSchedulerTimes.length) {
         inSchedulerTimes.forEach((scheduleTime) => {
           const timeStartIndex = timeData.findIndex((time) => {
-            return time[0] == scheduleTime.start;
+            return time == scheduleTime.start;
           });
           const timeEndIndex = timeData.findIndex((time) => {
-            return time[1] == scheduleTime.end;
+            return time == scheduleTime.end;
           });
 
           for (let i = timeStartIndex; i <= timeEndIndex; i++) {
@@ -937,10 +979,10 @@ export default function Scheduler({
       if (teacherInSchedulerTimes.length) {
         teacherInSchedulerTimes.forEach((scheduleTime) => {
           const timeStartIndex = timeData.findIndex((time) => {
-            return time[0] == scheduleTime.start;
+            return time == scheduleTime.start;
           });
           const timeEndIndex = timeData.findIndex((time) => {
-            return time[1] == scheduleTime.end;
+            return time == scheduleTime.end;
           });
 
           for (let i = timeStartIndex; i <= timeEndIndex; i++) {
@@ -1004,7 +1046,8 @@ export default function Scheduler({
           w: 1,
           maxW: 1,
           minH: 1,
-          h: Math.abs(pairs[0] - pairs[1]) + 1,
+          // removed + 1
+          h: Math.abs(pairs[0] - pairs[1]),
           static: true,
         });
       });
@@ -1117,8 +1160,8 @@ export default function Scheduler({
 
     const mergingSchedules = mergingLayoutItems.map((item) => ({
       day: item.x,
-      start: timeData[item.y][0],
-      end: timeData[item.y + item.h - 1][1],
+      start: timeData[item.y],
+      end: timeData[item.y + item.h - 1],
     }));
 
     let day = 1;
@@ -1395,7 +1438,7 @@ export default function Scheduler({
           { totalRowSpanCount: 0, itemCount: 0 }
         );
 
-      const unitsMaxSpan = draggingSubject.units * 2;
+      const unitsMaxSpan = draggingSubject.units * maxHMultiplier;
       const maxH = unitsMaxSpan - totalRowSpanCount + itemCount;
 
       return {
@@ -1473,37 +1516,39 @@ export default function Scheduler({
         label="Remove Merged Class Schedule?"
         message="It will also remove the schedule from the other classes"
       />
-      <div className="sticky top-0 z-[2] grid h-[40px] grid-cols-9 grid-rows-1">
+      <div className="grid grid-cols-8">
         {headerColumns}
+        {/* {stickyTimeRows} */}
+        <div className="grid-lines-small col-[2_/_-1] row-[2_/_span_12]"></div>
+        <div className={classNames(`relative col-[1_/_-1] row-[2_/_span_12]`)}>
+          <ResponsiveGridLayout
+            className="grid-lines h-full w-full"
+            layout={layout}
+            cols={headerColumns.length}
+            rowHeight={20}
+            maxRows={timeData.length}
+            onDrop={onDrop}
+            onLayoutChange={handleLayoutChange}
+            resizeHandles={['s']}
+            isBounded={true}
+            margin={[0, 0]}
+            preventCollision
+            compactType={null}
+            isDroppable
+            onDropDragOver={onDropDragOver}
+            onDragStart={onDragStart}
+            onDragStop={onDragStop}
+            onResizeStart={onResizeStart}
+            onResizeStop={onResizeStop}
+          >
+            {scheduleCells}
+            {timeRows}
+            {cellRestrictions}
+          </ResponsiveGridLayout>
+        </div>
       </div>
-      {/* <div className="grid-rows-auto sticky left-0 z-[1] grid w-fit grid-cols-1">
-        {timeRows}
-      </div> */}
-      <ResponsiveGridLayout
-        className="grid-lines h-full w-full"
-        layout={layout}
-        cols={headerColumns.length}
-        rowHeight={40}
-        maxRows={timeData.length}
-        onDrop={onDrop}
-        onLayoutChange={handleLayoutChange}
-        resizeHandles={['s']}
-        isBounded={true}
-        margin={[0, 0]}
-        preventCollision
-        compactType={null}
-        isDroppable
-        onDropDragOver={onDropDragOver}
-        onDragStart={onDragStart}
-        onDragStop={onDragStop}
-        onResizeStart={onResizeStart}
-        onResizeStop={onResizeStop}
-      >
-        {/* {headerColumns} */}
-        {scheduleCells}
-        {timeRows}
-        {cellRestrictions}
-      </ResponsiveGridLayout>
+
+      {/* <div className="grid-rows-auto sticky left-0 z-[1] grid w-fit grid-cols-1"></div> */}
     </div>
   );
 }
