@@ -997,7 +997,7 @@ export default function Scheduler({
       let columnItemsUsedIndexes = [];
       const columnItems = layoutSource.filter((item) => item.x == x);
       columnItems.forEach((item) => {
-        for (let i = item.y; i < item.y + item.h; i++) {
+        for (let i = item.y; i <= item.y + item.h; i++) {
           columnItemsUsedIndexes.push(i);
         }
       });
@@ -1161,7 +1161,8 @@ export default function Scheduler({
     const mergingSchedules = mergingLayoutItems.map((item) => ({
       day: item.x,
       start: timeData[item.y],
-      end: timeData[item.y + item.h - 1],
+      // try removing - 1
+      end: timeData[item.y + item.h],
     }));
 
     let day = 1;
@@ -1485,6 +1486,8 @@ export default function Scheduler({
     removeRestrictions();
     setIsResizing(false);
   }
+
+  console.log(roomsSubjScheds);
 
   return (
     <div className="min-w-[900px]">
