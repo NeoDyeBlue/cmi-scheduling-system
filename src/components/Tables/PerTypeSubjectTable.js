@@ -31,11 +31,12 @@ export default function PerTypeSubjectTable({ type }) {
   return (
     <>
       <Modal
-        label="Import Subjects"
+        label={`Import ${type} Subjects`}
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
       >
         <SheetForm
+          type={type}
           name="subjects"
           seedFor="subjects"
           requiredColumns={[
@@ -60,7 +61,7 @@ export default function PerTypeSubjectTable({ type }) {
               description: 'the subject units',
             },
           ]}
-          warningMessage="Successful import will remove all previously saved College and SHS subjects!"
+          warningMessage={`Successful import will remove all previously saved ${type} subjects!`}
           onCancel={() => setIsImportOpen(false)}
           onAfterSubmit={() => {
             setIsImportOpen(false);
@@ -69,7 +70,7 @@ export default function PerTypeSubjectTable({ type }) {
         />
       </Modal>
       <Modal
-        label={'New Subject'}
+        label={`New ${type} Subject`}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
@@ -81,12 +82,13 @@ export default function PerTypeSubjectTable({ type }) {
             setIsModalOpen(false);
             mutate();
           }}
+          type={type}
         />
       </Modal>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="w-full max-w-[350px]">
           <SearchForm
-            placeholder={`Search subjects`}
+            placeholder={`Search ${type} subjects`}
             onSearch={(value) => setSearchValue(value)}
           />
         </div>
@@ -127,7 +129,7 @@ export default function PerTypeSubjectTable({ type }) {
             <TabPanel>
               <div className="flex flex-col gap-4">
                 {!isLoading && docs.length ? (
-                  <SubjectTable data={docs} mutate={mutate} />
+                  <SubjectTable data={docs} mutate={mutate} type={type} />
                 ) : null}
                 <ReactPaginate
                   breakLabel="..."
@@ -150,7 +152,7 @@ export default function PerTypeSubjectTable({ type }) {
             <TabPanel>
               <div className="flex flex-col gap-4">
                 {!isLoading && docs.length ? (
-                  <SubjectTable data={docs} mutate={mutate} />
+                  <SubjectTable data={docs} mutate={mutate} type={type} />
                 ) : null}
 
                 <ReactPaginate

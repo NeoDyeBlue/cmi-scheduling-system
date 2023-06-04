@@ -6,3 +6,6 @@ export { default as CourseSchedulerTable } from './CourseSchedulerTable';
 export { default as YearSectionTable } from './YearSectionTable';
 export { default as PerTypeSubjectTable } from './PerTypeSubjectTable';
 export { default as PerSemScheduleTable } from './PerSemScheduleTable';
+export { default as KinderToJHSSubjectTable } from './KinderToJHSSubjectTable';
+export { default as LevelTable } from './LevelTable';
+export { default as KinderTable } from './KinderTable';

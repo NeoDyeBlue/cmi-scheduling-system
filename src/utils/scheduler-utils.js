@@ -33,12 +33,8 @@ export function createInitialRoomLayout(
             `${courseData.code}${courseData.year}${courseData.section}`
         );
 
-        const yStart = timeData.findIndex(
-          (timePairs) => timePairs[0] == time.start
-        );
-        const yEnd = timeData.findIndex(
-          (timePairs) => timePairs[1] == time.end
-        );
+        const yStart = timeData.findIndex((item) => item == time.start);
+        const yEnd = timeData.findIndex((item) => item == time.end);
 
         const itemId = createLayoutItemId(
           subjSchedule.subject.code,
@@ -52,7 +48,7 @@ export function createInitialRoomLayout(
           w: 1,
           y: yStart,
           minH: 1,
-          h: Math.abs(yEnd - yStart) + 1,
+          h: Math.abs(yEnd - yStart),
           maxW: 1,
           /**
            * will only be static if subject code is not offered in course
@@ -131,8 +127,12 @@ export function getSubjectScheduleLayoutItems(
   };
 }
 
-export function getRemainingRowSpan(units = 1, subjectLayoutItems = []) {
-  const unitsMaxSpan = units * 2;
+export function getRemainingRowSpan(
+  units = 1,
+  subjectLayoutItems = [],
+  maxHMultiplier = 6
+) {
+  const unitsMaxSpan = units * maxHMultiplier;
   const { totalRowSpanCount } = subjectLayoutItems.reduce(
     (accumulator, currentItem) => {
       return {
@@ -242,12 +242,11 @@ function createSchedules(
   timeData = [],
   room
 ) {
-  // console.log(subjectData);
   const schedules = subjSchedLayoutItems.map((item) => ({
     day: item.x,
     time: {
-      start: timeData[item.y][0],
-      end: timeData[item.y + item.h - 1][1],
+      start: timeData[item.y],
+      end: timeData[item.y + item.h],
       courses: parseLayoutItemId(item.i).courses,
     },
   }));

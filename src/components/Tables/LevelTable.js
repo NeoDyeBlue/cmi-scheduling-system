@@ -1,7 +1,7 @@
 import { useTable } from 'react-table';
 import { useMemo, useState } from 'react';
 import { ActionButton, CreateButton } from '../Buttons';
-import { MdDelete, MdEdit, MdTableView } from 'react-icons/md';
+import { MdDelete, MdEdit, MdTableView, MdRemove } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
 import React from 'react';
@@ -10,17 +10,17 @@ import { useRouter } from 'next/router';
 import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
 import { Modal, Confirmation } from '../Modals';
-import { CourseForm, SearchForm, SheetForm } from '../Forms';
+import { CourseForm, SearchForm, SheetForm, GradeLevelForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
 import { SpinnerLoader } from '../Loaders';
 
-export default function CourseTable({ type }) {
+export default function LeveleTable({ type }) {
   const { theme } = resolveConfig(tailwindConfig);
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [toEditCourse, setToEditCourse] = useState(null);
+  const [toEditLevel, setToEditLevel] = useState(null);
   const [toDeleteId, setToDeleteId] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -37,16 +37,8 @@ export default function CourseTable({ type }) {
   const columns = useMemo(
     () => [
       {
-        Header: 'Code',
-        accessor: 'code', // accessor is the "key" in the data
-      },
-      {
-        Header: 'Name',
-        accessor: 'name', // accessor is the "key" in the data
-      },
-      {
-        Header: 'Years',
-        accessor: 'years', // accessor is the "key" in the data
+        Header: 'Grade Level',
+        accessor: 'level', // accessor is the "key" in the data
       },
       {
         Header: 'Sections',
@@ -60,21 +52,22 @@ export default function CourseTable({ type }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
+            {console.log(cell.row)}
             <ActionButton
               icon={<MdEdit size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
               toolTipId="edit"
               toolTipContent="Edit"
               onClick={() => {
-                setToEditCourse(cell.row.original);
+                setToEditLevel(cell.row.original);
                 setIsModalOpen(true);
               }}
             />
             <ActionButton
-              icon={<MdDelete size={16} className="text-white" />}
+              icon={<MdRemove size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
-              toolTipId="delete"
-              toolTipContent="Delete"
+              toolTipId="remove"
+              toolTipContent="Remove"
               onClick={() => {
                 setToDeleteId(cell.row.original._id);
                 setIsConfirmationOpen(true);
@@ -126,39 +119,30 @@ export default function CourseTable({ type }) {
       <PopupLoader isOpen={isDeleting} message="Deleting course" />
       <Confirmation
         isOpen={isConfirmationOpen}
-        label="Delete Course?"
-        message="Deleting this course will affect the schedules."
+        label="Remove Level?"
+        message="Removing this level will affect the schedules."
         onCancel={() => {
           setIsConfirmationOpen(false);
         }}
         onConfirm={deleteItem}
       />
       <Modal
-        label={`Import ${type == 'shs' ? 'tracks' : 'courses'}`}
+        label="Import Levels"
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
       >
         <SheetForm
-          name={type == 'shs' ? 'tracks' : 'courses'}
+          name="levels"
           seedFor={type}
           requiredColumns={[
             {
-              columnName: 'code',
-              description: `the ${
-                type == 'shs' ? 'track' : 'course'
-              } code e.g. ${type == 'shs' ? 'STEM' : 'BSCS'}`,
+              columnName: 'level',
+              description: 'the grade level',
             },
             ,
             {
-              columnName: 'name',
-              description: `the ${type == 'shs' ? 'track' : 'course'} name`,
-            },
-            ,
-            {
-              columnName: 'years',
-              description: `how many years are in the ${
-                type == 'shs' ? 'track' : 'course'
-              }`,
+              columnName: 'sections',
+              description: 'the section count, minimun is 1',
             },
           ]}
           onCancel={() => setIsImportOpen(false)}
@@ -169,51 +153,49 @@ export default function CourseTable({ type }) {
         />
       </Modal>
       <Modal
-        label={
-          toEditCourse
-            ? type == 'shs'
-              ? 'Edit track'
-              : 'Edit course'
-            : type == 'shs'
-            ? 'New track'
-            : 'New course'
-        }
+        label={toEditLevel ? 'Edit Level' : 'New Level'}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setToEditCourse(null);
+          setToEditLevel(null);
         }}
       >
-        <CourseForm
+        <GradeLevelForm
           type={type}
-          initialData={toEditCourse || null}
+          level={
+            type == 'elementary' ? docs?.length + 1 : 7 + (docs?.length % 7)
+          }
+          initialData={toEditLevel || null}
           onCancel={() => setIsModalOpen(false)}
           onAfterSubmit={() => {
             setIsModalOpen(false);
-            setToEditCourse(null);
+            setToEditLevel(null);
             mutate();
           }}
         />
       </Modal>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="w-full max-w-[350px]">
+      <div className="mb-6 flex items-center justify-end gap-4">
+        {/* <div className="w-full max-w-[350px]">
           <SearchForm
-            placeholder={`Search ${type} ${
-              type == 'shs' ? 'tracks' : 'courses'
-            }`}
+            placeholder={`Search ${type} levels`}
             onSearch={(value) => setSearchValue(value)}
           />
-        </div>
+        </div> */}
         <div className="flex gap-2">
-          <CreateButton
+          {/* <CreateButton
             onClick={() => setIsImportOpen(true)}
             icon={<MdTableView size={24} />}
-            text={`Import ${type == 'shs' ? 'tracks' : 'courses'}`}
+            text="Import Grade Levels"
             isForImporting
-          />
+          /> */}
           <CreateButton
             onClick={() => setIsModalOpen(true)}
-            text={`New ${type == 'shs' ? 'track' : 'course'}`}
+            text="Add a Level"
+            disabled={
+              type == 'elementary'
+                ? docs?.length + 1 > 6
+                : 7 + (docs?.length % 7) > 10
+            }
           />
         </div>
       </div>
@@ -299,7 +281,7 @@ export default function CourseTable({ type }) {
           </table>
         </div>
       ) : null}
-      <ReactPaginate
+      {/* <ReactPaginate
         breakLabel="..."
         nextLabel="next >"
         onPageChange={({ selected }) => setPageIndex(selected + 1)}
@@ -314,7 +296,7 @@ export default function CourseTable({ type }) {
         activeLinkClassName="paginate-link-active"
         breakLinkClassName="paginate-break"
         disabledLinkClassName="paginate-link-disabled"
-      />
+      /> */}
     </div>
   );
 }

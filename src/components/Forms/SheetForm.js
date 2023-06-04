@@ -113,7 +113,7 @@ export default function SheetForm({
             <ul className="flex list-disc flex-col pl-6">
               {requiredColumns.map((column, index) => (
                 <li
-                  className="flex flex list-none gap-2 border-b border-gray-100 py-2"
+                  className="flex list-none gap-2 border-b border-gray-100 py-2"
                   key={index}
                 >
                   <span className="mt-3 inline-block h-1 w-1 rounded-full bg-ship-gray-900"></span>

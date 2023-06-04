@@ -20,12 +20,15 @@ import { FullPageLoader, PopupLoader } from '@/components/Loaders';
 import _ from 'lodash';
 import { toast } from 'react-hot-toast';
 import { ErrorScreen } from '@/components/Misc';
-import { createTimePairs } from '@/utils/time-utils';
+import { createTimePairs, createByMinuteTime } from '@/utils/time-utils';
 import { createInitialRoomLayout } from '@/utils/scheduler-utils';
 
 export default function Schedule() {
   const router = useRouter();
-  const timeData = useMemo(() => createTimePairs('6:00 AM', '6:00 PM', 30), []);
+  const timeData = useMemo(
+    () => createByMinuteTime('6:00 AM', '6:00 PM', 10),
+    []
+  );
   const {
     course,
     subjectsData,
@@ -268,7 +271,7 @@ export default function Schedule() {
       <Scheduler
         startTime="6:00 AM"
         endTime="6:00 PM"
-        interval={30}
+        interval={10}
         semester={schedulerData?.semester}
         roomData={room}
         onMerge={submitChanges}
@@ -476,6 +479,10 @@ export default function Schedule() {
     }
   }
 
+  //logs
+  // console.log(oldSchedsData);
+  // console.log(roomsSubjScheds);
+
   return (
     <>
       <PopupLoader
@@ -534,7 +541,10 @@ export default function Schedule() {
       <div className="relative grid h-screen grid-cols-1 grid-rows-[auto_1fr] overflow-hidden">
         <div className="flex items-center gap-4 border-b border-gray-300 p-4">
           <button
-            onClick={checkForChanges}
+            onClick={() => {
+              router.push('/scheduler');
+              reset();
+            }}
             href="/scheduler"
             className="flex items-center justify-center rounded-lg bg-gradient-to-br
              from-primary-600 to-primary-900 p-2 text-white hover:shadow-md"
@@ -556,14 +566,17 @@ export default function Schedule() {
             </h1>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button secondary small onClick={checkForChanges}>
+            <Button
+              secondary
+              small
+              onClick={() => {
+                router.push('/scheduler');
+                reset();
+              }}
+            >
               Cancel
             </Button>
-            <Button
-              small
-              onClick={submitChanges}
-              disabled={_.isEqual(roomsSubjScheds, oldSchedsData)}
-            >
+            <Button small onClick={submitChanges}>
               Done
             </Button>
           </div>

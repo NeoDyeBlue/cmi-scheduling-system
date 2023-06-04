@@ -24,18 +24,36 @@ export default function Schedules() {
           <div className="mb-4 flex items-center gap-4">
             <TabList className="scrollbar-hide flex w-fit gap-2 overflow-x-auto">
               <Tab selectedClassName="tab-active" className="tab">
-                College
+                Kinder
+              </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                Elementary
+              </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                Junior High
               </Tab>
               <Tab selectedClassName="tab-active" className="tab">
                 Senior High
               </Tab>
+              <Tab selectedClassName="tab-active" className="tab">
+                College
+              </Tab>
             </TabList>
           </div>
           <TabPanel>
-            <CourseSchedulerTable type="college" />
+            <CourseSchedulerTable type="shs" />
           </TabPanel>
           <TabPanel>
             <CourseSchedulerTable type="shs" />
+          </TabPanel>
+          <TabPanel>
+            <CourseSchedulerTable type="shs" />
+          </TabPanel>
+          <TabPanel>
+            <CourseSchedulerTable type="shs" />
+          </TabPanel>
+          <TabPanel>
+            <CourseSchedulerTable type="college" />
           </TabPanel>
         </Tabs>
       </div>

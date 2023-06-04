@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { collegeCourses } from '@/lib/test_data/courses';
-import { CourseTable } from '@/components/Tables';
+import { CourseTable, LevelTable, KinderTable } from '@/components/Tables';
 
 export default function Courses() {
   return (
@@ -15,20 +15,37 @@ export default function Courses() {
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
         <Tabs className="flex flex-col">
-          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto">
+          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto border-b border-gray-300 pb-4">
             <Tab selectedClassName="tab-active" className="tab">
-              College
+              Kinder
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Elementary
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Junior High
             </Tab>
             <Tab selectedClassName="tab-active" className="tab">
               Senior High
             </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              College
+            </Tab>
           </TabList>
-
           <TabPanel>
-            <CourseTable data={collegeCourses} type="college" />
+            <KinderTable />
+          </TabPanel>
+          <TabPanel>
+            <LevelTable type="elementary" />
+          </TabPanel>
+          <TabPanel>
+            <LevelTable type="jhs" />
           </TabPanel>
           <TabPanel>
             <CourseTable type="shs" />
+          </TabPanel>
+          <TabPanel>
+            <CourseTable data={collegeCourses} type="college" />
           </TabPanel>
         </Tabs>
       </div>
@@ -37,5 +54,5 @@ export default function Courses() {
 }
 
 Courses.getLayout = function getLayout(page) {
-  return <MainLayout name="Courses">{page}</MainLayout>;
+  return <MainLayout name="Courses & Levels">{page}</MainLayout>;
 };
