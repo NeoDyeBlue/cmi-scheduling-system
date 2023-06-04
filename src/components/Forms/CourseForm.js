@@ -16,6 +16,7 @@ export default function CourseForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
+  type = 'college',
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const { theme } = resolveConfig(tailwindConfig);
@@ -37,7 +38,7 @@ export default function CourseForm({
     initialValues: {
       code: initialData?.code || '',
       name: initialData?.name || '',
-      type: initialData?.type || 'college',
+      type,
       yearSections: initialData?.yearSections?.length
         ? _.sortBy(
             [
@@ -96,16 +97,20 @@ export default function CourseForm({
         <InputField
           type="text"
           name="code"
-          label="Course Code"
-          placeholder="e.g. BSCS"
+          label={`${type == 'shs' ? 'Track' : 'Course'} Code`}
+          placeholder={`e.g. ${type == 'shs' ? 'STEM' : 'BSCS'}`}
         />
         <InputField
           type="text"
           name="name"
-          label="Course Name"
-          placeholder="e.g. Bachelor of Science in Computer Science"
+          label={`${type == 'shs' ? 'Track' : 'Course'} Name`}
+          placeholder={`e.g. ${
+            type == 'shs'
+              ? 'Science, Technology, Engineering, and Mathematics'
+              : 'Bachelor of Scinece in Computer Science'
+          }`}
         />
-        <RadioSelect
+        {/* <RadioSelect
           label="Type"
           error={
             courseFormik.errors.type && courseFormik.touched.type
@@ -139,7 +144,7 @@ export default function CourseForm({
           >
             Senior High
           </RadioSelectItem>
-        </RadioSelect>
+        </RadioSelect> */}
         <div className="flex flex-col gap-2">
           <p className="font-display font-medium">
             Year, Sections Count, and Subjects
@@ -258,7 +263,10 @@ export default function CourseForm({
                           {courseFormik.values.yearSections.length <= 1 ||
                           (index ==
                             courseFormik.values.yearSections.length - 1 &&
-                            courseFormik.values.yearSections.length < 6) ? (
+                            (type == 'shs'
+                              ? courseFormik.values.yearSections.length < 2
+                              : courseFormik.values.yearSections.length <
+                                6)) ? (
                             <ActionButton
                               onClick={() =>
                                 push({

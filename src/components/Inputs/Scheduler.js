@@ -1487,8 +1487,6 @@ export default function Scheduler({
     setIsResizing(false);
   }
 
-  console.log(roomsSubjScheds);
-
   return (
     <div className="min-w-[900px]">
       <PopupLoader

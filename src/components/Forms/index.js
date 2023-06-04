@@ -4,3 +4,6 @@ export { default as RoomForm } from './RoomForm';
 export { default as SubjectForm } from './SubjectForm';
 export { default as CourseForm } from './CourseForm';
 export { default as SheetForm } from './SheetForm';
+export { default as KinderToJHSSubjectForm } from './KinderToJHSSubjectForm';
+export { default as GradeLevelForm } from './GradeLevelForm';
+export { default as KinderForm } from './KinderForm';

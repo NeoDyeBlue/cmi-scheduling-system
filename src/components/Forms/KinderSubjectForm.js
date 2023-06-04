@@ -7,31 +7,29 @@ import {
   RadioSelectItem,
 } from '../Inputs';
 import { Button } from '../Buttons';
-import { subjectSchema } from '@/lib/validators/subject-validator';
+import { kinderToJHSSubjectSchema } from '@/lib/validators/subject-validator';
 import { toast } from 'react-hot-toast';
 import { useState } from 'react';
 import { PopupLoader } from '../Loaders';
 
-export default function SubjectForm({
+export default function KinderSubjectForm({
   initialData,
   onCancel,
   onAfterSubmit = () => {},
-  type = 'shs',
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const subjectFormik = useFormik({
     initialValues: {
       code: initialData?.code || '',
       name: initialData?.name || '',
-      units: initialData?.units || 1,
+      minutes: initialData?.minutes || 30,
       teachers: initialData?.assignedTeachers?.length
         ? initialData?.assignedTeachers
         : [],
-      semester: initialData?.semester || 1,
-      type,
+      type: 'kinder',
     },
     onSubmit: handleSubmit,
-    validationSchema: subjectSchema,
+    validationSchema: kinderToJHSSubjectSchema,
   });
 
   async function handleSubmit(values) {
@@ -74,61 +72,15 @@ export default function SubjectForm({
           type="text"
           name="code"
           label="Subject Code"
-          placeholder="e.g. APPSDEV"
+          placeholder="e.g. ENG"
         />
         <InputField
           type="text"
           name="name"
           label="Subject Name"
-          placeholder="e.g. Applications Development"
+          placeholder="e.g. English"
         />
-        <InputField type="number" name="units" label="Units" />
-        {/* <RadioSelect
-          label="Offered in"
-          error={
-            subjectFormik.errors.type && subjectFormik.touched.type
-              ? subjectFormik.errors.type
-              : null
-          }
-        >
-          <RadioSelectItem
-            name="type"
-            value="college"
-            checked={subjectFormik.values.type == 'college'}
-          >
-            College
-          </RadioSelectItem>
-          <RadioSelectItem
-            name="type"
-            value="shs"
-            checked={subjectFormik.values.type == 'shs'}
-          >
-            Senior High
-          </RadioSelectItem>
-        </RadioSelect> */}
-        <RadioSelect
-          label="Semester"
-          error={
-            subjectFormik.errors.semester && subjectFormik.touched.semester
-              ? subjectFormik.errors.semester
-              : null
-          }
-        >
-          <RadioSelectItem
-            name="semester"
-            value={1}
-            checked={Number(subjectFormik.values.semester) == 1}
-          >
-            First
-          </RadioSelectItem>
-          <RadioSelectItem
-            name="semester"
-            value={2}
-            checked={Number(subjectFormik.values.semester) == 2}
-          >
-            Second
-          </RadioSelectItem>
-        </RadioSelect>
+        <InputField type="number" name="minutes" label="Minutes" step={10} />
         <MultiComboBox
           label="Choose Teachers"
           placeholder="Enter teacher name..."

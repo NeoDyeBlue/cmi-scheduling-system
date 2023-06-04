@@ -1,6 +1,9 @@
 import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
-import { PerTypeSubjectTable } from '@/components/Tables';
+import {
+  PerTypeSubjectTable,
+  KinderToJHSSubjectTable,
+} from '@/components/Tables';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 export default function Subjects() {
@@ -14,20 +17,37 @@ export default function Subjects() {
       </Head>
       <div className="flex w-full flex-col gap-6 p-6">
         <Tabs className="flex flex-col">
-          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto">
+          <TabList className="scrollbar-hide mb-4 flex w-full gap-2 overflow-x-auto border-b border-gray-300 pb-4">
             <Tab selectedClassName="tab-active" className="tab">
-              College
+              Kinder
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Elementary
+            </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              Junior High
             </Tab>
             <Tab selectedClassName="tab-active" className="tab">
               Senior High
             </Tab>
+            <Tab selectedClassName="tab-active" className="tab">
+              College
+            </Tab>
           </TabList>
-
           <TabPanel>
-            <PerTypeSubjectTable type={'college'} />
+            <KinderToJHSSubjectTable type={'kinder'} />
+          </TabPanel>
+          <TabPanel>
+            <KinderToJHSSubjectTable type={'elementary'} />
+          </TabPanel>
+          <TabPanel>
+            <KinderToJHSSubjectTable type={'jhs'} />
           </TabPanel>
           <TabPanel>
             <PerTypeSubjectTable type={'shs'} />
+          </TabPanel>
+          <TabPanel>
+            <PerTypeSubjectTable type={'college'} />
           </TabPanel>
         </Tabs>
       </div>

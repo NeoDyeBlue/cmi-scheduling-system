@@ -11,7 +11,11 @@ import { useState, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import classNames from 'classnames';
 
-export default function SubjectTable({ data, mutate = () => {} }) {
+export default function SubjectTable({
+  data,
+  mutate = () => {},
+  type = 'college',
+}) {
   const { theme } = resolveConfig(tailwindConfig);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -31,10 +35,19 @@ export default function SubjectTable({ data, mutate = () => {} }) {
         Header: 'Name',
         accessor: 'name',
       },
-      {
-        Header: 'Units',
-        accessor: 'units',
-      },
+      ...(type == 'college'
+        ? [
+            {
+              Header: 'Units',
+              accessor: 'units',
+            },
+          ]
+        : [
+            {
+              Header: 'Minutes',
+              accessor: 'minutes',
+            },
+          ]),
       {
         Header: () => null,
         id: 'actions',

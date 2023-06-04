@@ -22,7 +22,9 @@ export default function Modal({ onClose, isOpen, label, children }) {
       <div className="custom-scrollbar mx-auto max-h-[70vh] overflow-y-auto px-6 md:max-h-full">
         <div className="flex flex-col gap-4">
           <div className="flex flex-shrink-0 items-center justify-between">
-            <h1 className="font-display text-2xl font-semibold">{label}</h1>
+            <h1 className="font-display text-2xl font-semibold capitalize">
+              {label}
+            </h1>
             <SquareButton icon={<MdClose size={24} />} onClick={onClose} />
           </div>
           {children}

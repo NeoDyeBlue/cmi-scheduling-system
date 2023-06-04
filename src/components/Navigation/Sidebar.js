@@ -93,7 +93,7 @@ export default function Sidebar() {
           outlinedIcon={<MdOutlineSchool size={24} />}
           filledIcon={<MdSchool size={24} />}
           link="/courses"
-          name="Courses"
+          name="Courses & Levels"
         />
       </ul>
       <p className="text-sm">{isMinimized ? '•' : 'BSCS 2019-2023'}</p>
