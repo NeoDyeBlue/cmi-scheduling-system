@@ -92,7 +92,7 @@ export default function Sidebar() {
         <SidebarItem
           outlinedIcon={<MdOutlineSchool size={24} />}
           filledIcon={<MdSchool size={24} />}
-          link="/courses"
+          link="/levels"
           name="Courses & Levels"
         />
       </ul>
