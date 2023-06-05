@@ -170,7 +170,7 @@ export default function KinderTable() {
           }}
         />
       </Modal>
-      <div className="flex min-h-full w-full max-w-[300px] flex-col gap-4 rounded-md border border-gray-300 p-4">
+      {/* <div className="flex min-h-full w-full max-w-[300px] flex-col gap-4 rounded-md border border-gray-300 p-4">
         <div className="flex items-center justify-between gap-4">
           <p className="font-display text-xl font-semibold">Subjects</p>
           <ActionButton
@@ -184,7 +184,7 @@ export default function KinderTable() {
             //   }}
           />
         </div>
-      </div>
+      </div> */}
       <div className="flex h-fit w-full flex-col gap-4">
         <div className="mb-6 flex items-center justify-end gap-4">
           {/* <div className="w-full max-w-[350px]">

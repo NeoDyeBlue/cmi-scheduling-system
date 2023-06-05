@@ -72,6 +72,12 @@ export default function Sidebar() {
           name="Scheduler"
         />
         <SidebarItem
+          outlinedIcon={<MdOutlineDoorFront size={24} />}
+          filledIcon={<MdDoorFront size={24} />}
+          link="/rooms"
+          name="Rooms"
+        />
+        <SidebarItem
           outlinedIcon={<MdOutlineGroups size={24} />}
           filledIcon={<MdGroups size={24} />}
           link="/teachers"
@@ -84,15 +90,9 @@ export default function Sidebar() {
           name="Subjects"
         />
         <SidebarItem
-          outlinedIcon={<MdOutlineDoorFront size={24} />}
-          filledIcon={<MdDoorFront size={24} />}
-          link="/rooms"
-          name="Rooms"
-        />
-        <SidebarItem
           outlinedIcon={<MdOutlineSchool size={24} />}
           filledIcon={<MdSchool size={24} />}
-          link="/courses"
+          link="/levels"
           name="Courses & Levels"
         />
       </ul>

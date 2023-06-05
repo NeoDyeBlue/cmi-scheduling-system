@@ -22,7 +22,7 @@ export default function Schedules() {
           onSelect={(index) => setActiveTab(tabs[index])}
         >
           <div className="mb-4 flex items-center gap-4">
-            <TabList className="scrollbar-hide flex w-fit gap-2 overflow-x-auto">
+            <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto border-b border-gray-300 pb-4">
               <Tab selectedClassName="tab-active" className="tab">
                 Kinder
               </Tab>

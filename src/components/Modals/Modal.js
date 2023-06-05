@@ -17,7 +17,7 @@ export default function Modal({ onClose, isOpen, label, children }) {
       closeTimeoutMS={150}
       // bodyOpenClassName="modal-open-body"
       className="relative w-full overflow-hidden rounded-t-lg
-     bg-white py-6 shadow-lg md:m-auto md:max-w-[480px] md:rounded-lg"
+     bg-white py-6 shadow-lg md:m-auto md:max-w-[520px] md:rounded-lg"
     >
       <div className="custom-scrollbar mx-auto max-h-[70vh] overflow-y-auto px-6 md:max-h-full">
         <div className="flex flex-col gap-4">
