@@ -359,7 +359,7 @@ export default function Scheduler({
               />
             )}
           </div>
-          {schedule.h > 2 ? (
+          {schedule.h > 5 ? (
             <ImageWithFallback
               src={data?.teacher?.image}
               alt="teacher image"
@@ -379,7 +379,7 @@ export default function Scheduler({
             >
               {data.code}
             </p>
-            {schedule.h > 1 && (
+            {schedule.h > 2 && (
               <p className="text-xs font-medium">
                 {data?.teacher?.firstName} {data?.teacher?.lastName}
               </p>
