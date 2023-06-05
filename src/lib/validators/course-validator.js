@@ -52,12 +52,39 @@ export const courseSchema = yup.object().shape({
 
 export const levelSchema = yup.object().shape({
   level: yup.number().min(1).max(10).required('Required'),
-  name: yup.string().required('Required'),
   type: yup.string().oneOf(['elementary', 'jhs']).required('Required'),
-  sectionCount: yup
-    .number()
-    .min(1, 'Section count must be equal or greater than 1')
-    .required('Required'),
+  // sectionCount: yup
+  //   .number()
+  //   .min(1, 'Section count must be equal or greater than 1')
+  //   .required('Required'),
+  sections: yup
+    .array()
+    .of(
+      yup
+        .string()
+        .trim()
+        .test('is-unique', 'Section names must be unique', function (value) {
+          const array = this.from[0].value.sections;
+          const { path, createError } = this;
+          const isUnique = array.filter((item) => item === value).length === 1;
+          return isUnique ? true : createError({ path });
+        })
+        .required('Required')
+    )
+    // .test('is-unique', 'Section names must be unique', function (values) {
+    //   if (!values || !Array.isArray(values)) {
+    //     return false;
+    //   }
+    //   const uniqueValues = new Set(values);
+    //   return uniqueValues.size === values.length;
+    // })
+    // .test('is-not-empty', 'Sections cannot be empty', function (values) {
+    //   if (!values || !Array.isArray(values)) {
+    //     return false;
+    //   }
+    //   return values.every((value) => value.trim().length > 0);
+    // })
+    .min(1, 'Sections cannot be empty'),
   subjects: yup
     .array()
     .nullable()
