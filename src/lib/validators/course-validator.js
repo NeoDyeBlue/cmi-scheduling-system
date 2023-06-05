@@ -50,23 +50,6 @@ export const courseSchema = yup.object().shape({
     .required('Required'),
 });
 
-export const levelSchema = yup.object().shape({
-  level: yup.number().min(1).max(10).required('Required'),
-  name: yup.string().required('Required'),
-  type: yup.string().oneOf(['elementary', 'jhs']).required('Required'),
-  sectionCount: yup
-    .number()
-    .min(1, 'Section count must be equal or greater than 1')
-    .required('Required'),
-  subjects: yup
-    .array()
-    .nullable()
-    .of(
-      yup.object().shape({
-        _id: yup.string().required('_id is required'),
-        code: yup.string().required('code is required'),
-      })
-    )
-    .min(1, 'Add atleast 1 subject')
-    .required('Required'),
-});
+// export const levelSchema = yup.object().shape({
+//   name: yup.string().oneOf(['elementary', 'jhs']).required('Required'),
+// });

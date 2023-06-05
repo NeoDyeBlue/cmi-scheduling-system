@@ -153,7 +153,7 @@ export default function LeveleTable({ type }) {
         />
       </Modal>
       <Modal
-        label={toEditLevel ? 'Edit Level' : 'New Level'}
+        label={toEditLevel ? `Edit ${type} Level` : `New ${type} Level`}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
