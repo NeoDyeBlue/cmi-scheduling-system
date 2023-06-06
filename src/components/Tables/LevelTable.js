@@ -51,7 +51,6 @@ export default function LeveleTable({ type }) {
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
           >
-            {console.log(cell.row)}
             <ActionButton
               icon={<MdEdit size={16} className="text-white" />}
               buttonColor={theme.colors.primary[400]}
@@ -62,16 +61,18 @@ export default function LeveleTable({ type }) {
                 setIsModalOpen(true);
               }}
             />
-            <ActionButton
-              icon={<MdRemove size={16} className="text-white" />}
-              buttonColor={theme.colors.primary[400]}
-              toolTipId="remove"
-              toolTipContent="Remove"
-              onClick={() => {
-                setToDeleteId(cell.row.original._id);
-                setIsConfirmationOpen(true);
-              }}
-            />
+            {cell.row.index + 1 == docs.length ? (
+              <ActionButton
+                icon={<MdRemove size={16} className="text-white" />}
+                buttonColor={theme.colors.primary[400]}
+                toolTipId="remove"
+                toolTipContent="Remove"
+                onClick={() => {
+                  setToDeleteId(cell.row.original._id);
+                  setIsConfirmationOpen(true);
+                }}
+              />
+            ) : null}
           </div>
         ),
       },
