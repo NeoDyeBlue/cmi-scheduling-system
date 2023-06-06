@@ -46,7 +46,7 @@ export default function LeveleTable({ type }) {
       {
         Header: () => null,
         id: 'actions',
-        Cell: ({ cell }) => (
+        Cell: ({ cell, row }) => (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex justify-end gap-2"
@@ -61,7 +61,7 @@ export default function LeveleTable({ type }) {
                 setIsModalOpen(true);
               }}
             />
-            {cell.row.index + 1 == docs.length ? (
+            {row.index + 1 == docs.length ? (
               <ActionButton
                 icon={<MdRemove size={16} className="text-white" />}
                 buttonColor={theme.colors.primary[400]}
@@ -88,7 +88,7 @@ export default function LeveleTable({ type }) {
     rows,
     prepareRow,
     visibleColumns,
-  } = useTable({ columns, data: docs });
+  } = useTable({ columns, data: _.sortBy(docs, ['level']) });
 
   async function deleteItem() {
     try {
@@ -163,7 +163,11 @@ export default function LeveleTable({ type }) {
         <GradeLevelForm
           type={type}
           level={
-            type == 'elementary' ? docs?.length + 1 : 7 + (docs?.length % 7)
+            toEditLevel
+              ? toEditLevel?.level
+              : type == 'elementary'
+              ? docs?.length + 1
+              : 7 + (docs?.length % 7)
           }
           initialData={toEditLevel || null}
           onCancel={() => setIsModalOpen(false)}
@@ -174,7 +178,7 @@ export default function LeveleTable({ type }) {
           }}
         />
       </Modal>
-      <div className="mb-6 flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-4">
         {/* <div className="w-full max-w-[350px]">
           <SearchForm
             placeholder={`Search ${type} levels`}
