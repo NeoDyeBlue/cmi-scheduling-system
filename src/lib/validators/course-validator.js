@@ -1,4 +1,5 @@
 import * as yup from 'yup';
+import _ from 'lodash';
 
 export const courseSchema = yup.object().shape({
   code: yup.string().required('Required'),
@@ -45,6 +46,79 @@ export const courseSchema = yup.object().shape({
       function (value) {
         const max = this.parent.type == 'college' ? 6 : 2;
         return !value || value.length <= max;
+      }
+    )
+    .required('Required'),
+});
+
+export const trackSchema = yup.object().shape({
+  code: yup.string().required('Required'),
+  name: yup.string().required('Required'),
+  type: yup.string().oneOf(['college', 'shs']).required('Required'),
+  yearSections: yup
+    .array()
+    .nullable()
+    .of(
+      yup.object().shape({
+        year: yup.number().required('Required'),
+        sections: yup.array().of(
+          yup
+            .string()
+            .trim()
+            .test(
+              'is-unique',
+              'Section names must be unique',
+              function (value) {
+                const array = this.from[0].value.sections;
+                const { path, createError } = this;
+                const isUnique =
+                  array.filter((item) => item === value).length === 1;
+                return isUnique ? true : createError({ path });
+              }
+            )
+            .required('Required')
+        ),
+        semesterSubjects: yup
+          .array()
+          .nullable()
+          .of(
+            yup.object().shape({
+              semester: yup
+                .string()
+                .oneOf(['1', '2', 'summer'])
+                .required('Semester name is required'),
+              subjects: yup
+                .array()
+                .nullable()
+                .of(
+                  yup.object().shape({
+                    _id: yup.string().required('_id is required'),
+                    code: yup.string().required('code is required'),
+                  })
+                )
+                // .min(1, 'Add atleast 1 subject')
+                .required('Required'),
+            })
+          ),
+      })
+    )
+    .min(1, 'Add at least one year and section')
+    .test(
+      'max-length',
+      'Too many year sections for the selected type',
+      function (value) {
+        const max = this.parent.type == 'college' ? 6 : 2;
+        return !value || value.length <= max;
+      }
+    )
+    .test(
+      'has-unique-sections',
+      'Section names must be unique for all year levels',
+      function (value) {
+        const array = value.map((val) => val.sections).flat();
+        const uniqueArray = _.uniq(array);
+        console.log(array, uniqueArray, array.length == uniqueArray.length);
+        return array.length == uniqueArray.length;
       }
     )
     .required('Required'),

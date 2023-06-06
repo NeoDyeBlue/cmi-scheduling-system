@@ -13,10 +13,12 @@ export default function ActionButton({
   onClick,
   toolTipId,
   toolTipContent,
+  type = 'button',
 }) {
   return (
     <>
       <button
+        type={type}
         data-tooltip-id={toolTipId}
         data-tooltip-content={toolTipContent}
         onClick={onClick}
