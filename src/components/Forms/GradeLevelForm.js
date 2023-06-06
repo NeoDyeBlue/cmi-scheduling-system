@@ -44,12 +44,14 @@ export default function GradeLevelForm({
         body: JSON.stringify({
           ...values,
           ...(initialData ? { _id: initialData?._id } : {}),
+          subjects: values.subjects.map((subject) => ({
+            subject: subject._id,
+          })),
         }),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();
       if (result?.success) {
-        console.log(result);
         toast.success(`Course ${initialData ? 'updated' : 'added'}`);
         onAfterSubmit();
       } else if (!result?.success && result?.error) {
@@ -61,7 +63,6 @@ export default function GradeLevelForm({
       }
       setIsLoading(false);
     } catch (error) {
-      console.log(error);
       setIsLoading(false);
       toast.error(`Can't ${initialData ? 'update' : 'add'} level`);
     }
