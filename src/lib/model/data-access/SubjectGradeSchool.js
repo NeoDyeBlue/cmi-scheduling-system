@@ -7,6 +7,7 @@ class SubjectGradeSchool extends Model {
     super();
   }
   async createSubject(subject) {
+    console.log('subject>>>>>>>>>>', subject);
     try {
       const isSubjectCode = await this.SubjectGradeSchool.findOne({
         code: subject.code,
@@ -63,8 +64,14 @@ class SubjectGradeSchool extends Model {
               },
               {
                 $project: {
+                  _id: 1,
                   fullName: 1,
                   teacher: '$_id',
+                  firstName: 1,
+                  lastName: 1,
+                  type: 1,
+                  image: 1,
+                  preferredDays: '$preferredDayTimes',
                 },
               },
             ],

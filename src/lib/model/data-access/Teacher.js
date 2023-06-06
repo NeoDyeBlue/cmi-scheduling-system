@@ -107,7 +107,6 @@ class Teacher extends Model {
             firstName: 1,
             lastName: 1,
             type: 1,
-
             image: 1,
             preferredDays: '$preferredDayTimes',
           },
