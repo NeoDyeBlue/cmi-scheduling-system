@@ -20,8 +20,18 @@ class SubjectGradeSchool extends Model {
           `The subject code is already in use.`
         );
       }
-      const data = this.SubjectGradeSchool(subject);
-      await data.save();
+      const _id = subject?._id ? subject?._id : mongoose.Types.ObjectId();
+      // const data = this.SubjectGradeSchool({ _id, ...subject });
+      const data = this.SubjectGradeSchool.updateOne(
+        {
+          _id: _id,
+        },
+        {
+          $set: subject,
+        },
+        { upsert: true }
+      );
+      // await data.save();
       return data;
     } catch (error) {
       throw error;
