@@ -43,7 +43,7 @@ class GradeSchool extends Model {
         );
       }
       await this.GradeSchool.deleteMany({
-        leve: level,
+        level: level,
         type: type,
         section: {
           $nin: sections,
