@@ -88,6 +88,7 @@ class SubjectGradeSchool extends Model {
             as: 'teachers',
           },
         });
+        
         const subjectAggregation = this.SubjectGradeSchool.aggregate(pipeline);
         const data = await this.SubjectGradeSchool.aggregatePaginate(
           subjectAggregation,
