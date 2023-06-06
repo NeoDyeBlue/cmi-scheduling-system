@@ -93,7 +93,7 @@ export default function GradeLevelForm({
                   {levelFormik.values.sections.map((input, index) => (
                     <div key={index} className="flex items-center gap-4">
                       <div
-                        className="flex  flex-col items-center justify-center rounded-lg bg-primary-100 p-2 
+                        className="flex w-[20px] flex-col items-center justify-center rounded-lg bg-primary-100 p-2 
                             text-center font-medium leading-none text-primary-700"
                       >
                         <p>{index + 1}</p>

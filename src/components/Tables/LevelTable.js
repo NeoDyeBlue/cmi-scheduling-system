@@ -255,19 +255,40 @@ export default function LeveleTable({ type }) {
                       )}
                     >
                       {row.cells.map((cell, index) => {
-                        return (
-                          <td
-                            key={index}
-                            {...cell.getCellProps()}
-                            className={classNames('p-4', {
-                              'whitespace-nowrap font-semibold uppercase':
-                                index == 0,
-                              'min-w-[300px]': index == 1,
-                            })}
-                          >
-                            {cell.render('Cell')}
-                          </td>
-                        );
+                        if (cell.column.Header == 'Sections') {
+                          return (
+                            <td
+                              key={index}
+                              {...cell.getCellProps()}
+                              className="p-4"
+                            >
+                              <ul className="flex flex-wrap gap-2">
+                                {cell.value.map((value, index) => (
+                                  <li
+                                    key={index}
+                                    className="rounded-md bg-gray-200 px-2 py-1 capitalize"
+                                  >
+                                    {value}
+                                  </li>
+                                ))}
+                              </ul>
+                            </td>
+                          );
+                        } else {
+                          return (
+                            <td
+                              key={index}
+                              {...cell.getCellProps()}
+                              className={classNames('p-4', {
+                                'whitespace-nowrap text-xl font-bold uppercase':
+                                  index == 0,
+                                'min-w-[300px]': index == 1,
+                              })}
+                            >
+                              {cell.render('Cell')}
+                            </td>
+                          );
+                        }
                       })}
                     </tr>
                     {/* {row.isExpanded ? (
