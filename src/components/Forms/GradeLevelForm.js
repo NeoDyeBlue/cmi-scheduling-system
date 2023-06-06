@@ -40,7 +40,7 @@ export default function GradeLevelForm({
     try {
       setIsLoading(true);
       const res = await fetch('/api/grade-school', {
-        method: initialData ? 'PATCH' : 'POST',
+        method: 'POST',
         body: JSON.stringify({
           ...values,
           ...(initialData ? { _id: initialData?._id } : {}),
