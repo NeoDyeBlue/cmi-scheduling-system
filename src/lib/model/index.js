@@ -6,9 +6,12 @@ import teacher from './schema/teacher-schema';
 import subject from './schema/subject-schema';
 import schedule from './schema/schedule-schema';
 import course from './schema/course-schema';
+import gradeSchool from './schema/grade-school-schema';
+import preSchool from './schema/pre-school-schema';
+import subjectGradeSchool from './schema/pre-grade-school-subject-schema';
 
 class Model extends MongoConnect {
-   constructor() {
+  constructor() {
     super();
     this.connect();
     this.db = mongoose.connection;
@@ -35,6 +38,18 @@ class Model extends MongoConnect {
     this.Course = this.modelNames.includes('course')
       ? mongoose.model('course')
       : mongoose.model('course', course);
+
+    this.GradeSchool = this.modelNames.includes('gradeschool')
+      ? mongoose.model('gradeschool')
+      : mongoose.model('gradeschool', gradeSchool);
+
+    this.PreSchool = this.modelNames.includes('preschool')
+      ? mongoose.model('preschool')
+      : mongoose.model('preschool', preSchool);
+      
+    this.SubjectGradeSchool = this.modelNames.includes('subjectgradeschool')
+    ? mongoose.model('subjectgradeschool')
+    : mongoose.model('subjectgradeschool', subjectGradeSchool);
 
     // this.db.close()
   }

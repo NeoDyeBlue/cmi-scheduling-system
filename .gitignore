@@ -35,3 +35,5 @@ yarn-error.log*
 public/images/teachers/
 
 /installer
+
+/dist
