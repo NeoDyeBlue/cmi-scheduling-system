@@ -1,6 +1,6 @@
 import { useTable } from 'react-table';
-import { useMemo, useState } from 'react';
-import { ActionButton, CreateButton } from '../Buttons';
+import { useEffect, useMemo, useState } from 'react';
+import { ActionButton, CreateButton, Button } from '../Buttons';
 import { MdDelete, MdEdit, MdTableView, MdRemove } from 'react-icons/md';
 import resolveConfig from 'tailwindcss/resolveConfig';
 import tailwindConfig from 'tailwind.config';
@@ -61,7 +61,8 @@ export default function LeveleTable({ type }) {
                 setIsModalOpen(true);
               }}
             />
-            {row.index + 1 == docs.length ? (
+            {/* {console.log(row.index + 1, levelCount)}
+            {row.index + 1 == levelCount && levelCount !== 0 ? (
               <ActionButton
                 icon={<MdRemove size={16} className="text-white" />}
                 buttonColor={theme.colors.primary[400]}
@@ -72,7 +73,7 @@ export default function LeveleTable({ type }) {
                   setIsConfirmationOpen(true);
                 }}
               />
-            ) : null}
+            ) : null} */}
           </div>
         ),
       },
@@ -90,7 +91,7 @@ export default function LeveleTable({ type }) {
     visibleColumns,
   } = useTable({ columns, data: _.sortBy(docs, ['level']) });
 
-  async function deleteItem() {
+  async function deleteLevel() {
     try {
       setIsDeleting(true);
       setIsConfirmationOpen(false);
@@ -119,12 +120,12 @@ export default function LeveleTable({ type }) {
       <PopupLoader isOpen={isDeleting} message="Deleting course" />
       <Confirmation
         isOpen={isConfirmationOpen}
-        label="Remove Level?"
-        message="Removing this level will affect the schedules."
+        label="Remove Last Level?"
+        message="Removing the last level will affect the schedules."
         onCancel={() => {
           setIsConfirmationOpen(false);
         }}
-        onConfirm={deleteItem}
+        onConfirm={deleteLevel}
       />
       <Modal
         label="Import Levels"
@@ -285,6 +286,19 @@ export default function LeveleTable({ type }) {
           </table>
         </div>
       ) : null}
+      {pageData.totalDocs > 0 && (
+        <div className="flex items-center justify-end">
+          <Button
+            onClick={() => {
+              // setToDeleteId(cell.row.original._id);
+              setIsConfirmationOpen(true);
+            }}
+          >
+            Remove last level
+          </Button>
+        </div>
+      )}
+
       {/* <ReactPaginate
         breakLabel="..."
         nextLabel="next >"
