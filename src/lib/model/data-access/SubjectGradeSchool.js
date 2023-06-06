@@ -30,14 +30,16 @@ class SubjectGradeSchool extends Model {
     try {
       const options = { ...(page && limit ? { page, limit } : {}) };
       const pipeline = [];
-      pipeline.push({
-        $match: {
-          $or: [
-            { code: { $regex: q, $options: 'i' } },
-            { name: { $regex: q, $options: 'i' } },
-          ],
-        },
-      });
+      if (q) {
+        pipeline.push({
+          $match: {
+            $or: [
+              { code: { $regex: q, $options: 'i' } },
+              { name: { $regex: q, $options: 'i' } },
+            ],
+          },
+        });
+      }
       if (type) {
         pipeline.push({
           $match: {
