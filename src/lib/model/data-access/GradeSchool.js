@@ -42,6 +42,7 @@ class GradeSchool extends Model {
           `A section name is already in use.`
         );
       }
+      // dahil nag dedelete ito ng section, dapat nagdedelete din ito ng schedules.
       await this.GradeSchool.deleteMany({
         level: level,
         type: type,
@@ -49,6 +50,7 @@ class GradeSchool extends Model {
           $nin: sections,
         },
       });
+
       const gradeSchoolOptions = sections.map((section) => {
         return {
           updateOne: {
@@ -94,11 +96,35 @@ class GradeSchool extends Model {
             level: {
               $first: '$level',
             },
+            subjects: { $first: '$subjects' },
             type: { $first: '$type' },
             totalSections: { $sum: 1 },
             sections: {
               $push: '$section',
             },
+          },
+        },
+        // change the subjects.0._id to subjects.0.subject
+        // when we changed the _id to subject.
+        { $unwind: '$subjects' },
+        {
+          $lookup: {
+            from: 'subjectgradeschools',
+            localField: 'subjects.subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $project: {
+                  teachers: 0,
+                },
+              },
+              {
+                $addFields: {
+                  subject: '$_id',
+                },
+              },
+            ],
+            as: 'subjects',
           },
         },
         {
@@ -108,6 +134,12 @@ class GradeSchool extends Model {
             type: 1,
             sections: 1,
             totalSections: 1,
+            subjects: 1,
+          },
+        },
+        {
+          $sort: {
+            level: 1,
           },
         },
       ];

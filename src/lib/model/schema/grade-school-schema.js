@@ -22,7 +22,6 @@ const gradeSchool = new mongoose.Schema({
       subject: {
         type: mongoose.Types.ObjectId,
         ref: 'subject',
-        required: true,
       },
     }),
   ],
