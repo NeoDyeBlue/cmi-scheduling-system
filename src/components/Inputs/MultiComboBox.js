@@ -177,7 +177,11 @@ export default function MultiComboBox({
         />
         <div className="flex w-full flex-col overflow-hidden">
           <p className="font-dsiplay text-ellipsis whitespace-nowrap font-medium">
-            {teacher.firstName} {teacher.lastName}
+            {`${
+              teacher?.fullName
+                ? teacher.fullName
+                : `${teacher.firstName} ${teacher.lastName}`
+            }`}
           </p>
           <TeacherTypeBadge isPartTime={teacher.type == 'part-time'} />
         </div>

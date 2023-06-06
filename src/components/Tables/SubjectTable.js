@@ -1,7 +1,7 @@
 import { MdDelete, MdEdit, MdDownload } from 'react-icons/md';
 import { ActionButton } from '../Buttons';
 import { useTable } from 'react-table';
-import { SubjectForm } from '../Forms';
+import { SubjectForm, KinderToJHSSubjectForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { Modal, Confirmation } from '../Modals';
 import resolveConfig from 'tailwindcss/resolveConfig';
@@ -134,18 +134,33 @@ export default function SubjectTable({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
-        <SubjectForm
-          initialData={toEditData}
-          onCancel={() => {
-            setIsModalOpen(false);
-            setToEditData(null);
-          }}
-          onAfterSubmit={() => {
-            setIsModalOpen(false);
-            setToEditData(null);
-            mutate();
-          }}
-        />
+        {type == 'shs' || type == 'college' ? (
+          <SubjectForm
+            initialData={toEditData}
+            onCancel={() => {
+              setIsModalOpen(false);
+              setToEditData(null);
+            }}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              setToEditData(null);
+              mutate();
+            }}
+          />
+        ) : (
+          <KinderToJHSSubjectForm
+            initialData={toEditData}
+            onCancel={() => {
+              setIsModalOpen(false);
+              setToEditData(null);
+            }}
+            onAfterSubmit={() => {
+              setIsModalOpen(false);
+              setToEditData(null);
+              mutate();
+            }}
+          />
+        )}
       </Modal>
       <div className="flex flex-col gap-4">
         <table {...getTableProps()} className="w-full">

@@ -16,14 +16,14 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import SubjectTable from './SubjectTable';
 import { MdTableView } from 'react-icons/md';
 
-export default function KinderToJHSSubjectTable({ type }) {
+export default function KinderToJHSSubjectTable({ type = '' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   // const subjects = useMemo(() => data, [data]);
 
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: `/api/subjects${searchValue ? '/search' : ''}`,
+    url: `/api/pre-grade-school-subject`,
     limit: 10,
     query: {
       type,

@@ -7,10 +7,9 @@ import tailwindConfig from 'tailwind.config';
 import React from 'react';
 import classNames from 'classnames';
 import { useRouter } from 'next/router';
-import ReactPaginate from 'react-paginate';
 import usePaginate from '@/hooks/usePaginate';
 import { Modal, Confirmation } from '../Modals';
-import { CourseForm, SearchForm, SheetForm, GradeLevelForm } from '../Forms';
+import { SheetForm, GradeLevelForm } from '../Forms';
 import { PopupLoader } from '../Loaders';
 import { toast } from 'react-hot-toast';
 import { SpinnerLoader } from '../Loaders';
@@ -26,7 +25,7 @@ export default function LeveleTable({ type }) {
   const [searchValue, setSearchValue] = useState('');
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const { docs, pageData, setPageIndex, mutate, isLoading } = usePaginate({
-    url: `/api/courses${searchValue ? '/search' : ''}`,
+    url: `/api/grade-school${searchValue ? '/search' : ''}`,
     limit: 10,
     query: {
       type,

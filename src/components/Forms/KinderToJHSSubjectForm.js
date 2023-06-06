@@ -24,10 +24,7 @@ export default function KinderSubjectForm({
       code: initialData?.code || '',
       name: initialData?.name || '',
       minutes: initialData?.minutes || 30,
-      teachers: initialData?.assignedTeachers?.length
-        ? initialData?.assignedTeachers
-        : [],
-      semester: initialData?.semester || 1,
+      teachers: initialData?.teachers?.length ? initialData?.teachers : [],
       type,
     },
     onSubmit: handleSubmit,
@@ -36,13 +33,16 @@ export default function KinderSubjectForm({
 
   async function handleSubmit(values) {
     try {
+      const newBody = {
+        ...values,
+        ...(initialData ? { _id: initialData?._id } : {}),
+        teachers: values.teachers.map((teacher) => ({ teacher: teacher._id })),
+      };
+      console.log(newBody);
       setIsLoading(true);
-      const res = await fetch('/api/subjects', {
+      const res = await fetch('/api/pre-grade-school-subject', {
         method: initialData ? 'PATCH' : 'POST',
-        body: JSON.stringify({
-          ...values,
-          ...(initialData ? { _id: initialData?._id } : {}),
-        }),
+        body: JSON.stringify(newBody),
         headers: { 'Content-Type': 'application/json' },
       });
       const result = await res.json();

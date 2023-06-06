@@ -4,17 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && electron-builder",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
-  },
-  "main": "main.js",
-  "build": {
-    "appId": "cmi_scheduling_app",
-    "productName": "CMI Scheduling App",
-    "directories": {
-      "output": "dist"
-    }
   },
   "dependencies": {
     "@next/font": "13.1.6",

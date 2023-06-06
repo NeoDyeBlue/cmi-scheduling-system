@@ -144,7 +144,7 @@ export default function GradeLevelForm({
           label="Subjects"
           placeholder="Enter subject code or name"
           name="subjects"
-          searchUrl="/api/subjects/search"
+          searchUrl="/api/pre-grade-school-subject"
           // label="Subjects"
           filter={{
             type,
