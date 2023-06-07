@@ -283,7 +283,7 @@ export default function CourseForm({
                                 // label="Subjects"
                                 filter={{
                                   semester: 1,
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>
@@ -295,7 +295,7 @@ export default function CourseForm({
                                 // label="Subjects"
                                 filter={{
                                   semester: 2,
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>
@@ -317,7 +317,7 @@ export default function CourseForm({
                                 searchUrl="/api/subjects/search"
                                 // label="Subjects"
                                 filter={{
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>
