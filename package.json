@@ -51,7 +51,7 @@
     "react-virtuoso": "^4.1.0",
     "react-wavify": "^1.7.0",
     "swagger-ui-react": "^4.16.0-alpha.1",
-    "swr": "^2.0.4",
+    "swr": "^2.1.5",
     "use-file-picker": "^1.5.2",
     "xlsx": "^0.18.5",
     "yup": "^1.0.0",
@@ -60,11 +60,11 @@
   "devDependencies": {
     "@types/node": "18.14.1",
     "autoprefixer": "^10.4.13",
+    "electron": "^24.1.2",
     "postcss": "^8.4.21",
     "prettier": "2.8.4",
     "prettier-plugin-tailwindcss": "^0.2.3",
-    "tailwindcss": "^3.2.7",
-    "electron": "^24.1.2"
+    "tailwindcss": "^3.2.7"
   },
   "browser": {
     "child_process": false
