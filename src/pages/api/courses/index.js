@@ -72,9 +72,9 @@ export const handler = async (req, res) => {
       const sections = [];
       for (let yearIndex in fields.yearSections) {
         let totalSections =
-          courseFormData.type === 'shs'
-            ? courseFormData.yearSections[yearIndex].sections.length
-            : courseFormData.yearSections[yearIndex].sectionCount;
+          fields.type === 'shs'
+            ? fields.yearSections[yearIndex].sections.length
+            : fields.yearSections[yearIndex].sectionCount;
         for (let secIndex = 0; secIndex < totalSections; secIndex++) {
           sections.push({
             ...fields.yearSections[yearIndex],
@@ -124,6 +124,7 @@ export const handler = async (req, res) => {
       await schedule.deleteScheduleByItsId({ scheduleHavingConflict });
       return successResponse(req, res, data);
     } catch (error) {
+      console.log("error",error)
       return errorResponse(req, res, error.message, 400, error.name);
     }
   }
