@@ -93,6 +93,7 @@ export default function CourseForm({
         toast.success(`Course ${initialData ? 'updated' : 'added'}`);
         onAfterSubmit();
       } else if (!result?.success && result?.error) {
+        toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
         if (result?.error == 'CourseCodeError') {
           courseFormik.setFieldError('code', result?.errorMessage);
         }
