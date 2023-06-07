@@ -20,8 +20,7 @@ class GradeSchool extends Model {
       const sectionDuplicatePipeline = [
         {
           $match: {
-            level: level,
-            type: type,
+            level: { $ne: level },
             section: {
               $in: sections,
             },
@@ -43,6 +42,7 @@ class GradeSchool extends Model {
         );
       }
       // dahil nag dedelete ito ng section, dapat nagdedelete din ito ng schedules.
+      // delete all sections that not included in the new sections of that level.
       await this.GradeSchool.deleteMany({
         level: level,
         type: type,

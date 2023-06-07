@@ -7,7 +7,7 @@ export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const GradeSchoolFormData = req.body;
-      // console.log("GradeSchoolFormData-------------",GradeSchoolFormData)
+      console.log("GradeSchoolFormData-------------",GradeSchoolFormData)
       const data = await gradeSchool.createGradeSchool({
         level: GradeSchoolFormData.level,
         subjects: GradeSchoolFormData.subjects,

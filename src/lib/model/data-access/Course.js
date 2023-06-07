@@ -104,6 +104,7 @@ class Course extends Model {
               year: '$yearSections.year',
             },
             sectionCount: { $sum: 1 },
+            sectionNames: { $push: '$yearSections.section' }, // just for shs
             code: { $first: '$code' },
             name: { $first: '$name' },
             type: { $first: '$type' },
@@ -114,6 +115,7 @@ class Course extends Model {
         {
           $addFields: {
             'yearSections.sectionCount': '$sectionCount',
+            "yearSections.sections": '$sectionNames', // just for shs
           },
         },
         {
@@ -129,6 +131,7 @@ class Course extends Model {
                 in: {
                   year: '$yearSections.year',
                   semesterSubjects: '$yearSections.semesterSubjects',
+                  sections: '$yearSections.sections', // just for shs
                   sectionCount: '$yearSections.sectionCount',
                 },
               },

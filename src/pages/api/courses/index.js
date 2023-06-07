@@ -12,24 +12,30 @@ import schedule from '@/lib/model/data-access/Schedule';
 export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
-      const payload = req.body;
+      const courseFormData = req.body;
+      console.log('courseFormData>>>>>>', JSON.stringify(courseFormData));
+
       const sectionNames = generateChar(20);
+
       const sections = [];
-      for (let yearIndex in payload.yearSections) {
-        for (
-          let secIndex = 0;
-          secIndex < payload.yearSections[yearIndex].sectionCount;
-          secIndex++
-        ) {
+      for (let yearIndex in courseFormData.yearSections) {
+        let totalSections =
+          courseFormData.type === 'shs'
+            ? courseFormData.yearSections[yearIndex].sections.length
+            : courseFormData.yearSections[yearIndex].sectionCount;
+        for (let secIndex = 0; secIndex < totalSections; secIndex++) {
           sections.push({
-            ...payload.yearSections[yearIndex],
-            section: sectionNames[secIndex],
+            ...courseFormData.yearSections[yearIndex],
+            section:
+              courseFormData.type === 'shs'
+                ? courseFormData.yearSections[yearIndex].sections[secIndex]
+                : sectionNames[secIndex],
           });
         }
       }
-      payload.yearSections = sections;
-      console.log('payload', JSON.stringify(payload));
-      const data = await course.createCourse(payload);
+      courseFormData.yearSections = sections;
+      console.log('courseFormData', JSON.stringify(courseFormData));
+      const data = await course.createCourse(courseFormData);
       return successResponse(req, res, data);
     } catch (error) {
       console.log('error', error);
@@ -65,14 +71,17 @@ export const handler = async (req, res) => {
       const sectionNames = generateChar(20);
       const sections = [];
       for (let yearIndex in fields.yearSections) {
-        for (
-          let secIndex = 0;
-          secIndex < fields.yearSections[yearIndex].sectionCount;
-          secIndex++
-        ) {
+        let totalSections =
+          courseFormData.type === 'shs'
+            ? courseFormData.yearSections[yearIndex].sections.length
+            : courseFormData.yearSections[yearIndex].sectionCount;
+        for (let secIndex = 0; secIndex < totalSections; secIndex++) {
           sections.push({
             ...fields.yearSections[yearIndex],
-            section: sectionNames[secIndex],
+            section:
+              fields.type === 'shs'
+                ? fields.yearSections[yearIndex].sections[secIndex]
+                : sectionNames[secIndex],
           });
         }
       }
