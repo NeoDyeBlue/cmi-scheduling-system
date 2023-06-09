@@ -75,8 +75,6 @@ export default function CourseForm({
     validationSchema: type == 'shs' ? trackSchema : courseSchema,
   });
 
-  console.log(courseFormik.errors);
-
   async function handleSubmit(values) {
     try {
       setIsLoading(true);
