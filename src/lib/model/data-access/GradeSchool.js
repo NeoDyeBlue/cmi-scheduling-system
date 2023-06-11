@@ -210,7 +210,7 @@ class GradeSchool extends Model {
             level: 1,
             schedCompletionStatus: 1,
           },
-        },
+        },   
         // {
         //   $addFields: {
         //     type: '$type',
