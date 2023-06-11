@@ -44,10 +44,10 @@ export default function Schedules() {
             <CourseSchedulerTable type="shs" />
           </TabPanel>
           <TabPanel>
-            <CourseSchedulerTable type="shs" />
+            <LevelSchedulerTable type="elementary" />
           </TabPanel>
           <TabPanel>
-            <CourseSchedulerTable type="shs" />
+            <LevelSchedulerTable type="jhs" />
           </TabPanel>
           <TabPanel>
             <CourseSchedulerTable type="shs" />

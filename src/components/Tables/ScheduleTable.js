@@ -268,29 +268,24 @@ const ScheduleTable = forwardRef(function ScheduleTable(
   return (
     <>
       <div className="page-portrait flex flex-col gap-4 print:m-4" ref={ref}>
-        <div className="hidden print:block">
+        <div className="hidden flex-col items-center justify-center gap-2 text-center print:flex">
           <p className="font-display text-2xl font-semibold">{title}</p>
           {subtitle && <p className="text-sm">{subtitle}</p>}
         </div>
-        <table
-          id={id}
-          {...getTableProps()}
-          className="w-full border border-gray-300 lg:table-fixed"
-        >
+        <table id={id} {...getTableProps()} className="w-full lg:table-fixed">
           <thead className="p-4 text-center font-display text-xs font-semibold">
             {headerGroups.map((headerGroup, index) => (
-              <tr
-                key={index}
-                {...headerGroup.getHeaderGroupProps()}
-                className="border border-gray-300"
-              >
+              <tr key={index} {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column, index) => (
                   <th
                     key={index}
                     {...column.getHeaderProps()}
-                    className="border border-gray-300 px-4 py-3"
+                    className={classNames('border border-gray-300 py-3', {
+                      'w-[100px] border-0 px-2 text-right': index == 0,
+                      'px-4': index !== 0,
+                    })}
                   >
-                    {column.render('Header')}
+                    {index !== 0 && column.render('Header')}
                   </th>
                 ))}
               </tr>
@@ -417,6 +412,7 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                               `min-w-[150px] border border-gray-200 border-r-gray-300 px-4 py-3 text-center text-xs`,
                               {
                                 'border-b-gray-300': (rowIndex + 1) % 6 == 0,
+                                'border-l-gray-300': cellIndex == 1,
                               }
                             )}
                           ></td>

@@ -11,14 +11,15 @@ import {
   MdCancel,
 } from 'react-icons/md';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
+import LevelSchedulerSecTable from './LevelSchedulerSecTable';
 import { SpinnerLoader } from '../Loaders';
 import { SearchForm } from '../Forms';
+import _ from 'lodash';
 
 export default function LevelSchedulerTable({ type }) {
   const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, isLoading } = usePaginate({
-    url: `/api/courses/status`,
+    url: `/api/grade-school/status`,
     limit: 10,
     query: {
       type,
@@ -52,12 +53,8 @@ export default function LevelSchedulerTable({ type }) {
         ),
       },
       {
-        Header: 'Code',
-        accessor: 'code', // accessor is the "key" in the data
-      },
-      {
-        Header: 'Name',
-        accessor: 'name', // accessor is the "key" in the data
+        Header: 'Grade Level',
+        accessor: 'level', // accessor is the "key" in the data
       },
       {
         Header: 'Regular',
@@ -85,7 +82,7 @@ export default function LevelSchedulerTable({ type }) {
     <div className="flex flex-col gap-6">
       <div className="w-full max-w-[350px]">
         <SearchForm
-          placeholder={`Search ${type} courses`}
+          placeholder={`Search ${type} levels`}
           onSearch={(value) => setSearchValue(value)}
         />
       </div>
@@ -111,14 +108,15 @@ export default function LevelSchedulerTable({ type }) {
                         key={columnIndex}
                         {...column.getHeaderProps()}
                         className={classNames(
-                          'bg-ship-gray-50 px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg',
-                          {
-                            'text-center':
-                              columnIndex == 3 ||
-                              columnIndex == 4 ||
-                              columnIndex == 5 ||
-                              columnIndex == 6,
-                          }
+                          'bg-ship-gray-50 px-4 py-3 text-center first:rounded-tl-lg last:rounded-tr-lg',
+                          // {
+                          //   'text-center':
+                          //     columnIndex == 2 ||
+                          //     columnIndex == 3 ||
+                          //     columnIndex == 4 ||
+                          //     columnIndex == 5,
+                          // },
+                          { 'w-[50px]': columnIndex == 0 }
                         )}
                       >
                         {column.render('Header')}
@@ -184,9 +182,8 @@ export default function LevelSchedulerTable({ type }) {
                                 key={index}
                                 {...cell.getCellProps()}
                                 className={classNames('p-4', {
-                                  'whitespace-nowrap font-semibold uppercase':
+                                  'whitespace-nowrap text-center text-xl font-bold uppercase text-primary-500':
                                     index == 1,
-                                  'min-w-[300px]': index == 2,
                                 })}
                               >
                                 {cell.render('Cell')}
@@ -202,7 +199,7 @@ export default function LevelSchedulerTable({ type }) {
                               <Tabs className="flex flex-col">
                                 <div className="flex flex-col gap-2">
                                   <p className="w-fit whitespace-nowrap text-sm leading-none text-ship-gray-500">
-                                    Select semester:
+                                    Select schedule type:
                                   </p>
                                   <TabList className="scrollbar-hide flex w-full gap-2 overflow-x-auto">
                                     <Tab
@@ -221,27 +218,27 @@ export default function LevelSchedulerTable({ type }) {
                                 </div>
 
                                 <TabPanel>
-                                  <CourseSchedulerYearSecTable
+                                  <LevelSchedulerSecTable
                                     courseCode={row.original.code}
-                                    semester={'1'}
+                                    semester={'regular'}
                                     data={
-                                      row.original.schedCompletionStatus.firstSem.perYearSec.sort(
-                                        (a, b) => {
-                                          return a.year - b.year;
-                                        }
+                                      _.sortBy(
+                                        row.original.schedCompletionStatus
+                                          ?.regular?.gradeLevelSec,
+                                        ['section']
                                       ) || []
                                     }
                                   />
                                 </TabPanel>
                                 <TabPanel>
-                                  <CourseSchedulerYearSecTable
+                                  <LevelSchedulerSecTable
                                     courseCode={row.original.code}
                                     semester={'summer'}
                                     data={
-                                      row.original.schedCompletionStatus.summer.perYearSec.sort(
-                                        (a, b) => {
-                                          return a.year - b.year;
-                                        }
+                                      _.sortBy(
+                                        row.original.schedCompletionStatus
+                                          ?.summer?.gradeLevelSec,
+                                        ['section']
                                       ) || []
                                     }
                                   />

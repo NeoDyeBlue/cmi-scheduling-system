@@ -67,6 +67,68 @@ export function createInitialRoomLayout(
   return roomSubjectsLayout;
 }
 
+export function createGradeInitialRoomLayout(
+  schedules,
+  gradeData,
+  gradeSubjects,
+  timeData
+) {
+  //get the existing room layout
+  const roomSubjectsLayout = [];
+  //for each subject schedule
+  schedules?.forEach((subjSchedule) => {
+    //get the scheduled courses of the subject if its more than 1 it is considered as merged classes
+
+    subjSchedule.dayTimes.forEach((dayTime) => {
+      /**
+       * checks if the teacher of the room subject
+       * is the same as in the course subject
+       */
+
+      dayTime.times.forEach((time) => {
+        const grades = time.grades.map(
+          (grade) => `${grade.level}${grade.section}`
+        );
+
+        //checks if the current courseYearSec is in the scheduled courses
+        const inGrades = grades.some(
+          (grade) => grade == `${gradeData.level}${gradeData.section}`
+        );
+
+        const yStart = timeData.findIndex((item) => item == time.start);
+        const yEnd = timeData.findIndex((item) => item == time.end);
+
+        const itemId = createLayoutItemId(
+          subjSchedule.subject.code,
+          subjSchedule.teacher._id,
+          grades
+        );
+
+        roomSubjectsLayout.push({
+          i: itemId,
+          x: dayTime.day,
+          w: 1,
+          y: yStart,
+          minH: 1,
+          h: Math.abs(yEnd - yStart),
+          maxW: 1,
+          /**
+           * will only be static if subject code is not offered in course
+           * or current course is not in the merged classes
+           */
+          static: !(gradeSubjects.some(
+            (subject) => subject.code == subjSchedule.subject.code
+          )
+            ? inGrades
+            : false),
+        });
+      });
+    });
+  });
+  // setSubjectsData(roomSubjectsData);
+  return roomSubjectsLayout;
+}
+
 export function createLayoutItemId(subject = '', teacher = '', courses = []) {
   return `${subject}~${teacher}~${_.sortBy(courses).join(',')}~${nanoid(10)}`;
 }
