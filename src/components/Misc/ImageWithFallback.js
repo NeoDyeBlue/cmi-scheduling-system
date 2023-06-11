@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-export default function ImageWithFallback({ src, fallbackSrc, alt, ...rest }) {
+export default function ImageWithFallback({
+  src,
+  fallbackSrc = '/images/default-teacher.jpg',
+  alt,
+  ...rest
+}) {
   // const [imgSrc, setImgSrc] = useState(src);
   const [error, setError] = useState(null);
 
