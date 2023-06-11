@@ -9,7 +9,7 @@ import course from './schema/course-schema';
 import gradeSchool from './schema/grade-school-schema';
 import preSchool from './schema/pre-school-schema';
 import subjectGradeSchool from './schema/pre-grade-school-subject-schema';
-
+import gradeSchoolScheduleSchema from './schema/grade-school-schedule';
 class Model extends MongoConnect {
   constructor() {
     super();
@@ -46,10 +46,14 @@ class Model extends MongoConnect {
     this.PreSchool = this.modelNames.includes('preschool')
       ? mongoose.model('preschool')
       : mongoose.model('preschool', preSchool);
-      
+
     this.SubjectGradeSchool = this.modelNames.includes('subjectgradeschool')
-    ? mongoose.model('subjectgradeschool')
-    : mongoose.model('subjectgradeschool', subjectGradeSchool);
+      ? mongoose.model('subjectgradeschool')
+      : mongoose.model('subjectgradeschool', subjectGradeSchool);
+
+    this.GradeSchoolSchedule = this.modelNames.includes('gradeschoolschedule')
+      ? mongoose.model('gradeschoolschedule')
+      : mongoose.model('gradeschoolschedule', gradeSchoolScheduleSchema);
 
     // this.db.close()
   }

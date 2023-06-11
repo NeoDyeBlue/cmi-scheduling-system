@@ -8,6 +8,7 @@ export const handler = async (req, res) => {
   if (req.method === 'POST') {
     try {
       const subject = req.body;
+      console.log("subject",subject)
       const data = await subjectGradeSchool.createSubject(subject);
       return successResponse(req, res, data);
     } catch (error) {

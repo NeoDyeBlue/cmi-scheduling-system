@@ -154,6 +154,204 @@ class GradeSchool extends Model {
       throw error;
     }
   }
+  async getGradeSchoolStatus({ type, limit, page, q }) {
+    try {
+      const options = { ...(page && limit ? { page, limit } : {}) };
+      const search = q
+        ? {
+            $or: [
+              {
+                code: { $regex: q, $options: 'i' },
+              },
+              {
+                name: { $regex: q, $options: 'i' },
+              },
+            ],
+          }
+        : {};
+      const pipeline = [
+        {
+          $match: {
+            type: type,
+          },
+        },
+        {
+          $match: search,
+        },
+        {
+          $addFields: {
+            type: '$type',
+            level: '$level',
+            schedCompletionStatus: {
+              regular: {
+                isCompleted: false,
+                levelSection: [
+                  {
+                    level: '$level',
+                    section: '$section',
+                    status: 'unscheduled',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            subjects: 0,
+          },
+        },
+      ];
+      const gradeSchoolAggregation = this.GradeSchool.aggregate(pipeline);
+      const data = await this.GradeSchool.aggregatePaginate(
+        gradeSchoolAggregation,
+        options
+      );
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getGradeSchoolSchedules({ level, type, section, schedulertype }) {
+    try {
+      console.log(' level, type, section,', level, type, section);
+      const pipeline = [
+        {
+          $match: {
+            type: type,
+            level: parseInt(level),
+            section: section,
+          },
+        },
+        {
+          $addFields: {
+            grade: {
+              _id: '$_id',
+              level: '$level',
+              section: '$section',
+              type: '$type',
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'subjectgradeschools',
+            localField: 'subjects.subject',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $unwind: '$teachers',
+              },
+              {
+                $lookup: {
+                  from: 'teachers',
+                  localField: 'teachers.teacher',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $lookup: {
+                        from: 'gradeschoolschedules',
+                        localField: '_id',
+                        foreignField: 'teacher',
+                        pipeline: [
+                          {
+                            $match: {
+                              schedulerType: schedulertype,
+                            },
+                          },
+                          {
+                            $project: {
+                              subject: 1,
+                              schedules: 1,
+                            },
+                          },
+                          {
+                            $lookup: {
+                              from: 'subjectgradeschools',
+                              localField: 'subject',
+                              foreignField: '_id',
+                              pipeline: [
+                                {
+                                  $project: {
+                                    _id: 1,
+                                    code: 1,
+                                    name: 1,
+                                    minutes: 1,
+                                    type: 1,
+                                  },
+                                },
+                              ],
+                              as: 'subject',
+                            },
+                          },
+                          {
+                            $project: {
+                              schedules: 1,
+                              teacher: 1,
+                              subject: {
+                                $arrayElemAt: ['$subject', 0],
+                              },
+                            },
+                          },
+                          {
+                            $unwind: '$schedules',
+                          },
+                          {
+                            $unwind: '$schedules.times',
+                          },
+                          {
+                            $group: {
+                              _id: {
+                                teacher: '$teacher',
+                                subject: '$subject._id',
+                                day: '$schedules.day',
+                                room: '$schedules.room._id',
+                                start: '$schedules.times.start',
+                                end: '$schedules.times.end',
+                              },
+                              day: { $first: '$schedules.day' },
+                              room: { $first: '$schedules.room' },
+                              times: {
+                                $push: {
+                                  start: '$schedules.times.start',
+                                  end: '$schedules.times.end',
+                                  subject: '$subject',
+                                  grades: '$schedules.times.grades',
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 0,
+                            },
+                          },
+                        ],
+                        as: 'existingSchedules',
+                      },
+                    },
+                  ],
+                  as: 'assignedTeachers',
+                },
+              },
+              {
+                $project: {
+                  teachers: 0,
+                },
+              },
+            ],
+            as: 'subjects',
+          },
+        },
+      ];
+      const data = await this.GradeSchool.aggregate(pipeline);
+      console.log('data', data);
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const gradeSchool = new GradeSchool();
 export default gradeSchool;

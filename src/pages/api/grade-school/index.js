@@ -4,6 +4,7 @@ import { successResponse, errorResponse } from '@/utils/response.utils';
 import mongoose from 'mongoose';
 export const handler = async (req, res) => {
   // to create grade school and update.
+  
   if (req.method === 'POST') {
     try {
       const GradeSchoolFormData = req.body;
