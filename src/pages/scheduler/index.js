@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { MainLayout } from '@/components/Layouts';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { useState } from 'react';
-import { CourseSchedulerTable } from '@/components/Tables';
+import { CourseSchedulerTable, LevelSchedulerTable } from '@/components/Tables';
 import { SearchForm } from '@/components/Forms';
 
 export default function Schedules() {

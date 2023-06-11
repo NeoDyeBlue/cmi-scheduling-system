@@ -15,7 +15,7 @@ import CourseSchedulerYearSecTable from './CourseSchedulerYearSecTable';
 import { SpinnerLoader } from '../Loaders';
 import { SearchForm } from '../Forms';
 
-export default function CourseSchedulerTable({ type }) {
+export default function LevelSchedulerTable({ type }) {
   const [searchValue, setSearchValue] = useState('');
   const { docs, pageData, setPageIndex, isLoading } = usePaginate({
     url: `/api/courses/status`,
@@ -60,17 +60,9 @@ export default function CourseSchedulerTable({ type }) {
         accessor: 'name', // accessor is the "key" in the data
       },
       {
-        Header: '1st sem',
-        accessor: 'schedCompletionStatus.firstSem.isCompleted', // accessor is the "key" in the data
+        Header: 'Regular',
+        accessor: 'schedCompletionStatus.regular.isCompleted', // accessor is the "key" in the data
       },
-      {
-        Header: '2nd sem',
-        accessor: 'schedCompletionStatus.secondSem.isCompleted', // accessor is the "key" in the data
-      },
-      // {
-      //   Header: 'Special',
-      //   accessor: 'schedCompletionStatus.special.isCompleted', // accessor is the "key" in the data
-      // },
       {
         Header: 'Summer',
         accessor: 'schedCompletionStatus.summer.isCompleted', // accessor is the "key" in the data
@@ -93,7 +85,7 @@ export default function CourseSchedulerTable({ type }) {
     <div className="flex flex-col gap-6">
       <div className="w-full max-w-[350px]">
         <SearchForm
-          placeholder={`Search ${type} schedules`}
+          placeholder={`Search ${type} courses`}
           onSearch={(value) => setSearchValue(value)}
         />
       </div>
@@ -160,9 +152,7 @@ export default function CourseSchedulerTable({ type }) {
                       >
                         {row.cells.map((cell, index) => {
                           if (
-                            cell.column.Header == '1st sem' ||
-                            cell.column.Header == '2nd sem' ||
-                            cell.column.Header == 'Special' ||
+                            cell.column.Header == 'Regular' ||
                             cell.column.Header == 'Summer'
                           ) {
                             return (
@@ -219,20 +209,8 @@ export default function CourseSchedulerTable({ type }) {
                                       selectedClassName="tab-active"
                                       className="tab-sm"
                                     >
-                                      1st sem
+                                      Regular
                                     </Tab>
-                                    <Tab
-                                      selectedClassName="tab-active"
-                                      className="tab-sm"
-                                    >
-                                      2nd sem
-                                    </Tab>
-                                    {/* <Tab
-                                    selectedClassName="tab-active"
-                                    className="tab-sm"
-                                  >
-                                    Special
-                                  </Tab> */}
                                     <Tab
                                       selectedClassName="tab-active"
                                       className="tab-sm"
@@ -255,32 +233,6 @@ export default function CourseSchedulerTable({ type }) {
                                     }
                                   />
                                 </TabPanel>
-                                <TabPanel>
-                                  <CourseSchedulerYearSecTable
-                                    courseCode={row.original.code}
-                                    semester={'2'}
-                                    data={
-                                      row.original.schedCompletionStatus.secondSem.perYearSec.sort(
-                                        (a, b) => {
-                                          return a.year - b.year;
-                                        }
-                                      ) || []
-                                    }
-                                  />
-                                </TabPanel>
-                                {/* <TabPanel>
-                                <CourseSchedulerYearSecTable
-                                  courseCode={row.original.code}
-                                  semester={'special'}
-                                  data={
-                                    row.original.schedCompletionStatus.special.perYearSec.sort(
-                                      (a, b) => {
-                                        return a.year - b.year;
-                                      }
-                                    ) || []
-                                  }
-                                />
-                              </TabPanel> */}
                                 <TabPanel>
                                   <CourseSchedulerYearSecTable
                                     courseCode={row.original.code}
