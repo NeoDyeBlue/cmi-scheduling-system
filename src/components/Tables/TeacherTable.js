@@ -291,6 +291,7 @@ export default function TeacherTable({ data, mutate = () => {} }) {
                         <PerSemScheduleTable
                           type="teachers"
                           fetchQuery={{ teacher: row.original._id }}
+                          title={`${row.original.firstName} ${row.original.lastName}`}
                         />
                       </div>
                     </td>

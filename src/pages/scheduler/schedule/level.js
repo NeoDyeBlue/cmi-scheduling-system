@@ -6,10 +6,10 @@ import {
   MdAccessTimeFilled,
 } from 'react-icons/md';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import { Scheduler } from '@/components/Inputs';
+import { LevelScheduler, Scheduler } from '@/components/Inputs';
 import DraggableSchedule from '@/components/Misc/DraggableSchedule';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import useSchedulerStore from '@/stores/useSchedulerStore';
+import useLevelSchedulerStore from '@/stores/useLevelSchedulerStore';
 import { RoomSelector, Modal } from '@/components/Modals';
 import { Scrollbars } from 'react-custom-scrollbars-2';
 import { SquareButton, Button } from '@/components/Buttons';
@@ -30,37 +30,37 @@ export default function Schedule() {
     []
   );
   const {
-    course,
+    grade,
     subjectsData,
     subjectScheds,
-    courseSubjects,
+    gradeSubjects,
     selectedRooms,
     roomsSubjScheds,
     roomsSubjSchedsLayouts,
     oldSchedsData,
-    setCourseSubjects,
+    setGradeSubjects,
     setSubjectsData,
-    setCourse,
+    setGrade,
     setSubjectScheds,
     setSelectedRooms,
     setAllRoomSubjSchedsLayout,
     setAllRoomSubjScheds,
     setOldSchedsData,
     reset,
-  } = useSchedulerStore(
+  } = useLevelSchedulerStore(
     useCallback(
       (state) => ({
-        course: state.course,
+        grade: state.grade,
         subjectsData: state.subjectsData,
         subjectScheds: state.subjectScheds,
-        courseSubjects: state.courseSubjects,
+        gradeSubjects: state.gradeSubjects,
         selectedRooms: state.selectedRooms,
         roomsSubjScheds: state.roomsSubjScheds,
         roomsSubjSchedsLayouts: state.roomsSubjSchedsLayouts,
         oldSchedsData: state.oldSchedsData,
-        setCourseSubjects: state.setCourseSubjects,
+        setGradeSubjects: state.setGradeSubjects,
         setSubjectsData: state.setSubjectsData,
-        setCourse: state.setCourse,
+        setGrade: state.setGrade,
         setSubjectScheds: state.setSubjectScheds,
         setSelectedRooms: state.setSelectedRooms,
         setAllRoomSubjScheds: state.setAllRoomSubjScheds,
@@ -87,27 +87,20 @@ export default function Schedule() {
 
   useEffect(() => {
     if (
-      schedulerData?.course?.code !== course?.code ||
-      schedulerData?.course?.year !== course?.year ||
-      schedulerData?.course?.section !== course?.section ||
-      schedulerData?.semester !== course?.semester
+      schedulerData?.gradeLevel?.level !== grade?.level ||
+      schedulerData?.gradeLevel?.type !== grade?.type ||
+      schedulerData?.gradeLevel.section !== grade?.section
     )
       reset();
-  }, [schedulerData, course, reset]);
+  }, [schedulerData, grade, reset]);
 
   useEffect(() => {
     async function getSchedulerData() {
       if (Object.keys(router.query).length) {
         try {
           const res = await fetch(
-            `/api/courses/${router.query.course}?${new URLSearchParams({
-              ..._.pick(router.query, [
-                'semester',
-                'year',
-                'section',
-                'schedulerType',
-                'type',
-              ]),
+            `/api/grade-school/${router.query.level}?${new URLSearchParams({
+              ..._.pick(router.query, ['section', 'schedulerType', 'type']),
               p: 'draggable',
             }).toString()}`
           );
@@ -132,17 +125,17 @@ export default function Schedule() {
   useEffect(
     () => {
       if (schedulerData && !subjectsData.length) {
-        const courseSubjectsData = [];
+        const gradeSubjectsData = [];
         schedulerData?.subjects?.forEach((subject) => {
           subject?.assignedTeachers?.forEach((teacher) => {
-            const dataId = `${subject.code}~${teacher._id}`;
+            const dataId = `${subject.level}~${teacher._id}`;
             const { teachers, ...newData } = subject;
-            courseSubjectsData.push({
+            gradeSubjectsData.push({
               id: dataId,
               data: {
                 ...newData,
                 teacher,
-                courses: subject.courses,
+                grades: subject.grades,
               },
             });
           });
@@ -151,23 +144,23 @@ export default function Schedule() {
         schedulerData?.rooms.forEach((room) => {
           const roomLayout = createInitialRoomLayout(
             room.schedules,
-            schedulerData?.course,
+            schedulerData?.grade,
             schedulerData?.subjects,
             timeData
           );
           roomLayouts.push({
-            roomCode: room.code,
+            roomCode: room.level,
             roomId: room._id,
             layout: roomLayout,
           });
         });
         setAllRoomSubjSchedsLayout(roomLayouts);
-        setCourseSubjects(schedulerData?.subjects);
-        setCourse({
-          ...schedulerData?.course,
+        setGradeSubjects(schedulerData?.subjects);
+        setGrade({
+          ...schedulerData?.grade,
           semester: schedulerData?.semester,
         });
-        setSubjectsData(courseSubjectsData);
+        setSubjectsData(gradeSubjectsData);
         setSelectedRooms(schedulerData?.rooms);
       }
     },
@@ -181,7 +174,7 @@ export default function Schedule() {
         const roomSubjectsData = [];
         selectedRooms.forEach((room) => {
           room.schedules.forEach((schedule) => {
-            const dataId = `${schedule.subject.code}~${schedule.teacher._id}`;
+            const dataId = `${schedule.subject.level}~${schedule.teacher._id}`;
             if (
               !subjectsData.some((data) => data.id == dataId) &&
               !roomSubjectsData.some((data) => data.id == dataId)
@@ -191,7 +184,7 @@ export default function Schedule() {
                 data: {
                   ...schedule.subject,
                   teacher: schedule.teacher,
-                  courses: schedule.subject.courses,
+                  grades: schedule.subject.grades,
                 },
               });
             }
@@ -207,28 +200,28 @@ export default function Schedule() {
   useEffect(() => {
     // const rooms = roomsSubjSchedsLayouts.map((room) => room.roomId);
     setFormData({
-      course,
+      grade,
       roomSchedules: roomsSubjScheds,
-      semester: schedulerData?.semester,
+      schedulerType: schedulerData?.schedulerType,
     });
-  }, [course, roomsSubjScheds, schedulerData?.semester]);
+  }, [grade, roomsSubjScheds, schedulerData?.schedulerType]);
 
   const draggableSchedules = useMemo(
     () =>
-      courseSubjects.map((subject, subjIndex) => {
+      gradeSubjects.map((subject, subjIndex) => {
         const { teachers, ...newData } = subject;
         if (subject.assignedTeachers.length) {
           return subject?.assignedTeachers.map((teacher, teacherIndex) => (
             <DraggableSchedule
               key={`${teacher.id}-${subjIndex}-${teacherIndex}`}
-              data={{ ...newData, teacher, course }}
+              data={{ ...newData, teacher, grade }}
             />
           ));
         } else {
           return (
             <DraggableSchedule
               key={subjIndex}
-              data={{ ...newData, teacher: null, course }}
+              data={{ ...newData, teacher: null, grade }}
             />
           );
         }
@@ -252,7 +245,7 @@ export default function Schedule() {
 
   const selectedRoomTabs = selectedRooms.map((room, index) => (
     <Tab
-      key={`${room.code}-${index}`}
+      key={`${room.level}-${index}`}
       className="tab group relative uppercase"
       selectedClassName="tab-active"
     >
@@ -268,32 +261,22 @@ export default function Schedule() {
       >
         <MdClose size={16} />
       </button>
-      {room.code}
+      {room.level}
     </Tab>
   ));
 
   const selectedRoomTabPanels = selectedRooms.map((room) => (
-    <TabPanel key={`${room.code}`} className="-ml-[1px] -mt-[1px]">
-      <Scheduler
+    <TabPanel key={`${room.level}`} className="-ml-[1px] -mt-[1px]">
+      <LevelScheduler
         startTime="6:00 AM"
         endTime="6:00 PM"
         interval={10}
-        semester={schedulerData?.semester}
+        schedulerType={schedulerData?.type}
         roomData={room}
         onMerge={submitChanges}
       />
     </TabPanel>
   ));
-
-  function checkForChanges() {
-    const hasChanges = _.isEqual(roomsSubjScheds, oldSchedsData);
-    if (!hasChanges && oldSchedsData.length) {
-      setIsCancelConfirmOpen(true);
-    } else {
-      router.push('/scheduler');
-      reset();
-    }
-  }
 
   async function submitChanges() {
     console.log({
@@ -312,10 +295,6 @@ export default function Schedule() {
         toast.success('Schedules saved');
         setOldSchedsData(_.sortBy(roomsSubjScheds, 'roomCode'));
         setSchedulerData(result.data[0]);
-        /**
-         * ILL ADD A STATE UPDATE HERE FOR THE SCHEDULER DATA
-         */
-        // mutate();
       } else if (!result.success) {
         toast.error("Can't save schedules");
       }
@@ -334,10 +313,9 @@ export default function Schedule() {
       setIsSubmitting(true);
       const res = await fetch(
         `/api/schedules/reset?${new URLSearchParams({
-          course: course._id,
-          year: course.year,
-          section: course.section,
-          semester: course.semester,
+          grade: grade?._id,
+          level: grade?.level,
+          section: grade?.section,
         }).toString()}`,
         { method: 'DELETE' }
       );
@@ -354,21 +332,19 @@ export default function Schedule() {
             data: {
               ...subjectData.data,
               teacher: {
-                assignedCourses:
-                  subjectData.data.teacher.assignedCourses.filter(
-                    (assignedCourse) =>
-                      assignedCourse.code == course.code &&
-                      assignedCourse.year == course.year &&
-                      assignedCourse.section == course.section
-                  ),
+                assignedGrades: subjectData.data.teacher.assignedGrades.filter(
+                  (assignedGrade) =>
+                    assignedGrade.level == grade.level &&
+                    assignedGrade.section == grade.section
+                ),
               },
             },
           }))
         );
         setFormData({
-          course,
+          grade,
           roomSchedules: [],
-          semester: schedulerData?.semester,
+          schedulerType: schedulerData?.schedulerType,
         });
         toast.success('Schedules reset');
       } else {
@@ -390,10 +366,8 @@ export default function Schedule() {
       const res = await fetch(
         `/api/schedules?${new URLSearchParams({
           room: toRemoveRoom,
-          course: course._id,
-          year: course.year,
-          section: course.section,
-          semester: course.semester,
+          grade: grade.level,
+          section: grade.section,
         }).toString()}`,
         { method: 'DELETE' }
       );
@@ -423,7 +397,7 @@ export default function Schedule() {
             .flat()
             .filter(
               (schedule) =>
-                `${schedule.subject.code}~${schedule.teacher._id}` ==
+                `${schedule.subject.level}~${schedule.teacher._id}` ==
                 subjectData.id
             );
 
@@ -440,12 +414,11 @@ export default function Schedule() {
                   ...subjectData.data,
                   teacher: {
                     ...subjectData.data.teacher,
-                    assignedCourses:
-                      subjectData.data.teacher.assignedCourses.filter(
-                        (assignedCourse) =>
-                          assignedCourse.code == course.code &&
-                          assignedCourse.year == course.year &&
-                          assignedCourse.section == course.section
+                    assignedGrades:
+                      subjectData.data.teacher.assignedGrades.filter(
+                        (assignedGrade) =>
+                          assignedGrade.level == grade.level &&
+                          assignedGrade.section == grade.section
                       ),
                   },
                 },
@@ -457,9 +430,9 @@ export default function Schedule() {
         });
 
         setFormData({
-          course,
+          grade,
           roomSchedules: newRoomsSubjScheds,
-          semester: schedulerData?.semester,
+          schedulerType: schedulerData?.schedulerType,
         });
         setSubjectScheds(newSubjScheds);
         setAllRoomSubjScheds(_.sortBy(newRoomsSubjScheds, 'roomCode'));
@@ -484,10 +457,6 @@ export default function Schedule() {
       toast.error("Can't remove room");
     }
   }
-
-  //logs
-  // console.log(oldSchedsData);
-  // console.log(roomsSubjScheds);
 
   return (
     <>
@@ -559,16 +528,12 @@ export default function Schedule() {
           </button>
           <div>
             <p className="text-sm">
-              Creating {schedulerData?.semester == '1' ? '1st semester' : ''}
-              {schedulerData?.semester == '2' ? '2nd semester' : ''}
-              {schedulerData?.semester == 'special' ? 'special' : ''}
-              {schedulerData?.semester == 'summer' ? 'summer' : ''} schedules
-              for:
+              Creating
+              {schedulerData?.schedulerType} schedules for:
             </p>
             <h1 className="font-display text-xl font-semibold">
-              {schedulerData?.course.code.toUpperCase()}:{' '}
-              {schedulerData?.course.name} {schedulerData?.course.year}
-              {schedulerData?.course.section}
+              {schedulerData?.grade.level.toUpperCase()}:{' '}
+              {schedulerData?.grade.section}
             </h1>
           </div>
           <div className="ml-auto flex gap-2">

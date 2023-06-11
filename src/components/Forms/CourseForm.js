@@ -75,8 +75,6 @@ export default function CourseForm({
     validationSchema: type == 'shs' ? trackSchema : courseSchema,
   });
 
-  console.log(courseFormik.errors);
-
   async function handleSubmit(values) {
     try {
       setIsLoading(true);
@@ -93,6 +91,7 @@ export default function CourseForm({
         toast.success(`Course ${initialData ? 'updated' : 'added'}`);
         onAfterSubmit();
       } else if (!result?.success && result?.error) {
+        toast.error(`Can't ${initialData ? 'update' : 'add'} course`);
         if (result?.error == 'CourseCodeError') {
           courseFormik.setFieldError('code', result?.errorMessage);
         }
@@ -282,7 +281,7 @@ export default function CourseForm({
                                 // label="Subjects"
                                 filter={{
                                   semester: 1,
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>
@@ -294,7 +293,7 @@ export default function CourseForm({
                                 // label="Subjects"
                                 filter={{
                                   semester: 2,
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>
@@ -316,7 +315,7 @@ export default function CourseForm({
                                 searchUrl="/api/subjects/search"
                                 // label="Subjects"
                                 filter={{
-                                  type: courseFormik.values.type,
+                                  type,
                                 }}
                               />
                             </TabPanel>

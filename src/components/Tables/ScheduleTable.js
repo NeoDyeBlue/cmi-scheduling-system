@@ -145,13 +145,13 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         enableRowSpan: true,
         accessor: () => findSchedule(groupedByDay, 'sunday'),
       },
-      {
-        Header: 'Time',
-        id: 'time-right',
-        // Cell: ({ row }) => timeData[row.index],
-        accessor: 'time',
-        fixed: 'right',
-      },
+      // {
+      //   Header: 'Time',
+      //   id: 'time-right',
+      //   // Cell: ({ row }) => timeData[row.index],
+      //   accessor: 'time',
+      //   fixed: 'right',
+      // },
     ],
     [groupedByDay]
   );
@@ -201,16 +201,16 @@ const ScheduleTable = forwardRef(function ScheduleTable(
         className={classNames(
           'relative min-w-[150px] overflow-hidden border-2 border-indigo-300 bg-indigo-50 text-center text-sm'
           // 'z-10 before:absolute before:inset-0 before:h-full before:w-full before:bg-transparent'
-          // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
+          // `max-h-[${20 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
         )}
       >
         <div
           style={{
-            maxHeight: `${40 * rowSpan}px`,
+            maxHeight: `${20 * rowSpan}px`,
           }}
           className={classNames(
             'relative flex flex-col items-center justify-center gap-1 overflow-hidden p-4 text-center'
-            // `max-h-[${40 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
+            // `max-h-[${20 * Math.abs(timeEndIndex + 1 - timeStartIndex)}px]`
           )}
         >
           {type !== 'teachers' && rowSpan > 3 ? (
@@ -226,15 +226,15 @@ const ScheduleTable = forwardRef(function ScheduleTable(
           <div>
             <p
               className={classNames('font-bold uppercase', {
-                'text-xs': rowSpan == 1,
-                'text-lg': rowSpan !== 1,
+                'text-xs': rowSpan == 2,
+                'text-lg': rowSpan !== 2,
               })}
             >
               {slot?.subject?.code}
             </p>
-            {rowSpan > 1 && <p className="text-xs">{slot?.subject?.name}</p>}
+            {rowSpan > 4 && <p className="text-xs">{slot?.subject?.name}</p>}
           </div>
-          {type !== 'teachers' && type !== 'rooms' && rowSpan > 2 ? (
+          {type !== 'teachers' && type !== 'rooms' && rowSpan > 4 ? (
             <>
               <p className={classNames('font-bold')}>
                 {slot?.teacher?.firstName} {slot?.teacher?.lastName}
@@ -242,10 +242,10 @@ const ScheduleTable = forwardRef(function ScheduleTable(
               <p className="font-medium uppercase">{slot?.room?.code}</p>
             </>
           ) : null}
-          {type == 'teachers' && rowSpan > 1 && (
+          {type == 'teachers' && rowSpan > 2 && (
             <p className="font-medium uppercase">{slot?.room?.code}</p>
           )}
-          {type == 'rooms' && rowSpan > 1 && (
+          {type == 'rooms' && rowSpan > 2 && (
             <p className="font-bold">
               {slot?.teacher?.firstName} {slot?.teacher?.lastName}
             </p>
@@ -267,30 +267,25 @@ const ScheduleTable = forwardRef(function ScheduleTable(
 
   return (
     <>
-      <div className="page-landscape flex flex-col gap-4 print:m-4" ref={ref}>
-        <div className="hidden print:block">
+      <div className="page-portrait flex flex-col gap-4 print:m-4" ref={ref}>
+        <div className="hidden flex-col items-center justify-center gap-2 text-center print:flex">
           <p className="font-display text-2xl font-semibold">{title}</p>
           {subtitle && <p className="text-sm">{subtitle}</p>}
         </div>
-        <table
-          id={id}
-          {...getTableProps()}
-          className="w-full border border-gray-300 lg:table-fixed"
-        >
+        <table id={id} {...getTableProps()} className="w-full lg:table-fixed">
           <thead className="p-4 text-center font-display text-xs font-semibold">
             {headerGroups.map((headerGroup, index) => (
-              <tr
-                key={index}
-                {...headerGroup.getHeaderGroupProps()}
-                className="border border-gray-300"
-              >
+              <tr key={index} {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column, index) => (
                   <th
                     key={index}
                     {...column.getHeaderProps()}
-                    className="border border-gray-300 px-4 py-3"
+                    className={classNames('border border-gray-300 py-3', {
+                      'w-[100px] border-0 px-2 text-right': index == 0,
+                      'px-4': index !== 0,
+                    })}
                   >
-                    {column.render('Header')}
+                    {index !== 0 && column.render('Header')}
                   </th>
                 ))}
               </tr>
@@ -337,22 +332,58 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                 <tr
                   key={rowIndex}
                   {...row.getRowProps()}
-                  className="h-[40px] max-h-[40px] border border-gray-300"
+                  className="h-[20px] max-h-[20px]"
                 >
                   {row.cells.map((cell, cellIndex) => {
-                    if (cellIndex == 0 || cellIndex == row.cells.length - 1) {
+                    if (cellIndex == 0) {
                       return (
                         <td
                           key={cellIndex}
                           {...cell.getCellProps()}
-                          className={`h-[40px] max-h-[40px] border border-gray-300 text-center text-xs`}
+                          className={classNames(
+                            `h-[20px] max-h-[20px] text-right text-xs`,
+                            {
+                              'border-b border-gray-300':
+                                cellIndex == 0 && (rowIndex + 1) % 6 == 0,
+                            }
+                          )}
                         >
                           <div
                             className={classNames(
-                              'flex min-h-[40px] items-center justify-center gap-1 overflow-hidden px-4 text-center text-xs capitalize leading-none'
+                              'relative flex min-h-[20px] justify-end gap-1 px-4 text-right text-xs capitalize leading-none'
                             )}
                           >
-                            <p>{cell.value[0]}</p> - <p>{cell.value[1]}</p>
+                            <p
+                              className={classNames(
+                                'absolute bottom-0 right-0 mx-2 translate-y-[50%] bg-white',
+                                {
+                                  'px-2 text-xs font-bold':
+                                    (timeData.findIndex(
+                                      (time) => time[1] == cell.value[1]
+                                    ) +
+                                      1) %
+                                      6 ==
+                                    0,
+                                  'text-xs text-ship-gray-500':
+                                    (timeData.findIndex(
+                                      (time) => time[1] == cell.value[1]
+                                    ) +
+                                      1) %
+                                      6 !==
+                                    0,
+                                },
+                                {
+                                  hidden:
+                                    timeData.findIndex(
+                                      (time) => time[1] == cell.value[1]
+                                    ) +
+                                      1 ==
+                                    timeData.length,
+                                }
+                              )}
+                            >
+                              {cell.value[1]}
+                            </p>
                           </div>
                         </td>
                       );
@@ -377,7 +408,13 @@ const ScheduleTable = forwardRef(function ScheduleTable(
                           <td
                             key={cellIndex}
                             {...cell.getCellProps()}
-                            className={`min-w-[150px] border border-gray-300 px-4 py-3 text-center text-xs`}
+                            className={classNames(
+                              `min-w-[150px] border border-gray-200 border-r-gray-300 px-4 py-3 text-center text-xs`,
+                              {
+                                'border-b-gray-300': (rowIndex + 1) % 6 == 0,
+                                'border-l-gray-300': cellIndex == 1,
+                              }
+                            )}
                           ></td>
                         );
                       }

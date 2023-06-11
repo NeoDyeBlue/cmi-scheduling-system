@@ -9,3 +9,4 @@ export { default as PerSemScheduleTable } from './PerSemScheduleTable';
 export { default as KinderToJHSSubjectTable } from './KinderToJHSSubjectTable';
 export { default as LevelTable } from './LevelTable';
 export { default as KinderTable } from './KinderTable';
+export { default as LevelSchedulerTable } from './LevelSchedulerTable';

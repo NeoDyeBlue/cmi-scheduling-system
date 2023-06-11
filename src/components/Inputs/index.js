@@ -5,6 +5,7 @@ export { default as RadioSelect } from './RadioSelect';
 export { default as RadioSelectItem } from './RadioSelectItem';
 export { default as ImagePicker } from './ImagePicker';
 export { default as Scheduler } from './Scheduler';
+export { default as LevelScheduler } from './LevelScheduler';
 export { default as SchedulerSchedItem } from './SchedulerSchedItem';
 export { default as MultipleComboBoxExample } from './MultipleComboBoxExample';
 export { default as MultiComboBox } from './MultiComboBox';

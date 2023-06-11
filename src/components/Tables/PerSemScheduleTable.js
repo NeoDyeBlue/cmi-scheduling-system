@@ -115,7 +115,7 @@ export default function PerSemScheduleTable({
                 subtitle="1st Semester Schedules"
                 startTime="6:00 AM"
                 endTime="6:00 PM"
-                interval={30}
+                interval={10}
                 type={type}
               />
             </div>
@@ -132,7 +132,7 @@ export default function PerSemScheduleTable({
                 subtitle="2nd Semester Schedules"
                 startTime="6:00 AM"
                 endTime="6:00 PM"
-                interval={30}
+                interval={10}
                 type={type}
               />
             </div>
@@ -168,7 +168,7 @@ export default function PerSemScheduleTable({
                 subtitle="Summer Schedules"
                 startTime="6:00 AM"
                 endTime="6:00 PM"
-                interval={30}
+                interval={10}
                 type={type}
               />
             </div>
