@@ -1181,13 +1181,13 @@ class Room extends Model {
                       },
                     },
                   ],
-                  as: 'gradeLevelSection',
+                  as: 'gradeLevel',
                 },
               },
               {
                 $project: {
                   dayTimes: '$schedules',
-                  gradeLevelSection: 1,
+                  gradeLevel: 1,
                   subject: 1,
                   teacher: {
                     $arrayElemAt: ['$teacher', 0],

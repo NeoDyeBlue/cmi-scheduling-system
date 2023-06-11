@@ -179,23 +179,56 @@ class GradeSchool extends Model {
           $match: search,
         },
         {
-          $addFields: {
-            type: '$type',
-            level: '$level',
-            schedCompletionStatus: {
-              regular: {
-                isCompleted: false,
-                levelSection: [
-                  {
-                    level: '$level',
-                    section: '$section',
-                    status: 'unscheduled',
-                  },
-                ],
+          $group: {
+            _id: '$level',
+            type: { $first: '$type' },
+            level: { $first: '$level' },
+            gradeLevelSec: {
+              $addToSet: {
+                type: '$type',
+                level: '$level',
+                section: '$section',
+                status: 'unscheduled',
               },
             },
           },
         },
+        {
+          $addFields: {
+            schedCompletionStatus: {
+              regular: {
+                isCompleted: false,
+                gradeLevelSec: '$gradeLevelSec',
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            type: 1,
+            level: 1,
+            schedCompletionStatus: 1,
+          },
+        },
+        // {
+        //   $addFields: {
+        //     type: '$type',
+        //     level: '$level',
+        //     schedCompletionStatus: {
+        //       regular: {
+        //         isCompleted: false,
+        //         levelSection: [
+        //           {
+        //             level: '$level',
+        //             section: '$section',
+        //             status: 'unscheduled',
+        //           },
+        //         ],
+        //       },
+        //     },
+        //   },
+        // },
         {
           $project: {
             subjects: 0,
