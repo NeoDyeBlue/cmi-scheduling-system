@@ -27,7 +27,7 @@ export const handler = async (req, res) => {
         let found = false;
         for (let schedule of room.schedules) {
           if (
-            schedule.gradeLevelSection.some((grade) => {
+            schedule.gradeLevel.some((grade) => {
               return (
                 grade.type === type &&
                 grade.level === parseInt(level) &&
