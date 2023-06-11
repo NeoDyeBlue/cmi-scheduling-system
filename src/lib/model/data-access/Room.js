@@ -965,6 +965,257 @@ class Room extends Model {
       throw error;
     }
   }
+  async getAllRoomsGradeSchoolSchedules({
+    level,
+    type,
+    section,
+    schedulertype,
+  }) {
+    try {
+      const pipeline = [
+        {
+          $match: {},
+        },
+        {
+          $project: { _id: 1, code: 1, name: 1 },
+        },
+        // get all schedules that has this room.
+        {
+          $lookup: {
+            from: 'gradeschoolschedules',
+            let: { roomCode: '$code' },
+            localField: 'code',
+            foreignField: 'schedules.room.code',
+            pipeline: [
+              {
+                $match: {
+                  schedulerType: schedulertype,
+                },
+              },
+              {
+                $project: {
+                  _id: 0,
+                  teacher: 1,
+                  grade: 1,
+                  subject: 1,
+                  gradeLevel: 1,
+                  schedules: 1,
+                  roomCode: '$$roomCode',
+                },
+              },
+              // populate the subject
+              {
+                $lookup: {
+                  from: 'subjectgradeschools',
+                  localField: 'subject',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        _id: 1,
+                        code: 1,
+                        name: 1,
+                        minutes: 1,
+                      },
+                    },
+                    // look up for sections who are assigned to this subject
+                    {
+                      $lookup: {
+                        from: 'gradeschools',
+                        let: { subject_oid: '$_id' },
+                        localField: '_id',
+                        foreignField: 'subjects.subject',
+                        pipeline: [
+                          // get all grades that has this subject.
+                          {
+                            $addFields: {
+                              isSectionHasTheSubject: {
+                                $cond: {
+                                  if: {
+                                    $and: [
+                                      {
+                                        $in: [
+                                          '$$subject_oid',
+                                          '$subjects.subject',
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                  then: true,
+                                  else: false,
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $addFields: {
+                              subjectOid: '$$subject_oid',
+                              grade_oid: '$_id',
+                            },
+                          },
+                          // get the schedules of the subject.
+                          {
+                            $lookup: {
+                              from: 'gradeschoolschedules',
+                              let: {
+                                grade_oid: '$_id',
+                                subjectOid: '$subjectOid',
+                              },
+                              localField: 'subjectOid',
+                              foreignField: 'subject',
+                              pipeline: [
+                                {
+                                  $match: {
+                                    $expr: {
+                                      $and: [
+                                        { $eq: ['$subject', '$$subjectOid'] },
+                                        {
+                                          $eq: ['$grade', '$$grade_oid'],
+                                        },
+                                        {
+                                          $eq: [
+                                            '$schedulerType',
+                                            schedulertype,
+                                          ],
+                                        },
+                                      ],
+                                    },
+                                  },
+                                },
+                                { $unwind: '$schedules' },
+                                { $unwind: '$schedules.times' },
+                                {
+                                  $addFields: {
+                                    isMerged: {
+                                      $cond: {
+                                        if: {
+                                          $gt: [
+                                            {
+                                              $size: [
+                                                '$schedules.times.grades',
+                                              ],
+                                            },
+                                            1,
+                                          ],
+                                        },
+                                        then: true,
+                                        else: false,
+                                      },
+                                    },
+                                  },
+                                },
+                                {
+                                  $project: {
+                                    schedules: 0,
+                                  },
+                                },
+                              ],
+                              as: 'subjectScheds',
+                            },
+                          },
+                          {
+                            $project: {
+                              _id: 0,
+                            },
+                          },
+                          {
+                            $addFields: {
+                              merged: {
+                                $cond: {
+                                  if: {
+                                    $gt: ['$subjectScheds', 0],
+                                  },
+                                  then: {
+                                    $arrayElemAt: [
+                                      '$subjectScheds.isMerged',
+                                      0,
+                                    ],
+                                  },
+                                  else: false,
+                                },
+                              },
+                            },
+                          },
+                          {
+                            $project: {
+                              subjects: 0,
+                            },
+                          },
+                        ],
+                        as: 'grades',
+                      },
+                    },
+                  ],
+                  as: 'subject',
+                },
+              },
+              {
+                $unwind: '$subject',
+              },
+              {
+                $lookup: {
+                  from: 'teachers',
+                  localField: 'teacher',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        _id: 1,
+                        firstName: 1,
+                        lastName: 1,
+                      },
+                    },
+                  ],
+                  as: 'teacher',
+                },
+              },
+              {
+                $lookup: {
+                  from: 'gradeschools',
+                  localField: 'grade',
+                  foreignField: '_id',
+                  pipeline: [
+                    {
+                      $project: {
+                        subjects: 0,
+                      },
+                    },
+                  ],
+                  as: 'gradeLevelSection',
+                },
+              },
+              {
+                $project: {
+                  dayTimes: '$schedules',
+                  gradeLevelSection: 1,
+                  subject: 1,
+                  teacher: {
+                    $arrayElemAt: ['$teacher', 0],
+                  },
+                },
+              },
+            ],
+            as: 'schedules',
+          },
+        },
+        {
+          $match: {
+            schedules: {
+              $exists: true,
+              $not: {
+                $size: 0,
+              },
+            },
+          },
+        },
+       
+      ];
+      const data = await this.Room.aggregate(pipeline);
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 const room = new Room();
 export default room;
