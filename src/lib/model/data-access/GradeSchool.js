@@ -106,7 +106,7 @@ class GradeSchool extends Model {
         },
         // change the subjects.0._id to subjects.0.subject
         // when we changed the _id to subject.
-        { $unwind: '$subjects' },
+        // { $unwind: '$subjects' },
         {
           $lookup: {
             from: 'subjectgradeschools',
@@ -181,6 +181,7 @@ class GradeSchool extends Model {
         {
           $group: {
             _id: '$level',
+            sectionOid: { $first: '$_id' },
             type: { $first: '$type' },
             level: { $first: '$level' },
             gradeLevelSec: {
@@ -210,7 +211,7 @@ class GradeSchool extends Model {
             level: 1,
             schedCompletionStatus: 1,
           },
-        },   
+        },
         // {
         //   $addFields: {
         //     type: '$type',

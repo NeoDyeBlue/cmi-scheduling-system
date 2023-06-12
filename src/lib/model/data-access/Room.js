@@ -1018,7 +1018,7 @@ class Room extends Model {
                         minutes: 1,
                       },
                     },
-                    // look up for sections who are assigned to this subject
+                    // look up for grades who are assigned to this subject
                     {
                       $lookup: {
                         from: 'gradeschools',
@@ -1029,7 +1029,7 @@ class Room extends Model {
                           // get all grades that has this subject.
                           {
                             $addFields: {
-                              isSectionHasTheSubject: {
+                              isGradeHasTheSubject: {
                                 $cond: {
                                   if: {
                                     $and: [
@@ -1050,7 +1050,6 @@ class Room extends Model {
                           {
                             $addFields: {
                               subjectOid: '$$subject_oid',
-                              grade_oid: '$_id',
                             },
                           },
                           // get the schedules of the subject.
@@ -1058,20 +1057,17 @@ class Room extends Model {
                             $lookup: {
                               from: 'gradeschoolschedules',
                               let: {
-                                grade_oid: '$_id',
                                 subjectOid: '$subjectOid',
                               },
-                              localField: 'subjectOid',
-                              foreignField: 'subject',
+                              localField: 'level',
+                              foreignField: 'gradeLevel.level',
                               pipeline: [
                                 {
                                   $match: {
                                     $expr: {
                                       $and: [
                                         { $eq: ['$subject', '$$subjectOid'] },
-                                        {
-                                          $eq: ['$grade', '$$grade_oid'],
-                                        },
+
                                         {
                                           $eq: [
                                             '$schedulerType',
@@ -1116,6 +1112,7 @@ class Room extends Model {
                           {
                             $project: {
                               _id: 0,
+                              section: 0,
                             },
                           },
                           {
@@ -1143,6 +1140,28 @@ class Room extends Model {
                           },
                         ],
                         as: 'grades',
+                      },
+                    },
+                    {
+                      $unwind: '$grades',
+                    },
+                    {
+                      $group: {
+                        _id: '$grades.level',
+                        subject_oid: { $first: '$_id' },
+                        code: { $first: '$code' },
+                        name: { $first: '$name' },
+                        minutes: { $first: '$minutes' },
+                        grades: {
+                          $addToSet: {
+                            level: '$grades.level',
+                            type: '$grades.type',
+                            isGradeHasTheSubject:
+                              '$grades.isGradeHasTheSubject',
+                            subjectOid: '$grades.subjectOid',
+                            subjectScheds: '$grades.subjectScheds',
+                          },
+                        },
                       },
                     },
                   ],
@@ -1208,7 +1227,6 @@ class Room extends Model {
             },
           },
         },
-       
       ];
       const data = await this.Room.aggregate(pipeline);
       return data;
