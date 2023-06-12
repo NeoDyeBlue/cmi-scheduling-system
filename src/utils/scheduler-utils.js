@@ -6,7 +6,7 @@ import { subtractDuration } from './time-utils';
 /**
  *
  * @param {Array} schedules - subject schedules
- * @param {Object} educationData - the grade or course data
+ * @param {String} classInfo - the grade or course full name
  * @param {Array} subjects - grade or course subjects
  * @param {Array} timeData - times array fro specifying the start and end of the schedule
  * @param {Boolean} isForShsOrCollege
@@ -15,10 +15,9 @@ import { subtractDuration } from './time-utils';
 
 export function createInitialRoomLayout(
   schedules,
-  educationData,
+  classInfo,
   subjects,
-  timeData,
-  isForShsOrCollege = true
+  timeData
 ) {
   //get the existing room layout
   const roomSubjectsLayout = [];
@@ -33,36 +32,48 @@ export function createInitialRoomLayout(
        */
 
       dayTime.times.forEach((time) => {
-        let courses = [];
-        let grades = [];
-        let inCourses = false;
-        let inGrades = false;
-        let isStatic = true;
-        if (isForShsOrCollege) {
-          courses = time.courses.map(
-            (course) => `${course.code}${course.year}${course.section}`
-          );
-          inCourses = courses.some(
-            (course) =>
-              course ==
-              `${educationData.code}${educationData.year}${educationData.section}`
-          );
-          isStatic = subjects.some(
-            (subject) => subject.code == subjSchedule.subject.code
-          )
-            ? inCourses
-            : false;
-        } else {
-          grades = time.grades.map((grade) => `${grade.level}${grade.section}`);
-          inGrades = grades.some(
-            (grade) => grade == `${educationData.level}${educationData.section}`
-          );
-          isStatic = subjects.some(
-            (subject) => subject.code == subjSchedule.subject.code
-          )
-            ? inGrades
-            : false;
-        }
+        let classes = time.classes.map((classData) => {
+          if (classData.type == 'college' || classData.type == 'shs') {
+            return `${classData?.code}${classData?.year}${classData?.section}`;
+          } else if (
+            classData.type == 'elementary' ||
+            classData.type == 'jhs'
+          ) {
+            return `${classes?.level}${classData?.section}`;
+          }
+        });
+
+        let inClasses = classes.some((classData) => classData == classInfo);
+        let isStatic = subjects.some(
+          (subject) => subject.code == subjSchedule.subject.code
+        )
+          ? inClasses
+          : false;
+
+        // if (isForShsOrCollege) {
+        //   courses = time.courses.map(
+        //     (course) => `${course.code}${course.year}${course.section}`
+        //   );
+        //   inCourses = courses.some(
+        //     (course) =>
+        //       course == `${classData.code}${classData.year}${classData.section}`
+        //   );
+        //   isStatic = subjects.some(
+        //     (subject) => subject.code == subjSchedule.subject.code
+        //   )
+        //     ? inCourses
+        //     : false;
+        // } else {
+        //   grades = time.grades.map((grade) => `${grade.level}${grade.section}`);
+        //   inGrades = grades.some(
+        //     (grade) => grade == `${classData.level}${classData.section}`
+        //   );
+        //   isStatic = subjects.some(
+        //     (subject) => subject.code == subjSchedule.subject.code
+        //   )
+        //     ? inGrades
+        //     : false;
+        // }
 
         const yStart = timeData.findIndex((item) => item == time.start);
         const yEnd = timeData.findIndex((item) => item == time.end);
@@ -70,7 +81,7 @@ export function createInitialRoomLayout(
         const itemId = createLayoutItemId(
           subjSchedule.subject.code,
           subjSchedule.teacher._id,
-          courses
+          classes
         );
 
         roomSubjectsLayout.push({
@@ -117,7 +128,7 @@ export function getSubjectScheduleLayoutItems(
   roomLayout = [],
   otherRoomLayouts = [],
   subjSchedIds = [],
-  educationData,
+  classInfo,
   isForShsOrCollege = true
 ) {
   const roomSubjSchedItems = roomLayout.filter((item) => {
@@ -128,13 +139,7 @@ export function getSubjectScheduleLayoutItems(
     } = parseLayoutItemId(item.i);
     return (
       subjSchedIds.includes(`${itemSubjectCode}~${itemTeacherId}`) ||
-      (isForShsOrCollege
-        ? itemScheduled.includes(
-            `${educationData.code}${educationData.year}${educationData.section}`
-          )
-        : itemScheduled.includes(
-            `${educationData.level}${educationData.section}`
-          ))
+      itemScheduled.includes(classInfo)
     );
   });
   const subjSchedItems = [
@@ -151,13 +156,7 @@ export function getSubjectScheduleLayoutItems(
     return (
       subjectCode == itemSubjectCode &&
       teacherId == itemTeacherId &&
-      (isForShsOrCollege
-        ? itemScheduled.includes(
-            `${educationData.code}${educationData.year}${educationData.section}`
-          )
-        : itemScheduled.includes(
-            `${educationData.level}${educationData.section}`
-          ))
+      itemScheduled.includes(classInfo)
     );
   });
 
@@ -192,7 +191,7 @@ export function createSubjectSchedules(
   room = { _id: '', code: '' },
   subjectsData,
   timeData,
-  educationData,
+  classInfo,
   selectedRooms,
   isForShsOrCollege = true
 ) {
@@ -235,15 +234,7 @@ export function createSubjectSchedules(
     layoutItems.forEach((item) => {
       const { scheduled: itemScheduled } = parseLayoutItemId(item.i);
 
-      if (
-        isForShsOrCollege
-          ? itemScheduled.includes(
-              `${educationData.code}${educationData.year}${educationData.section}`
-            )
-          : itemScheduled.includes(
-              `${educationData.level}${educationData.section}`
-            )
-      ) {
+      if (itemScheduled.includes(classInfo)) {
         educationSubjSchedLayoutItems.push(item);
       } else {
         otherSubjSchedLayoutItems.push(item);
@@ -297,8 +288,7 @@ function createSchedules(
     time: {
       start: timeData[item.y],
       end: timeData[item.y + item.h],
-      [isForShsOrCollege ? 'courses' : 'grades']: parseLayoutItemId(item.i)
-        .scheduled,
+      classes: parseLayoutItemId(item.i).scheduled,
     },
   }));
 
@@ -398,12 +388,7 @@ export function getMergedUsedRooms(subjectData, selectedRooms) {
   return rooms;
 }
 
-export function createMergedClassLayout(
-  layout,
-  layoutItem,
-  educationData,
-  isForShsOrCollege = true
-) {
+export function createMergedClassLayout(layout, layoutItem, classInfo) {
   const { subjectCode, teacherId, scheduled } = parseLayoutItemId(layoutItem.i);
 
   const newLayout = [];
@@ -417,9 +402,7 @@ export function createMergedClassLayout(
       if (hasEqualScheduled(scheduled, itemScheduled)) {
         const newItemId = createLayoutItemId(subjectCode, teacherId, [
           ...itemScheduled,
-          isForShsOrCollege
-            ? `${educationData.code}${educationData.year}${educationData.section}`
-            : `${educationData.level}${educationData.section}`,
+          classInfo,
         ]);
         newLayout.push({
           ...item,
@@ -435,12 +418,7 @@ export function createMergedClassLayout(
   return newLayout;
 }
 
-export function createSplitMergedClassLayout(
-  layout,
-  layoutItem,
-  educationData,
-  isForShsOrCollege = true
-) {
+export function createSplitMergedClassLayout(layout, layoutItem, classInfo) {
   const { subjectCode, teacherId, scheduled } = parseLayoutItemId(layoutItem.i);
 
   const newLayout = [];
@@ -453,11 +431,7 @@ export function createSplitMergedClassLayout(
     if (subjectCode == itemSubjectCode && teacherId == itemTeacherId) {
       if (hasEqualScheduled(scheduled, itemScheduled)) {
         const newItemId = createLayoutItemId(subjectCode, teacherId, [
-          ...itemScheduled.filter((item) =>
-            item !== isForShsOrCollege
-              ? `${educationData.code}${educationData.year}${educationData.section}`
-              : `${educationData.level}${educationData.section}`
-          ),
+          ...itemScheduled.filter((item) => item !== classInfo),
         ]);
         newLayout.push({
           ...item,

@@ -16,13 +16,13 @@ const initialState = {
 
 const useSchedulerStore = create((set, get) => ({
   ...initialState,
-  setCourse: (payload) =>
+  setClassData: (payload) =>
     set(() => ({
-      course: payload,
+      classData: payload,
     })),
-  setCourseSubjects: (payload) =>
+  setClassSubjects: (payload) =>
     set(() => ({
-      courseSubjects: payload,
+      classSubjects: payload,
     })),
   setDraggingSubject: (subject) =>
     set(() => ({
