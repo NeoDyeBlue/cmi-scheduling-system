@@ -2,7 +2,6 @@ import GridLayout, { WidthProvider } from 'react-grid-layout';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { parse, format, areIntervalsOverlapping } from 'date-fns';
 import useSchedulerStore from '@/stores/useSchedulerStore';
-import useLevelSchedulerStore from '@/stores/useLevelSchedulerStore';
 import { MdRemove, MdMergeType, MdCallSplit } from 'react-icons/md';
 import classNames from 'classnames';
 import { nanoid } from 'nanoid';
@@ -11,15 +10,15 @@ import { ImageWithFallback } from '../Misc';
 import { createByMinuteTime } from '@/utils/time-utils';
 import {
   createInitialRoomLayout,
+  parseLayoutItemId,
   createLayoutItemId,
-  hasEqualCourses,
+  hasEqualScheduled,
   getRemainingRowSpan,
   getSubjectScheduleLayoutItems,
-  createCourseSubjectSchedules,
+  createSubjectSchedules,
   getMergedUsedRooms,
   createMergedClassLayout,
   createSplitMergedClassLayout,
-  parseLayoutItemId,
 } from '@/utils/scheduler-utils';
 import { PopupLoader } from '../Loaders';
 import { SchedulerLayoutItemButton } from '../Buttons';
@@ -52,8 +51,8 @@ export default function Scheduler({
 
   //stores
   const {
-    grade,
-    gradeSubjects,
+    course,
+    courseSubjects,
     draggingSubject,
     subjectScheds,
     subjectsData,
@@ -70,11 +69,11 @@ export default function Scheduler({
     setSelectedRooms,
     setHoveredMergeable,
     hoveredMergeable,
-  } = useLevelSchedulerStore(
+  } = useSchedulerStore(
     useCallback(
       (state) => ({
-        grade: state.grade,
-        gradeSubjects: state.gradeSubjects,
+        course: state.course,
+        courseSubjects: state.courseSubjects,
         draggingSubject: state.draggingSubject,
         subjectScheds: state.subjectScheds,
         subjectsData: state.subjectsData,
@@ -96,12 +95,6 @@ export default function Scheduler({
     ),
     shallow
   );
-
-  // memos
-  // const timeData = useMemo(
-  //   () => createTimePairs(startTime, endTime, interval),
-  //   [startTime, endTime, interval]
-  // );
 
   const timeData = useMemo(
     () => createByMinuteTime(startTime, endTime, interval),
@@ -198,7 +191,7 @@ export default function Scheduler({
       const {
         subjectCode,
         teacherId,
-        courses: grades,
+        scheduled: courses,
       } = parseLayoutItemId(schedule.i);
       const data = subjectsData.find((subject) => {
         return subject.id == `${subjectCode}~${teacherId}`;
@@ -210,43 +203,46 @@ export default function Scheduler({
         const {
           subjectCode: hoveredSubjectCode,
           teacherId: hoveredTeacherId,
-          courses: hoveredGrades,
+          scheduled: hoveredCourses,
         } = parseLayoutItemId(hoveredMergeable.layoutItem);
         isMerging =
           subjectCode == hoveredSubjectCode &&
           teacherId == hoveredTeacherId &&
-          hasEqualCourses(grades, hoveredGrades);
+          hasEqualScheduled(courses, hoveredCourses);
       }
 
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
 
-      const isSameSubjectAndTeacher = gradeSubjects.some(
-        (gradeSubject) =>
-          gradeSubject.code == subjectCode &&
-          gradeSubject.assignedTeachers.some(
+      const isSameSubjectAndTeacher = courseSubjects.some(
+        (courseSubject) =>
+          courseSubject.code == subjectCode &&
+          courseSubject.assignedTeachers.some(
             (teacher) => teacher._id == teacherId
           )
       );
 
-      const inSubjectCourses = grades.some(
-        (gradeItem) => gradeItem == `${grade.level}${grade.section}`
+      const inSubjectCourses = courses.some(
+        (courseItem) =>
+          courseItem == `${course.code}${course.year}${course.section}`
       );
 
       const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
 
-      let gradeText = '';
+      let courseText = '';
 
       if (schedule.static) {
-        if (grades.length > 1) {
-          gradeText = `${grades[0]} & ${grades.length - 1}`;
+        if (courses.length > 1) {
+          courseText = `${courses[0]} & ${courses.length - 1}`;
         } else {
-          gradeText = grades[0];
+          courseText = courses[0];
         }
       } else if (!schedule.static) {
-        if (grades.length > 1 && inSubjectCourses) {
-          gradeText = `${grade.level}${grade.section} & ${grades.length - 1}`;
+        if (courses.length > 1 && inSubjectCourses) {
+          courseText = `${course.code}${course.year}${course.section} & ${
+            courses.length - 1
+          }`;
         }
       }
 
@@ -259,13 +255,13 @@ export default function Scheduler({
               'border-warning-400 bg-warning-100':
                 data?.teacher?.type == 'part-time' &&
                 !schedule.static &&
-                grades.length <= 1,
+                courses.length <= 1,
               'border-success-400 bg-success-100':
                 data?.teacher?.type == 'full-time' &&
                 !schedule.static &&
-                grades.length <= 1,
+                courses.length <= 1,
               'border-info-400 bg-info-100':
-                (!schedule.static && grades.length > 1 && inSubjectCourses) ||
+                (!schedule.static && courses.length > 1 && inSubjectCourses) ||
                 isMerging,
               'border border-gray-400 bg-gray-100': schedule.static,
             },
@@ -314,7 +310,7 @@ export default function Scheduler({
                 onMouseLeave={() => setHoveredMergeable(null)}
               />
             )}
-            {!schedule.static && grades.length > 1 && inSubjectCourses && (
+            {!schedule.static && courses.length > 1 && inSubjectCourses && (
               <SchedulerLayoutItemButton
                 toolTipId="split"
                 toolTipContent="Split"
@@ -327,7 +323,7 @@ export default function Scheduler({
                 toolTipId="remove"
                 toolTipContent="Remove"
                 onClick={(e) => {
-                  if (grades.length > 1) {
+                  if (courses.length > 1) {
                     setIsRemoveConfirmOpen(true);
                     setToRemoveMerged(schedule.i);
                   } else {
@@ -371,10 +367,10 @@ export default function Scheduler({
                 // { 'text-xs': schedule.h <= 2 }
               )}
             >
-              {gradeText}{' '}
-              {grades.length > 1 && (
+              {courseText}{' '}
+              {courses.length > 1 && (
                 <span className="lowercase">
-                  {grades.length - 1 > 1 ? 'others' : 'other'}
+                  {courses.length - 1 > 1 ? 'others' : 'other'}
                 </span>
               )}
             </p>
@@ -404,9 +400,10 @@ export default function Scheduler({
     } else {
       const initialLayout = createInitialRoomLayout(
         roomData?.schedules,
-        grade,
-        gradeSubjects,
-        timeData
+        course,
+        courseSubjects,
+        timeData,
+        true
       );
       setLayout([...initialLayout, ...timeLayout.flat()]);
       // setRoomSubjSchedsLayout(roomData.code, roomData._id, initialLayout);
@@ -437,7 +434,7 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      const roomSchedules = createCourseSubjectSchedules(
+      const roomSchedules = createSubjectSchedules(
         subjSchedIds,
         roomLayoutItems,
         {
@@ -446,14 +443,14 @@ export default function Scheduler({
         },
         subjectsData,
         timeData,
-        grade,
+        course,
         selectedRooms
       );
 
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
         if (roomLayout.roomCode !== roomData.code) {
-          const schedules = createCourseSubjectSchedules(
+          const schedules = createSubjectSchedules(
             subjSchedIds,
             roomLayout.layout.filter((item) => {
               const { subjectCode, teacherId } = parseLayoutItemId(item.i);
@@ -465,17 +462,17 @@ export default function Scheduler({
             },
             subjectsData,
             timeData,
-            grade,
+            course,
             selectedRooms
           );
           otherRoomScheds.push(schedules);
         }
       });
 
-      let groupedCourseScheds = [...roomSchedules.schedules.grade];
+      let groupedCourseScheds = [...roomSchedules.schedules.current];
       if (otherRoomScheds.length) {
         otherRoomScheds
-          .map((room) => room.schedules.grade)
+          .map((room) => room.schedules.current)
           .flat()
           .forEach((roomSched) => {
             //check if its in the array already
@@ -519,14 +516,14 @@ export default function Scheduler({
         {
           ...roomSchedules,
           schedules: [
-            ...roomSchedules.schedules.grade,
+            ...roomSchedules.schedules.current,
             ...roomSchedules.schedules.other,
           ],
         },
         ...otherRoomScheds.map((otherRoom) => ({
           ...otherRoom,
           schedules: [
-            ...otherRoom.schedules.grade,
+            ...otherRoom.schedules.current,
             ...otherRoom.schedules.other,
           ],
         })),
@@ -555,8 +552,8 @@ export default function Scheduler({
   );
 
   function removeLayoutItem(layoutId) {
-    const { subjectCode, teacherId, grades } = parseLayoutItemId(layoutId);
-    if (grades.length >= 2) {
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutId);
+    if (courses.length >= 2) {
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
@@ -568,9 +565,9 @@ export default function Scheduler({
             ...subjectData.data.teacher,
             assignedCourses: subjectData.data.teacher.assignedCourses.filter(
               (assignedCourse) =>
-                assignedCourse.code !== grade.code ||
-                assignedCourse.year !== grade.year ||
-                assignedCourse.section !== grade.section
+                assignedCourse.code !== course.code ||
+                assignedCourse.year !== course.year ||
+                assignedCourse.section !== course.section
             ),
           },
         },
@@ -597,7 +594,7 @@ export default function Scheduler({
     roomLayouts = roomsSubjSchedsLayouts
   ) {
     //parse layoutItemId
-    const { subjectCode, teacherId, grades } = parseLayoutItemId(layoutItemId);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItemId);
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
 
@@ -610,7 +607,7 @@ export default function Scheduler({
       (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
 
-    //if there is a subject data update all the maxH of the same subject from the same grade year and section
+    //if there is a subject data update all the maxH of the same subject from the same course year and section
     if (subjectData) {
       const { roomItems, subjectLayoutItems } = getSubjectScheduleLayoutItems(
         subjectCode,
@@ -618,7 +615,7 @@ export default function Scheduler({
         layoutSource,
         otherRoomLayouts,
         subjSchedIds,
-        grade
+        course
       );
 
       const remainingRowSpan = getRemainingRowSpan(
@@ -686,7 +683,7 @@ export default function Scheduler({
     layoutItem,
     fromDrop = false
   ) {
-    const { subjectCode, teacherId, grades } = parseLayoutItemId(layoutItem.i);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
     const subjectData = subjectsData.find(
       (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
@@ -695,12 +692,12 @@ export default function Scheduler({
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          grades: itemCourses,
+          courses: itemCourses,
         } = parseLayoutItemId(item.i);
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          hasEqualCourses(grades, itemCourses)
+          hasEqualScheduled(courses, itemCourses)
         );
       });
 
@@ -800,11 +797,11 @@ export default function Scheduler({
         .filter((subjSched) =>
           subjSched.schedules.some((schedule) =>
             schedule.times.some((time) =>
-              time.grades.some(
+              time.courses.some(
                 (timeCourse) =>
-                  timeCourse.code == grade.code &&
-                  timeCourse.year == grade.year &&
-                  timeCourse.section == grade.section
+                  timeCourse.code == course.code &&
+                  timeCourse.year == course.year &&
+                  timeCourse.section == course.section
               )
             )
           )
@@ -881,7 +878,7 @@ export default function Scheduler({
         // }
 
         existingSchedules.forEach((existingSchedule) => {
-          //should exclude checking of existing times when is merged with the currently editing grade
+          //should exclude checking of existing times when is merged with the currently editing course
           if (
             existingSchedule.room.code !== roomData.code &&
             !selectedRooms.some(
@@ -893,36 +890,36 @@ export default function Scheduler({
                 (subj) => subj.subject.code == scheduleTime.subject.code
               );
 
-              let gradesExist = false;
+              let coursesExist = false;
               if (subject && scheduleTime) {
-                const scheduleTimeCourses = scheduleTime.grades.map(
+                const scheduleTimeCourses = scheduleTime.courses.map(
                   (schedTimeCourse) =>
                     `${schedTimeCourse.code}${schedTimeCourse.year}${schedTimeCourse.section}`
                 );
 
-                gradesExist = subject.schedules.some((schedule) => {
+                coursesExist = subject.schedules.some((schedule) => {
                   return schedule.times.some((time) => {
-                    return time.grades.some((grade) => {
-                      return scheduleTimeCourses.includes(grade);
+                    return time.courses.some((course) => {
+                      return scheduleTimeCourses.includes(course);
                     });
                   });
                 });
               }
               if (
-                !scheduleTime.grades.some(
+                !scheduleTime.courses.some(
                   (scheduleCourse) =>
-                    `${grade.code}${grade.year}${grade.section}` ==
+                    `${course.code}${course.year}${course.section}` ==
                     `${scheduleCourse.code}${scheduleCourse.year}${scheduleCourse.section}`
                 ) &&
                 // !(
                 //   parsedLayoutItemId &&
-                //   parsedLayoutItemId.grades.some(
+                //   parsedLayoutItemId.courses.some(
                 //     (itemCourse) =>
                 //       itemCourse ==
-                //       `${grade.code}${grade.year}${grade.section}`
+                //       `${course.code}${course.year}${course.section}`
                 //   )
                 // ) &&
-                !gradesExist
+                !coursesExist
               ) {
                 const timeStartIndex = timeData.findIndex((time) => {
                   return time == scheduleTime.start;
@@ -1067,8 +1064,8 @@ export default function Scheduler({
         newSelectedRooms.forEach((room) => {
           const roomLayout = createInitialRoomLayout(
             room.schedules,
-            grade,
-            gradeSubjects,
+            course,
+            courseSubjects,
             timeData
           );
           newRoomLayouts.push({
@@ -1111,10 +1108,10 @@ export default function Scheduler({
   function handleClassMerge(layoutItem, roomLayouts) {
     let couldMerge = true;
 
-    const { subjectCode, teacherId, grades } = parseLayoutItemId(layoutItem.i);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
     const newItemId = createLayoutItemId(subjectCode, teacherId, [
-      ...grades,
-      `${grade.code}${grade.year}${grade.section}`,
+      ...courses,
+      `${course.code}${course.year}${course.section}`,
     ]);
 
     const inSchedulerDayTimes = subjectScheds
@@ -1128,12 +1125,12 @@ export default function Scheduler({
         const {
           subjectCode: itemSubjCode,
           teacherId: itemTeacherId,
-          grades: itemCourses,
+          courses: itemCourses,
         } = parseLayoutItemId(item.i);
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          hasEqualCourses(grades, itemCourses)
+          hasEqualScheduled(courses, itemCourses)
         );
       });
 
@@ -1190,7 +1187,7 @@ export default function Scheduler({
       const newLayoutItem = { ...layoutItem, i: newItemId, static: false };
 
       const mergedItemsLayout = mergeYAdjacentSubjScheds(
-        createMergedClassLayout(layout, layoutItem, grade),
+        createMergedClassLayout(layout, layoutItem, course),
         newLayoutItem
       );
 
@@ -1212,7 +1209,7 @@ export default function Scheduler({
           const newLayout = createMergedClassLayout(
             room.layout,
             layoutItem,
-            grade
+            course
           );
           updatedOtherRoomLayouts.push({
             roomId: room.roomId,
@@ -1228,10 +1225,10 @@ export default function Scheduler({
           ...subjectData.data,
           teacher: {
             ...subjectData.data.teacher,
-            assignedCourses: subjectData.data.grades.filter((itemCourse) => {
+            assignedCourses: subjectData.data.courses.filter((itemCourse) => {
               return [
-                ...grades,
-                `${grade.code}${grade.year}${grade.section}`,
+                ...courses,
+                `${course.code}${course.year}${course.section}`,
               ].includes(
                 `${itemCourse.code}${itemCourse.year}${itemCourse.section}`
               );
@@ -1256,20 +1253,20 @@ export default function Scheduler({
   }
 
   function handleSplitMerge(layoutItem) {
-    const { subjectCode, teacherId, grades } = parseLayoutItemId(layoutItem.i);
+    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
     const newItemId = createLayoutItemId(
       subjectCode,
       teacherId,
-      grades.filter(
-        (gradeYearSec) =>
-          gradeYearSec !== `${grade.code}${grade.year}${grade.section}`
+      courses.filter(
+        (courseYearSec) =>
+          courseYearSec !== `${course.code}${course.year}${course.section}`
       )
     );
 
     const newLayoutItem = { ...layoutItem, i: newItemId, static: true };
 
     const mergedItemsLayout = mergeYAdjacentSubjScheds(
-      createSplitMergedClassLayout(layout, layoutItem, grade),
+      createSplitMergedClassLayout(layout, layoutItem, course),
       newLayoutItem
     );
 
@@ -1292,7 +1289,7 @@ export default function Scheduler({
         const newLayout = createSplitMergedClassLayout(
           room.layout,
           layoutItem,
-          grade
+          course
         );
         updatedOtherRoomLayouts.push({
           roomId: room.roomId,
@@ -1313,9 +1310,9 @@ export default function Scheduler({
           ...subjectData.data.teacher,
           assignedCourses: subjectData.data.teacher.assignedCourses.filter(
             (assignedCourse) =>
-              assignedCourse.code !== grade.code ||
-              assignedCourse.year !== grade.year ||
-              assignedCourse.section !== grade.section
+              assignedCourse.code !== course.code ||
+              assignedCourse.year !== course.year ||
+              assignedCourse.section !== course.section
           ),
         },
       },
@@ -1346,7 +1343,7 @@ export default function Scheduler({
         (subjectsData) => subjectsData.id == subjectDataId.id
       )?.data;
 
-      let itemCourses = [`${grade.code}${grade.year}${grade.section}`];
+      let itemCourses = [`${course.code}${course.year}${course.section}`];
       if (
         data?.teacher?.assignedCourses.some(
           (assignedCourse) =>
@@ -1394,11 +1391,12 @@ export default function Scheduler({
     if (draggingSubject) {
       const { totalRowSpanCount, itemCount } = layout
         .filter((item) => {
-          const { subjectCode, teacherId, grades } = parseLayoutItemId(item.i);
+          const { subjectCode, teacherId, courses } = parseLayoutItemId(item.i);
           return (
             subjectsData.some(
               (data) => data.id == `${subjectCode}~${teacherId}`
-            ) && grades.includes(`${grade.code}${grade.year}${grade.section}`)
+            ) &&
+            courses.includes(`${course.code}${course.year}${course.section}`)
           );
         })
         .reduce(

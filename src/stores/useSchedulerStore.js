@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 const initialState = {
-  course: null,
-  courseSubjects: [],
+  classData: null,
+  classSubjects: [],
   mergedClasses: [],
   subjectsData: [],
   draggingSubject: null,

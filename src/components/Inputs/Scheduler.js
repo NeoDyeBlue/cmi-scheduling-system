@@ -7,15 +7,15 @@ import classNames from 'classnames';
 import { nanoid } from 'nanoid';
 import { shallow } from 'zustand/shallow';
 import { ImageWithFallback } from '../Misc';
-import { createTimePairs, createByMinuteTime } from '@/utils/time-utils';
+import { createByMinuteTime } from '@/utils/time-utils';
 import {
   createInitialRoomLayout,
   parseLayoutItemId,
   createLayoutItemId,
-  hasEqualCourses,
+  hasEqualScheduled,
   getRemainingRowSpan,
   getSubjectScheduleLayoutItems,
-  createCourseSubjectSchedules,
+  createSubjectSchedules,
   getMergedUsedRooms,
   createMergedClassLayout,
   createSplitMergedClassLayout,
@@ -31,6 +31,7 @@ export default function Scheduler({
   interval = 10,
   roomData,
   semester = '',
+  academicLevel = 'college',
 }) {
   //   const ResponsiveGridLayout = WidthProvider(GridLayout);
   const maxHMultiplier = 6;
@@ -96,12 +97,6 @@ export default function Scheduler({
     shallow
   );
 
-  // memos
-  // const timeData = useMemo(
-  //   () => createTimePairs(startTime, endTime, interval),
-  //   [startTime, endTime, interval]
-  // );
-
   const timeData = useMemo(
     () => createByMinuteTime(startTime, endTime, interval),
     [startTime, endTime, interval]
@@ -161,29 +156,6 @@ export default function Scheduler({
     </div>
   ));
 
-  // const stickyTimeRows = _.initial(byHrTimeData).map((time, index) => (
-  //   <div
-  //     key={index}
-  //     className={classNames(
-  //       'relative z-30 flex h-[120px] w-[80px] items-end whitespace-nowrap bg-white',
-  //       'sticky left-0 col-span-1 col-start-1 border-r border-gray-300',
-  //       {
-  //         'before:absolute before:top-0 before:right-0 before:h-[1px] before:w-3 before:bg-gray-300':
-  //           index !== 0,
-  //       }
-  //     )}
-  //   >
-  //     <p
-  //       className={classNames(
-  //         'absolute top-0 right-0 mx-4 translate-y-[-50%] font-display text-xs font-medium capitalize leading-none',
-  //         { hidden: index == 0 }
-  //       )}
-  //     >
-  //       {time}
-  //     </p>
-  //   </div>
-  // ));
-
   const timeRows = timeLayout.map((item, index) => (
     <div
       key={item.i}
@@ -208,6 +180,8 @@ export default function Scheduler({
     </div>
   ));
 
+  console.log(subjectsData);
+
   const scheduleCells = layout
     .filter((item) => {
       const { subjectCode, teacherId } = parseLayoutItemId(item.i);
@@ -217,45 +191,27 @@ export default function Scheduler({
       );
     })
     .map((schedule) => {
-      const { subjectCode, teacherId, courses } = parseLayoutItemId(schedule.i);
-      const data = subjectsData.find((subject) => {
+      const {
+        subjectCode,
+        teacherId,
+        scheduled: courses,
+      } = parseLayoutItemId(schedule.i);
+      const subject = subjectsData.find((subject) => {
         return subject.id == `${subjectCode}~${teacherId}`;
-      })?.data;
-
-      let isMerging = false;
-
-      if (hoveredMergeable) {
-        const {
-          subjectCode: hoveredSubjectCode,
-          teacherId: hoveredTeacherId,
-          courses: hoveredCourses,
-        } = parseLayoutItemId(hoveredMergeable.layoutItem);
-        isMerging =
-          subjectCode == hoveredSubjectCode &&
-          teacherId == hoveredTeacherId &&
-          hasEqualCourses(courses, hoveredCourses);
-      }
-
-      const subjectData = subjectsData.find(
-        (data) => data.id == `${subjectCode}~${teacherId}`
-      );
-
-      const isSameSubjectAndTeacher = courseSubjects.some(
-        (courseSubject) =>
-          courseSubject.code == subjectCode &&
-          courseSubject.assignedTeachers.some(
-            (teacher) => teacher._id == teacherId
-          )
-      );
-
-      const inSubjectCourses = courses.some(
-        (courseItem) =>
-          courseItem == `${course.code}${course.year}${course.section}`
-      );
-
-      const mergeable = isSameSubjectAndTeacher && !inSubjectCourses;
-
+      });
       let courseText = '';
+      let isCourseInSubjectSchedule = false;
+
+      if (academicLevel == 'college' || academicLevel == 'shs') {
+        isCourseInSubjectSchedule = courses.some(
+          (courseItem) =>
+            courseItem == `${course.code}${course.year}${course.section}`
+        );
+      } else if (academicLevel == 'elementary' || academicLevel == 'jhs') {
+        isCourseInSubjectSchedule = courses.some(
+          (courseItem) => courseItem == `${course.level}${course.section}`
+        );
+      }
 
       if (schedule.static) {
         if (courses.length > 1) {
@@ -264,128 +220,209 @@ export default function Scheduler({
           courseText = courses[0];
         }
       } else if (!schedule.static) {
-        if (courses.length > 1 && inSubjectCourses) {
+        if (courses.length > 1 && isCourseInSubjectSchedule) {
           courseText = `${course.code}${course.year}${course.section} & ${
             courses.length - 1
           }`;
         }
       }
 
-      return (
-        <div
-          key={schedule.i}
-          className={classNames(
-            'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border-2 p-2',
-            {
-              'border-warning-400 bg-warning-100':
-                data?.teacher?.type == 'part-time' &&
-                !schedule.static &&
-                courses.length <= 1,
-              'border-success-400 bg-success-100':
-                data?.teacher?.type == 'full-time' &&
-                !schedule.static &&
-                courses.length <= 1,
-              'border-info-400 bg-info-100':
-                (!schedule.static && courses.length > 1 && inSubjectCourses) ||
-                isMerging,
-              'border border-gray-400 bg-gray-100': schedule.static,
-            },
-            {
-              'cursor-default': schedule.static,
-              'cursor-move': !schedule.static,
-            }
-          )}
-        >
-          {schedule.static && mergeable ? (
-            <p
-              className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white"
-              onMouseEnter={() =>
-                setHoveredMergeable({
-                  subjectDataId: subjectData.id,
-                  layoutItem: schedule.i,
-                })
-              }
-              onMouseLeave={() => setHoveredMergeable('')}
-            >
-              mergeable
-            </p>
-          ) : null}
+      if (subject?.data?.academicLevel == academicLevel) {
+        let isMerging = false;
+
+        if (hoveredMergeable) {
+          const {
+            subjectCode: hoveredSubjectCode,
+            teacherId: hoveredTeacherId,
+            scheduled: hoveredCourses,
+          } = parseLayoutItemId(hoveredMergeable.layoutItem);
+          isMerging =
+            subjectCode == hoveredSubjectCode &&
+            teacherId == hoveredTeacherId &&
+            hasEqualScheduled(courses, hoveredCourses);
+        }
+
+        const isSameSubjectAndTeacher = courseSubjects.some(
+          (courseSubject) =>
+            courseSubject.code == subjectCode &&
+            courseSubject.assignedTeachers.some(
+              (teacher) => teacher._id == teacherId
+            )
+        );
+
+        const mergeable = isSameSubjectAndTeacher && !isCourseInSubjectSchedule;
+
+        return (
           <div
-            className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
-              'group-hover:flex': !isResizing,
-            })}
-            onClick={(e) => e.stopPropagation()}
+            key={schedule.i}
+            className={classNames(
+              'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border-2 p-2',
+              {
+                'border-warning-400 bg-warning-100':
+                  subject?.data?.teacher?.type == 'part-time' &&
+                  !schedule.static &&
+                  courses.length <= 1,
+                'border-success-400 bg-success-100':
+                  subject?.data?.teacher?.type == 'full-time' &&
+                  !schedule.static &&
+                  courses.length <= 1,
+                'border-info-400 bg-info-100':
+                  (!schedule.static &&
+                    courses.length > 1 &&
+                    isCourseInSubjectSchedule) ||
+                  isMerging,
+                'border border-gray-400 bg-gray-100': schedule.static,
+              },
+              {
+                'cursor-default': schedule.static,
+                'cursor-move': !schedule.static,
+              }
+            )}
           >
-            {schedule.static && mergeable && (
-              <SchedulerLayoutItemButton
-                toolTipId="merge"
-                toolTipContent="Merge"
-                onClick={() => {
-                  setToMergeSchedule(schedule);
-                  setHoveredMergeable(null);
-                  setIsMergeConfirmOpen(true);
-                }}
-                icon={<MdMergeType size={16} className="rotate-180" />}
+            {schedule.static && mergeable ? (
+              <p
+                className="absolute top-0 left-0 m-1 rounded-lg bg-info-500 px-1 py-[0.15rem] text-xs text-white"
                 onMouseEnter={() =>
                   setHoveredMergeable({
-                    subjectDataId: subjectData.id,
+                    subjectDataId: subject.id,
                     layoutItem: schedule.i,
                   })
                 }
-                onMouseLeave={() => setHoveredMergeable(null)}
-              />
-            )}
-            {!schedule.static && courses.length > 1 && inSubjectCourses && (
-              <SchedulerLayoutItemButton
-                toolTipId="split"
-                toolTipContent="Split"
-                onClick={() => handleSplitMerge(schedule)}
-                icon={<MdCallSplit size={16} />}
-              />
-            )}
-            {!schedule.static && (
-              <SchedulerLayoutItemButton
-                toolTipId="remove"
-                toolTipContent="Remove"
-                onClick={(e) => {
-                  if (courses.length > 1) {
-                    setIsRemoveConfirmOpen(true);
-                    setToRemoveMerged(schedule.i);
-                  } else {
-                    removeLayoutItem(schedule.i);
-                  }
-                }}
-                icon={<MdRemove size={16} />}
-              />
-            )}
-          </div>
-          {schedule.h > 5 ? (
-            <ImageWithFallback
-              src={data?.teacher?.image}
-              alt="teacher image"
-              width={36}
-              height={36}
-              draggable={false}
-              fallbackSrc="/images/default-teacher.jpg"
-              className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
-            />
-          ) : null}
-          <div className="flex flex-col text-center">
-            <p
-              className={classNames('font-display font-semibold uppercase', {
-                'text-xs': schedule.h == 1,
-                // 'text-sm': schedule.h == 2,
+                onMouseLeave={() => setHoveredMergeable('')}
+              >
+                mergeable
+              </p>
+            ) : null}
+            <div
+              className={classNames('absolute top-0 right-0 m-1 hidden gap-1', {
+                'group-hover:flex': !isResizing,
               })}
+              onClick={(e) => e.stopPropagation()}
             >
-              {data.code}
-            </p>
-            {schedule.h > 2 && (
-              <p className="text-xs font-medium">
-                {data?.teacher?.firstName} {data?.teacher?.lastName}
+              {schedule.static && mergeable && (
+                <SchedulerLayoutItemButton
+                  toolTipId="merge"
+                  toolTipContent="Merge"
+                  onClick={() => {
+                    setToMergeSchedule(schedule);
+                    setHoveredMergeable(null);
+                    setIsMergeConfirmOpen(true);
+                  }}
+                  icon={<MdMergeType size={16} className="rotate-180" />}
+                  onMouseEnter={() =>
+                    setHoveredMergeable({
+                      subjectDataId: subject.id,
+                      layoutItem: schedule.i,
+                    })
+                  }
+                  onMouseLeave={() => setHoveredMergeable(null)}
+                />
+              )}
+              {!schedule.static &&
+                courses.length > 1 &&
+                isCourseInSubjectSchedule && (
+                  <SchedulerLayoutItemButton
+                    toolTipId="split"
+                    toolTipContent="Split"
+                    onClick={() => handleSplitMerge(schedule)}
+                    icon={<MdCallSplit size={16} />}
+                  />
+                )}
+              {!schedule.static && (
+                <SchedulerLayoutItemButton
+                  toolTipId="remove"
+                  toolTipContent="Remove"
+                  onClick={(e) => {
+                    if (courses.length > 1) {
+                      setIsRemoveConfirmOpen(true);
+                      setToRemoveMerged(schedule.i);
+                    } else {
+                      removeLayoutItem(schedule.i);
+                    }
+                  }}
+                  icon={<MdRemove size={16} />}
+                />
+              )}
+            </div>
+            {schedule.h > 5 ? (
+              <ImageWithFallback
+                src={subject?.data?.teacher?.image}
+                alt="teacher image"
+                width={36}
+                height={36}
+                draggable={false}
+                fallbackSrc="/images/default-teacher.jpg"
+                className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+              />
+            ) : null}
+            <div className="flex flex-col text-center">
+              <p
+                className={classNames('font-display font-semibold uppercase', {
+                  'text-xs': schedule.h == 1,
+                  // 'text-sm': schedule.h == 2,
+                })}
+              >
+                {subject?.data.code}
+              </p>
+              {schedule.h > 2 && (
+                <p className="text-xs font-medium">
+                  {subject?.data?.teacher?.firstName}{' '}
+                  {subject?.data?.teacher?.lastName}
+                </p>
+              )}
+            </div>
+            {(schedule.static || isCourseInSubjectSchedule) && (
+              <p
+                className={classNames(
+                  'max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase'
+                  // { 'text-xs': schedule.h <= 2 }
+                )}
+              >
+                {courseText}{' '}
+                {courses.length > 1 && (
+                  <span className="lowercase">
+                    {courses.length - 1 > 1 ? 'others' : 'other'}
+                  </span>
+                )}
               </p>
             )}
           </div>
-          {(schedule.static || inSubjectCourses) && (
+        );
+      } else {
+        return (
+          <div
+            key={schedule.i}
+            className={classNames(
+              'group relative flex select-none flex-col items-center justify-center gap-2 overflow-hidden rounded-lg border-2 border border-gray-400 bg-gray-100 p-2'
+            )}
+          >
+            {schedule.h > 5 ? (
+              <ImageWithFallback
+                src={subject?.data?.teacher?.image}
+                alt="teacher image"
+                width={36}
+                height={36}
+                draggable={false}
+                fallbackSrc="/images/default-teacher.jpg"
+                className="aspect-square flex-shrink-0 overflow-hidden rounded-full object-cover"
+              />
+            ) : null}
+            <div className="flex flex-col text-center">
+              <p
+                className={classNames('font-display font-semibold uppercase', {
+                  'text-xs': schedule.h == 1,
+                  // 'text-sm': schedule.h == 2,
+                })}
+              >
+                {subject?.data.code}
+              </p>
+              {schedule.h > 2 && (
+                <p className="text-xs font-medium">
+                  {subject?.data?.teacher?.firstName}{' '}
+                  {subject?.data?.teacher?.lastName}
+                </p>
+              )}
+            </div>
             <p
               className={classNames(
                 'max-h-[50px] overflow-hidden text-ellipsis text-center text-sm font-medium uppercase'
@@ -399,9 +436,9 @@ export default function Scheduler({
                 </span>
               )}
             </p>
-          )}
-        </div>
-      );
+          </div>
+        );
+      }
     });
 
   const cellRestrictions = layout
@@ -458,7 +495,7 @@ export default function Scheduler({
         return subjSchedIds.includes(`${subjectCode}~${teacherId}`);
       });
 
-      const roomSchedules = createCourseSubjectSchedules(
+      const roomSchedules = createSubjectSchedules(
         subjSchedIds,
         roomLayoutItems,
         {
@@ -474,7 +511,7 @@ export default function Scheduler({
       const otherRoomScheds = [];
       roomsSubjSchedsLayouts.forEach((roomLayout) => {
         if (roomLayout.roomCode !== roomData.code) {
-          const schedules = createCourseSubjectSchedules(
+          const schedules = createSubjectSchedules(
             subjSchedIds,
             roomLayout.layout.filter((item) => {
               const { subjectCode, teacherId } = parseLayoutItemId(item.i);
@@ -493,10 +530,10 @@ export default function Scheduler({
         }
       });
 
-      let groupedCourseScheds = [...roomSchedules.schedules.course];
+      let groupedCourseScheds = [...roomSchedules.schedules.current];
       if (otherRoomScheds.length) {
         otherRoomScheds
-          .map((room) => room.schedules.course)
+          .map((room) => room.schedules.current)
           .flat()
           .forEach((roomSched) => {
             //check if its in the array already
@@ -540,14 +577,14 @@ export default function Scheduler({
         {
           ...roomSchedules,
           schedules: [
-            ...roomSchedules.schedules.course,
+            ...roomSchedules.schedules.current,
             ...roomSchedules.schedules.other,
           ],
         },
         ...otherRoomScheds.map((otherRoom) => ({
           ...otherRoom,
           schedules: [
-            ...otherRoom.schedules.course,
+            ...otherRoom.schedules.current,
             ...otherRoom.schedules.other,
           ],
         })),
@@ -576,8 +613,8 @@ export default function Scheduler({
   );
 
   function removeLayoutItem(layoutId) {
-    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutId);
-    if (courses.length >= 2) {
+    const { subjectCode, teacherId, scheduled } = parseLayoutItemId(layoutId);
+    if (scheduled.length >= 2) {
       const subjectData = subjectsData.find(
         (data) => data.id == `${subjectCode}~${teacherId}`
       );
@@ -618,7 +655,8 @@ export default function Scheduler({
     roomLayouts = roomsSubjSchedsLayouts
   ) {
     //parse layoutItemId
-    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItemId);
+    const { subjectCode, teacherId, scheduled } =
+      parseLayoutItemId(layoutItemId);
     //get the subject data ids
     const subjSchedIds = subjectsData.map((data) => data.id);
 
@@ -643,17 +681,14 @@ export default function Scheduler({
       );
 
       const remainingRowSpan = getRemainingRowSpan(
-        subjectData.units,
-        subjectLayoutItems,
-        maxHMultiplier
+        subjectData?.units ? subjectData.units * 60 : subjectData.minutes,
+        subjectLayoutItems
       );
 
       const updatedSubjSchedItems = subjectLayoutItems.map((item) => ({
         ...item,
         maxH: remainingRowSpan + item.h,
       }));
-
-      console.log(updatedSubjSchedItems);
 
       // update the layout items of other rooms
       const updatedRoomLayouts = otherRoomLayouts.map((roomLayout) => ({
@@ -707,7 +742,9 @@ export default function Scheduler({
     layoutItem,
     fromDrop = false
   ) {
-    const { subjectCode, teacherId, courses } = parseLayoutItemId(layoutItem.i);
+    const { subjectCode, teacherId, scheduled } = parseLayoutItemId(
+      layoutItem.i
+    );
     const subjectData = subjectsData.find(
       (data) => data.id == `${subjectCode}~${teacherId}`
     )?.data;
@@ -721,7 +758,7 @@ export default function Scheduler({
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          hasEqualCourses(courses, itemCourses)
+          hasEqualScheduled(scheduled, itemCourses)
         );
       });
 
@@ -759,7 +796,11 @@ export default function Scheduler({
             { totalMergingRowSpans: item.h, yStart: item.y }
           );
 
-          if (totalMergingRowSpans <= subjectData.units * maxHMultiplier) {
+          if (
+            totalMergingRowSpans <= subjectData?.units
+              ? (subjectData?.units * 60) / 10
+              : subjectData?.minutes / 10
+          ) {
             mergedItems.push({
               ...item,
               maxH: totalMergingRowSpans,
@@ -1154,7 +1195,7 @@ export default function Scheduler({
         return (
           subjectCode == itemSubjCode &&
           teacherId == itemTeacherId &&
-          hasEqualCourses(courses, itemCourses)
+          hasEqualScheduled(courses, itemCourses)
         );
       });
 
